@@ -13,7 +13,9 @@ from lilly_engine.core.context_manager import (
     extract_topics,
     get_context,
     save_context,
-    format_context_for_prompt
+    format_context_for_prompt,
+    load_memory,
+    save_memory,
 )
 
 def test_topic_extraction():
@@ -42,6 +44,11 @@ def test_save_and_load():
     
     # Save test entry
     test_user = "test_user_123"
+    # Ensure clean slate for this user (isolation from prior test runs)
+    mem = load_memory()
+    if "conversations" in mem and test_user in mem["conversations"]:
+        del mem["conversations"][test_user]
+        save_memory(mem)
     test_data = {
         "language": "es",
         "chart": {"sun": "Leo", "moon": "Pisces", "asc": "Virgo"},

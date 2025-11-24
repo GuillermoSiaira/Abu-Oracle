@@ -43,7 +43,8 @@ next_app/
 │   └── interpret/    # Interpretation display
 ├── components/
 │   ├── LillyPanel.tsx  # Interpretation display component
-│   └── Navigation.tsx  # Site navigation
+│   ├── Navigation.tsx  # Site navigation
+│   └── city-autocomplete.tsx # City autocomplete component
 └── styles/
     └── globals.css     # Tailwind and custom styles
 ```
@@ -66,6 +67,17 @@ next_app/
    - Identifies major life cycles
    - Params: `birthDate`
    - Returns: Saturn returns, Uranus oppositions, etc.
+
+4. `/api/rs/optimize` (POST) **[NEW - Sprint B]**
+   - IGP: Finds optimal Solar Return relocation cities
+   - Input: Birth data, target year, preferences
+   - Returns: Ranked locations with scores, metadata
+   - Features: Parallel evaluation, caching, filters
+
+5. `/api/cities/search` (GET) **[NEW - City Autocomplete]**
+   - City search for autocomplete
+   - Params: `q` (query string)
+   - Returns: Matching cities with name, country, lat, lon
 
 ### Lilly Engine (Port 8001)
 
@@ -116,7 +128,6 @@ NEXT_PUBLIC_LILLY_URL=http://localhost:8001
    - House cusps rendering
 
 3. Multilingual Support
-   - Spanish (default)
    - English support
    - Language-specific prompts
 
@@ -124,6 +135,11 @@ NEXT_PUBLIC_LILLY_URL=http://localhost:8001
    - React Markdown rendering
    - Tailwind styling
    - Mobile responsiveness
+
+5. City Autocomplete
+   - Debounced search implementation
+   - Integration with Abu Engine city search
+   - Updates latitude and longitude on selection
 
 ## Dependencies
 
@@ -215,3 +231,47 @@ graph LR
    - Implement rate limiting
 
 This documentation reflects the current state of the AI Oracle project as of October 30, 2025. All components are containerized and can be run using Docker Compose.
+
+## City Autocomplete Implementation (2025-11)
+
+### Overview
+- The frontend (Next.js) now includes a city autocomplete component (`components/city-autocomplete.tsx`).
+- Implements debounced search (300ms) and calls Abu Engine endpoint: `GET /api/cities/search?q=<query>`.
+
+## Registro de decisión: Configuración de ABU_BASE_URL y puertos en producción (2025-11)
+
+### Contexto
+Para asegurar la correcta comunicación entre Lilly Engine y Abu Engine, se reemplazará el fallback `localhost:8000` por `abu_engine:8000` en el código de Lilly. Esto resuelve el error de conexión en entornos Docker Compose.
+
+### Configuración recomendada por entorno
+
+**Opción A: Docker Compose (local o servidor)**
+- Lilly Engine debe usar:
+  `ABU_BASE_URL=http://abu_engine:8000`
+- Docker Compose crea una red interna y los servicios se comunican por nombre de servicio y puerto.
+- No es necesario cambiar nada al pasar de desarrollo local a producción en Docker Compose.
+
+**Opción B: Cloud Run (GCP) + FE en Vercel**
+- Cada servicio tiene su propia URL pública.
+- Lilly Engine debe usar:
+  `ABU_BASE_URL=https://abu-engine-<id>.a.run.app`
+- Next.js FE debe usar:
+  `NEXT_PUBLIC_ABU_URL=https://abu-engine-<id>.a.run.app`
+  `NEXT_PUBLIC_LILLY_URL=https://lilly-engine-<id>.a.run.app`
+- Configurar estas variables en los archivos `.env` de cada servicio.
+
+**Opción C: VM con Docker (FE también en Docker)**
+- Igual que Docker Compose local:
+  - FE accede a Lilly por `http://lilly_engine:8001`
+  - Lilly accede a Abu por `http://abu_engine:8000`
+
+### Resumen y recomendaciones
+- El cambio de `localhost` a `abu_engine` es correcto y necesario para Docker Compose.
+- En producción, la URL de Abu debe configurarse según el entorno:
+  - Docker Compose: nombre de servicio y puerto interno.
+  - Cloud Run: URL pública HTTPS.
+  - VM Docker: nombre de servicio y puerto interno.
+- Siempre revisar y actualizar las variables de entorno antes de desplegar.
+- Documentar estos valores en los archivos `.env` y en la documentación de despliegue.
+
+---

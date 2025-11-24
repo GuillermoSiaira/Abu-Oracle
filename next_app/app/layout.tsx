@@ -1,20 +1,27 @@
-import '@/styles/globals.css'
-import 'leaflet/dist/leaflet.css'
+import type { Metadata } from "next"
+import { DM_Serif_Display, Inter } from "next/font/google"
+import "./globals.css"
 
-export const metadata = {
-  title: 'AI Oracle',
-  description: 'Astrology visualizer'
+const dmSerif = DM_Serif_Display({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-serif",
+})
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-sans",
+})
+
+export const metadata: Metadata = {
+  title: "AI Oracle",
+  description: "Astrological Intelligence Engine",
 }
-
-import Navigation from '@/components/Navigation'
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" className="dark">
-      <body className="min-h-screen font-serif bg-cosmic text-white">
-        <Navigation />
-        {children}
-      </body>
+    <html lang="en" className={`${dmSerif.variable} ${inter.variable}`}>
+      <body>{children}</body>
     </html>
   )
 }

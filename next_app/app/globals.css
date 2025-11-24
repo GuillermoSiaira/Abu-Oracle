@@ -1,0 +1,98 @@
+/* Tailwind base directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* -------------------------------
+   COLOR VARIABLES
+   (Compatibles con Tailwind v3)
+--------------------------------*/
+:root {
+  --background: #f7f7fb;
+  --foreground: #1a1a1c;
+
+  --primary: #c49a3a;
+  --primary-foreground: #fdfdfd;
+
+  --secondary: #3b3b5c;
+  --secondary-foreground: #fafafa;
+
+  --muted: #dcdcea;
+  --muted-foreground: #50506a;
+
+  --accent: #b47d18;
+  --accent-foreground: #121212;
+
+  --border: #d0d0dd;
+  --input: #d0d0dd;
+  --ring: #c49a3a;
+
+  --radius: 0.75rem;
+}
+
+.dark {
+  --background: #0f0f15;
+  --foreground: #f7f7fb;
+
+  --primary: #e3b557;
+  --primary-foreground: #101012;
+
+  --secondary: #2a2a47;
+  --secondary-foreground: #f7f7fb;
+
+  --muted: #1f1f2b;
+  --muted-foreground: #bcbcd4;
+
+  --accent: #d49c33;
+  --accent-foreground: #111112;
+
+  --border: #2b2b37;
+  --input: #2b2b37;
+  --ring: #e3b557;
+}
+
+/* -------------------------------
+   BASE STYLES
+   (Compatibles con Tailwind v3)
+--------------------------------*/
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  body {
+    @apply bg-[color:var(--background)] text-[color:var(--foreground)];
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+/* -------------------------------
+   CUSTOM SCROLLBAR
+--------------------------------*/
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--muted);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+/* -------------------------------
+   HOVER LIFT (UI EFFECT)
+--------------------------------*/
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+}

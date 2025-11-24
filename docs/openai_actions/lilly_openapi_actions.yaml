@@ -1,0 +1,68 @@
+openapi: 3.1.0
+info:
+  title: Lilly Engine Actions
+  version: 1.0.0
+  description: OpenAI Assistant action spec for Lilly interpretation endpoints (Cloud Run).
+servers:
+  - url: https://lilly-engine-503488473965.us-central1.run.app
+paths:
+  /api/ai/interpret:
+    post:
+      operationId: interpret_astrological_data
+      summary: Generar interpretación narrativa JSON-first en español.
+      description: Llama al motor Lilly para producir headline, narrative, acciones y metadata a partir de datos astrológicos.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                events: { type: array, items: { type: object } }
+                transits: { type: array, items: { type: object } }
+                planets: { type: array, items: { type: object } }
+                aspects: { type: array, items: { type: object } }
+                timeseries: { type: array, items: { type: object } }
+                peaks: { type: array, items: { type: object } }
+                language: { type: string, description: 'Idioma (es|en|pt|fr). Por defecto es.' }
+                question: { type: string }
+      responses:
+        '200':
+          description: Interpretación
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  headline: { type: string }
+                  narrative: { type: string }
+                  actions: { type: array, items: { type: string } }
+                  astro_metadata: { type: object }
+  /api/ai/solar-return:
+    post:
+      operationId: interpret_solar_return
+      summary: Interpretar retorno solar y recomendar ciudades favorables.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                natal_chart: { type: object }
+                solar_chart: { type: object }
+                language: { type: string }
+      responses:
+        '200':
+          description: Interpretación retorno solar
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  best_locations: { type: array, items: { type: object } }
+                  location_details: { type: array, items: { type: object } }
+                  reasoning: { type: string }
+                  natal_ascendant: { type: object }
+                  solar_ascendant: { type: object }
+                  astro_metadata: { type: object }

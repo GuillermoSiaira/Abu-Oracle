@@ -1,5 +1,30 @@
+"""
+LLM module for generating astrological interpretations using OpenAI's GPT models.
+Supports personalized chart interpretation with transits, events, and focused questions.
+"""
+
+import os
+import json
+import time
 import logging
-from core.knowledge import search_embeddings
+import httpx
+from dataclasses import dataclass, asdict
+from enum import Enum
+from openai import OpenAI
+from typing import List, Dict, Any, Optional, Union
+from datetime import datetime
+from pathlib import Path
+
+# Import context manager for semantic memory
+from .context_manager import (
+    get_context,
+    save_context,
+    format_context_for_prompt
+)
+
+# Import knowledge search for semantic axiom matching
+from .knowledge import search_embeddings
+
 # Helper to load axioms from Markdown
 def load_axioms(path=None, limit=8) -> str:
     use_axioms = os.getenv("LILLY_USE_AXIOMS", "true").lower() != "false"
@@ -24,31 +49,39 @@ def load_axioms(path=None, limit=8) -> str:
     except Exception as e:
         print(f"[WARN] Could not load axioms: {e}")
         return ""
-"""
-LLM module for generating astrological interpretations using OpenAI's GPT models.
-Supports personalized chart interpretation with transits, events, and focused questions.
-"""
 
-import os
-import json
-import time
-from dataclasses import dataclass, asdict
-from enum import Enum
-from openai import OpenAI
-from typing import List, Dict, Any, Optional, Union
-from datetime import datetime
-from pathlib import Path
 
-# Import context manager for semantic memory
-from core.context_manager import (
-    get_context,
-    save_context,
-    format_context_for_prompt
-)
+# Lazy OpenAI client initialization
+def get_openai_client():
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        raise RuntimeError("OPENAI_API_KEY is not set")
+    return OpenAI(
+        api_key=api_key,
+        timeout=httpx.Timeout(60.0, connect=10.0),
+        max_retries=2
+    )
 
-# Configure OpenAI client with API key from environment
-_OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
-_client = OpenAI(api_key=_OPENAI_API_KEY) if _OPENAI_API_KEY else None
+def validate_contract(output: Dict[str, Any]) -> tuple[bool, List[str]]:
+    """Validate the JSON contract expected by frontend and callers.
+
+    Returns (is_valid, errors).
+    """
+    required_top = ["headline", "narrative", "actions", "astro_metadata"]
+    errors: List[str] = []
+    for k in required_top:
+        if k not in output:
+            errors.append(f"missing key: {k}")
+    if "actions" in output and not isinstance(output["actions"], list):
+        errors.append("actions must be a list")
+    if "astro_metadata" in output and not isinstance(output["astro_metadata"], dict):
+        errors.append("astro_metadata must be an object")
+    # Validate astro_metadata minimum fields if present
+    meta = output.get("astro_metadata", {}) if isinstance(output.get("astro_metadata"), dict) else {}
+    for mk in ("model", "language"):
+        if mk not in meta:
+            errors.append(f"astro_metadata missing: {mk}")
+    return (len(errors) == 0, errors)
 
 class Language(str, Enum):
     """Supported languages for interpretations."""
@@ -361,8 +394,12 @@ def generate_interpretation(
     if not events:
         raise ValueError("No events provided for interpretation")
 
-    if not _client:
-        raise ValueError("OpenAI API key not configured")
+
+    # Lazy client initialization
+    try:
+        client = get_openai_client()
+    except Exception as e:
+        raise ValueError(f"OpenAI API key not configured: {str(e)}")
 
     try:
         # Build profile and chart for prompt
@@ -398,14 +435,16 @@ def generate_interpretation(
         # Get model from environment or use default
         model_name = os.getenv('LILLY_MODEL', 'gpt-4o-mini')
         
-        response = _client.chat.completions.create(
+        start_ts = time.time()
+        response = client.chat.completions.create(
             model=model_name,
             messages=[
                 {"role": "system", "content": system_msg},
                 {"role": "user", "content": prompt_text}
             ],
-            temperature=0.9,
-            max_tokens=900
+            temperature=0.7,
+            max_tokens=900,
+            response_format={"type": "json_object"}
         )
 
         # Extract content
@@ -458,6 +497,41 @@ def generate_interpretation(
         if reasoning and reasoning != "No explicit reasoning provided.":
             print(f"[INFO] Lilly produced reasoning: {reasoning[:80]}...")
         
+        # Normalize and enrich output
+        def _normalize_actions(items: Any) -> List[str]:
+            out: List[str] = []
+            if isinstance(items, list):
+                for it in items:
+                    if isinstance(it, str):
+                        s = it.strip()
+                        # Remove generic prefixes occasionally produced by LLMs
+                        for pref in ("Reflect on:", "Reflexiona sobre:", "Refletir sobre:", "Réfléchis à :"):
+                            if s.lower().startswith(pref.lower()):
+                                s = s[len(pref):].strip()
+                        if s:
+                            out.append(s)
+            return out[:6]
+
+        actions = _normalize_actions(actions)
+        headline = (headline or "").strip()
+        narrative = (narrative or "").strip()
+        abu_line = (abu_line or "").strip()
+        lilly_line = (lilly_line or "").strip()
+
+        # Enrich astro metadata with usage and runtime
+        runtime_ms = int((time.time() - start_ts) * 1000)
+        usage = getattr(response, "usage", None)
+        usage_dict = {}
+        if usage:
+            try:
+                usage_dict = {
+                    "prompt_tokens": getattr(usage, "prompt_tokens", None),
+                    "completion_tokens": getattr(usage, "completion_tokens", None),
+                    "total_tokens": getattr(usage, "total_tokens", None),
+                }
+            except Exception:
+                usage_dict = {}
+
         # Save to context memory with detected language
         save_context(
             user=user_name or "anonymous",
@@ -479,7 +553,10 @@ def generate_interpretation(
             "astro_metadata": {
                 "model": model_name,
                 "events_interpreted": len(events),
-                "language": detected_lang  # Include detected language in metadata
+                "language": detected_lang,  # Include detected language in metadata
+                "source": "openai",
+                "runtime_ms": runtime_ms,
+                **({"usage": usage_dict} if usage_dict else {})
             }
         }
 

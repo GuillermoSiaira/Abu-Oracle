@@ -48,6 +48,13 @@ def calculate_profection_year(birth_date: datetime, current_date: datetime = Non
     """
     if current_date is None:
         current_date = datetime.utcnow()
+
+    # Normalize timezone awareness to avoid naive/aware comparisons
+    # We operate in date arithmetic only; drop tzinfo for consistency
+    if hasattr(birth_date, 'tzinfo') and birth_date.tzinfo is not None:
+        birth_date = birth_date.replace(tzinfo=None)
+    if hasattr(current_date, 'tzinfo') and current_date.tzinfo is not None:
+        current_date = current_date.replace(tzinfo=None)
     
     # Calcular edad (años completos)
     age = current_date.year - birth_date.year
@@ -137,6 +144,12 @@ def calculate_monthly_profection(
     """
     if current_date is None:
         current_date = datetime.utcnow()
+
+    # Normalize timezone awareness like in annual calculation
+    if hasattr(birth_date, 'tzinfo') and birth_date.tzinfo is not None:
+        birth_date = birth_date.replace(tzinfo=None)
+    if hasattr(current_date, 'tzinfo') and current_date.tzinfo is not None:
+        current_date = current_date.replace(tzinfo=None)
     
     # Calcular profección anual primero
     annual = calculate_annual_profection(birth_date, natal_asc_sign, current_date)

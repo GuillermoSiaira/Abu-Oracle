@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -6,10 +6,14 @@ from typing import List, Dict, Any, Optional
 import json
 import os
 import warnings
+import httpx
 from core.llm import generate_interpretation, Language
 from core.assistants import generate_interpretation_assistants
 from core.context_manager import save_context
+from json_maestro import build_json_maestro
+from narrative_engine import generate_narrative
 
+# Models
 class AstroData(BaseModel):
     events: Optional[List[Dict[str, Any]]] = None
     transits: Optional[List[Dict[str, Any]]] = None
@@ -17,22 +21,49 @@ class AstroData(BaseModel):
     aspects: Optional[List[Dict[str, Any]]] = None
     timeseries: Optional[List[Dict[str, Any]]] = None
     peaks: Optional[List[Dict[str, Any]]] = None
-    language: Optional[str] = "es"  # es, en, pt, fr
-    question: Optional[str] = None  # Optional user question for language detection
-    tone: Optional[str] = None      # Optional tone/style override
+    language: Optional[str] = "es"
+    question: Optional[str] = None
+    tone: Optional[str] = None
 
-class InterpretResponse(BaseModel):
-    abu_line: Optional[str] = None
-    lilly_line: Optional[str] = None
-    headline: str
-    narrative: str
-    actions: List[str]
-    reasoning: Optional[str] = None
+class InterpretResponseMaestro(BaseModel):
+    maestro: Dict[str, Any]
+    narrative: Optional[str] = None
+
+class MaestroRequest(BaseModel):
+    birthDate: str
+    lat: float
+    lon: float
+    language: Optional[str] = "es"
+    include_transits: Optional[bool] = False
+    include_solar_return: Optional[bool] = False
+    solar_return_year: Optional[int] = None
+    include_narrative: Optional[bool] = False
+
+class FullInterpretRequest(BaseModel):
+    analysis: Dict[str, Any]
+    question: Optional[str] = None
+    language: Optional[str] = "es"
+
+class FullInterpretResponse(BaseModel):
+    maestro: Dict[str, Any]
+    narrative: Optional[str] = None
+    ai: Optional[Dict[str, Any]] = None
+
+class SolarReturnData(BaseModel):
+    natal_chart: Dict[str, Any]
+    solar_chart: Dict[str, Any]
+    language: Optional[str] = "es"
+
+class SolarReturnResponse(BaseModel):
+    best_locations: List[str]
+    location_details: List[Dict[str, Any]]
+    reasoning: str
+    natal_ascendant: Dict[str, Any]
+    solar_ascendant: Dict[str, Any]
     astro_metadata: Dict[str, Any]
 
+# App instance
 app = FastAPI(title="Lilly Engine - Interpretación Astrológica")
-
-# Configure CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000"],
@@ -40,6 +71,38 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
+
+# Debug endpoints
+@app.get("/debug/connectivity")
+async def test_connectivity():
+    import socket
+    import ssl
+    try:
+        context = ssl.create_default_context()
+        with socket.create_connection(("api.openai.com", 443), timeout=10) as sock:
+            with context.wrap_socket(sock, server_hostname="api.openai.com") as ssock:
+                return {"status": "ok", "openai_reachable": True, "message": "Successfully connected to api.openai.com"}
+    except Exception as e:
+        return {"status": "error", "openai_reachable": False, "error": str(e), "error_type": type(e).__name__}
+
+@app.get("/debug/api-key")
+async def check_api_key():
+    from core.llm import get_openai_client
+    api_key = os.getenv("OPENAI_API_KEY", "")
+    has_key = bool(api_key)
+    key_len = len(api_key)
+    key_prefix = api_key[:10] + "..." if key_len > 10 else "N/A"
+    try:
+        client = get_openai_client()
+        client_ok = True
+    except Exception:
+        client_ok = False
+    return {
+        "has_api_key": has_key,
+        "key_length": key_len,
+        "key_prefix": key_prefix,
+        "client_initialized": client_ok
+    }
 
 # Load archetypes from JSON file
 archetypes = {}
@@ -50,22 +113,24 @@ try:
 except Exception:
     archetypes = {}
 
+# Main endpoints
 @app.post(
-    "/api/ai/interpret",
-    response_model=InterpretResponse,
+    "/api/ai/interpret/full",
+    response_model=FullInterpretResponse,
     responses={
         400: {"description": "Invalid input data"},
+        502: {"description": "Abu Engine error"},
         200: {
-            "description": "Astrological interpretation",
+            "description": "Full interpretation response",
             "content": {
                 "application/json": {
                     "example": {
-                        "headline": "Learning and Growth Period",
-                        "narrative": "Generated interpretation based on events.",
-                        "actions": ["Action 1", "Action 2", "Action 3"],
-                        "astro_metadata": {
-                            "events": 5,
-                            "source": "openai"
+                        "maestro": {"metadata": {"mode": "persian_cosmology"}},
+                        "narrative": "Narrativa heurística...",
+                        "ai": {
+                            "headline": "...",
+                            "narrative": "...",
+                            "actions": ["...", "..."]
                         }
                     }
                 }
@@ -73,216 +138,104 @@ except Exception:
         }
     }
 )
-def interpret_astro_data(data: AstroData):
-    """
-    Interprets astrological data using OpenAI if available, falling back to archetypes.
-    Includes source information in all responses.
-    """
+def interpret_full_endpoint(data: FullInterpretRequest):
     try:
-        num_events = len(data.events) if data.events else 0
-        
-        # Try OpenAI if we have an API key and some meaningful data
-        use_assistants = os.getenv('USE_ASSISTANTS', 'false').lower() == 'true'
-        if (api_key := os.getenv('OPENAI_API_KEY')) and (
-            (data.events and len(data.events) > 0)
-            or (data.transits and len(data.transits) > 0)
-            or (data.planets and len(data.planets) > 0)
-            or (data.aspects and len(data.aspects) > 0)
-            or (data.timeseries and len(data.timeseries) > 0)
-            or (data.peaks and len(data.peaks) > 0)
-        ):
-            try:
-                # Map language to Language enum (support es, en, pt, fr)
-                lang_map = {
-                    "es": Language.ES,
-                    "en": Language.EN,
-                    "pt": Language.PT,
-                    "fr": Language.FR
-                }
-                lang = lang_map.get(data.language, Language.ES)
-                
-                # Prefer events; fallback to transits; otherwise include other signals
-                payload = (
-                    data.events if (data.events and len(data.events) > 0)
-                    else data.transits if (data.transits and len(data.transits) > 0)
-                    else data.aspects if (data.aspects and len(data.aspects) > 0)
-                    else data.planets if (data.planets and len(data.planets) > 0)
-                    else data.timeseries if (data.timeseries and len(data.timeseries) > 0)
-                    else data.peaks if (data.peaks and len(data.peaks) > 0) else []
-                )
-
-                # Map life-cycle style events (with 'cycle') into LLM Event schema
-                # Expected by LLM Event dataclass: {"type", "planet", "to", "angle?", "peak?"}
-                if isinstance(payload, list) and payload and isinstance(payload[0], dict) and 'cycle' in payload[0]:
-                    mapped = []
-                    for e in payload:
-                        cycle = (e.get('cycle') or '').lower()
-                        planet = e.get('planet') or 'Unknown'
-                        # Derive a simple event type and target
-                        if 'return' in cycle:
-                            etype = 'return'
-                            target = planet
-                        elif 'opposition' in cycle:
-                            etype = 'opposition'
-                            target = planet
-                        elif 'square' in cycle:
-                            etype = 'square'
-                            target = planet
-                        else:
-                            etype = cycle.replace(' ', '_') or 'event'
-                            target = planet
-                        mapped.append({
-                            'type': etype,
-                            'planet': planet,
-                            'to': target,
-                            'angle': e.get('angle'),
-                            'peak': e.get('approx')
-                        })
-                    payload = mapped
-
-                # Extract a simple chart summary from planets (if available)
-                chart_summary = {}
-                if data.planets:
-                    try:
-                        sun = next((p for p in data.planets if p.get("name") == "Sun"), None)
-                        moon = next((p for p in data.planets if p.get("name") == "Moon"), None)
-                        chart_summary = {
-                            "sun": (sun or {}).get("sign"),
-                            "moon": (moon or {}).get("sign"),
-                            "asc": None
-                        }
-                    except Exception:
-                        chart_summary = {}
-                
-                if use_assistants:
-                    # Use Assistants API path with tool-calling to Abu
-                    llm_response = generate_interpretation_assistants(
-                        events=payload,
-                        language=data.language or "es",
-                        question=data.question,
-                        tone=data.tone or "psicológico"
-                    )
-                else:
-                    # Classic Chat Completions path
-                    llm_response = generate_interpretation(
-                        payload,
-                        lang=lang,
-                        user_name="anonymous",
-                        chart_data=chart_summary or None,
-                        question=data.question,
-                        tone=data.tone or "psicológico"
-                    )
-                
-                if llm_response:
-                    # Preserve source if provided by the LLM path; otherwise set based on mode
-                    src = llm_response.get("astro_metadata", {}).get("source")
-                    if not src:
-                        llm_response.setdefault("astro_metadata", {})["source"] = "assistants" if use_assistants else "openai"
-                    return llm_response
-                    
-            except Exception as e:
-                warnings.warn(f"OpenAI API error: {str(e)}. Falling back to archetypes.")
-        
-        # Fallback to archetype-based interpretation
-        matched = None
-        if data.events:
-            for event in data.events:
-                cycle = event.get("cycle")
-                if cycle and cycle in archetypes:
-                    matched = archetypes[cycle]
-                    break
-        
-        # If we found a matching archetype, use it
-        if matched:
-            result = {
-                "headline": matched["theme"],
-                "narrative": f"Keywords: {', '.join(matched['keywords'])}. Tone: {matched['tone']}",
-                "actions": [f"Reflect on: {kw}" for kw in matched["keywords"]],
-                "astro_metadata": {
-                    "events": num_events,
-                    "matched_cycle": cycle,
-                    "tone": matched["tone"],
-                    "source": "fallback",
-                    "data_type": "archetype"
-                }
-            }
-            # Save to context memory as well
-            try:
-                save_context(
-                    user="anonymous",
-                    entry={
-                        "language": data.language or "es",
-                        "headline": result["headline"],
-                        "narrative": result["narrative"],
-                        "chart_summary": {}
-                    }
-                )
-            except Exception:
-                pass
-            return result
-        
-        # Default response if no match found
-        data_type = (
-            "events" if (data.events and len(data.events) > 0)
-            else "transits" if (data.transits and len(data.transits) > 0)
-            else "chart" if data.planets
-            else "forecast" if data.timeseries
-            else "unknown"
-        )
-        
-        result = {
-            "headline": "Period of Learning and Growth",
-            "narrative": f"Identified {num_events} significant astrological events suggesting a period of transformation.",
-            "actions": [
-                "Keep a personal reflection journal",
-                "Explore new areas of knowledge",
-                "Cultivate meaningful relationships"
-            ],
-            "astro_metadata": {
-                "events": num_events,
-                "data_type": data_type,
-                "source": "fallback"
-            }
-        }
-        # Save to context memory (generic fallback)
+        maestro = build_json_maestro(data.analysis, metadata_context={"language": data.language or "es"})
         try:
-            save_context(
-                user="anonymous",
-                entry={
-                    "language": data.language or "es",
-                    "headline": result["headline"],
-                    "narrative": result["narrative"],
-                    "chart_summary": {}
-                }
-            )
+            narrative_text = generate_narrative(maestro, data.language or "es")
         except Exception:
-            pass
-        return result
-        
+            narrative_text = None
+        try:
+            ai_result = generate_interpretation(
+                maestro,
+                question=data.question or "",
+                lang=data.language or "es"
+            )
+        except Exception as e:
+            ai_result = {
+                "headline": "No se pudo generar interpretación AI.",
+                "narrative": str(e),
+                "actions": []
+            }
+        return {
+            "maestro": maestro,
+            "narrative": narrative_text,
+            "ai": ai_result
+        }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@app.get("/")
-def root():
-    return {"message": "Lilly Engine is running correctly!"}
+@app.post(
+    "/api/ai/interpret",
+    response_model=InterpretResponseMaestro,
+    responses={
+        400: {"description": "Invalid input data"},
+        502: {"description": "Abu Engine error"},
+        200: {
+            "description": "JSON Maestro response",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "maestro": {
+                            "metadata": {"mode": "persian_cosmology"},
+                            "year_overview": {"year_element": "water"}
+                        }
+                    }
+                }
+            }
+        }
+    }
+)
+def interpret_astro_data(data: MaestroRequest):
+    try:
+        abu_base = os.getenv("ABU_BASE_URL") or os.getenv("NEXT_PUBLIC_ABU_URL") or "http://abu_engine:8000"
 
-
-class SolarReturnData(BaseModel):
-    """Solar Return chart data for relocation analysis."""
-    natal_chart: Dict[str, Any]
-    solar_chart: Dict[str, Any]
-    language: Optional[str] = "es"
-
-
-class SolarReturnResponse(BaseModel):
-    """Solar Return interpretation with relocation suggestions."""
-    best_locations: List[str]
-    location_details: List[Dict[str, Any]]
-    reasoning: str
-    natal_ascendant: Dict[str, Any]
-    solar_ascendant: Dict[str, Any]
-    astro_metadata: Dict[str, Any]
-
+        params = {
+            "date": data.birthDate,
+            "lat": data.lat,
+            "lon": data.lon,
+        }
+        if data.include_transits:
+            params["include_transits"] = True
+        if data.include_solar_return:
+            params["include_solar_return"] = True
+        if data.solar_return_year is not None:
+            params["solar_return_year"] = data.solar_return_year
+        try:
+            with httpx.Client(timeout=30.0) as client:
+                resp = client.get(f"{abu_base}/api/astro/chart/extended", params=params)
+        except Exception as e:
+            raise HTTPException(status_code=502, detail=f"Abu Engine error: {str(e)}")
+        if resp.status_code == 500:
+            raise HTTPException(status_code=502, detail="Abu Engine error")
+        if resp.status_code != 200:
+            raise HTTPException(status_code=502, detail=f"Abu Engine error ({resp.status_code})")
+        try:
+            chart_extended = resp.json()
+        except Exception:
+            raise HTTPException(status_code=502, detail="Abu Engine error: invalid JSON")
+        if not chart_extended or (not chart_extended.get("chart") and not chart_extended.get("extended")):
+            raise HTTPException(status_code=400, detail="Extended chart data is empty")
+        maestro = build_json_maestro(
+            chart_extended,
+            metadata_context={
+                "language": data.language or "es",
+                "birthDate": data.birthDate,
+                "lat": data.lat,
+                "lon": data.lon,
+            },
+        )
+        narrative_text = None
+        if data.include_narrative:
+            try:
+                narrative_text = generate_narrative(maestro, data.language or "es")
+            except Exception as e:
+                narrative_text = None
+        return {"maestro": maestro, "narrative": narrative_text}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @app.post(
     "/api/ai/solar-return",
@@ -320,32 +273,20 @@ class SolarReturnResponse(BaseModel):
     }
 )
 def interpret_solar_return_endpoint(data: SolarReturnData):
-    """
-    Interprets a Solar Return chart and suggests favorable relocation options.
-    
-    Compares natal and solar return Ascendants, analyzing elements and modes.
-    Returns 2-3 geographic locations where the solar return chart would be
-    more favorable based on Ascendant shifts.
-    
-    Args:
-        data: Solar return data including natal_chart, solar_chart, and language
-    
-    Returns:
-        Solar return interpretation with best_locations and reasoning
-    """
     try:
-        from lilly_engine.core.solar_return import interpret_solar_return
-        
+        from core.solar_return import interpret_solar_return
         result = interpret_solar_return(
             natal_chart=data.natal_chart,
             solar_chart=data.solar_chart,
             language=data.language
         )
-        
         return result
-        
     except Exception as e:
         raise HTTPException(
             status_code=400,
             detail=f"Error interpreting solar return: {str(e)}"
         )
+
+@app.get("/")
+def root():
+    return {"message": "Lilly Engine is running correctly!"}

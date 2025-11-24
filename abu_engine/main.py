@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
+from contextlib import asynccontextmanager
 import requests
 import json
 from pathlib import Path
@@ -38,8 +39,39 @@ def send_to_lilly(data: dict) -> dict:
     except (requests.RequestException, ValueError):
         return {"error": "Lilly not available"}
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Warm-up heavy resources on startup to avoid cold-start latency/errors."""
+    # Startup
+    try:
+        logging.info("[Abu] Warm-up starting…")
+        # Ensure SPICE kernel (de440s.bsp) is loaded
+        EphemerisSingleton()
+
+        # Run a tiny chart calculation to prime Skyfield internals
+        from datetime import timezone
+        sample_dt = datetime(1990, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+        chart_json(-34.6, -58.4, sample_dt)
+
+        # Also prime solar-return path (binary search + scoring)
+        # Use a fixed year to keep it quick/predictable
+        try:
+            solar_return_chart(sample_dt, -34.6, -58.4, sample_dt.year + 1)
+        except Exception:
+            # If anything fails here, it's just warm-up; don't block startup
+            pass
+        logging.info("[Abu] Warm-up complete.")
+    except Exception as err:
+        logging.error(f"[Abu] Warm-up failed: {err}")
+        raise
+    
+    yield
+    # Shutdown (if needed in future)
+
+
 init_logging()  # initialize structured logging (JSON if ABU_VERBOSE=1)
-app = FastAPI(title="Abu Engine")
+app = FastAPI(title="Abu Engine", lifespan=lifespan)
 app.swagger_ui_parameters = {"defaultModelsExpandDepth": -1}
 
 # Configurar CORS
@@ -284,32 +316,6 @@ def get_analyze_contract():
             }
         }
     }
-
-
-# Warm-up heavy resources on startup to avoid cold-start latency/errors
-@app.on_event("startup")
-async def warm_up():
-    """Pre-carga efemérides y ejecuta cálculos ligeros para evitar 500 en primer hit."""
-    try:
-        logging.info("[Abu] Warm-up starting…")
-        # Ensure SPICE kernel (de440s.bsp) is loaded
-        EphemerisSingleton()
-
-        # Run a tiny chart calculation to prime Skyfield internals
-        from datetime import timezone
-        sample_dt = datetime(1990, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
-        chart_json(-34.6, -58.4, sample_dt)
-
-        # Also prime solar-return path (binary search + scoring)
-        # Use a fixed year to keep it quick/predictable
-        try:
-            solar_return_chart(sample_dt, -34.6, -58.4, sample_dt.year + 1)
-        except Exception:
-            # If anything fails here, it's just warm-up; don't block startup
-            pass
-        logging.info("[Abu] Warm-up complete.")
-    except Exception as e:
-        logging.warning(f"[Abu] Warm-up failed: {e}")
 
 
 @app.get(
@@ -628,7 +634,7 @@ def get_chart_detailed(
         "datetime": base_chart.datetime,
         "location": base_chart.location,
         "planets": detailed_planets,
-        "aspects": [a.dict() for a in base_chart.aspects],
+        "aspects": [a.model_dump() for a in base_chart.aspects],
         "arabic_parts": {
             "part_of_fortune": {
                 "longitude": round(pof_lon, 4),
@@ -658,6 +664,246 @@ def get_chart_detailed(
     else:
         response["houses"] = houses_block
     return response
+
+
+@app.get(
+    "/api/astro/chart/extended",
+    response_model=None,
+    responses={
+        400: {"description": "Missing lat/lon/date"},
+        422: {"description": "Invalid date format"},
+        200: {
+            "description": "Unified extended chart with all Persian/classical calculations in a single response",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "chart": {
+                            "datetime": "2026-07-05T12:00:00+00:00",
+                            "location": {"lat": -34.6, "lon": -58.4},
+                            "planets": [],
+                            "aspects": []
+                        },
+                        "extended": {
+                            "dignities": {},
+                            "lots": [],
+                            "fardars": {},
+                            "profections": {},
+                            "lunar_mansion": {},
+                            "fixed_stars": [],
+                            "solar_return": {},
+                            "solar_return_ranking": {},
+                            "transits": []
+                        }
+                    }
+                }
+            }
+        }
+    }
+)
+def get_chart_extended(
+    date: str = Query(..., description="Fecha y hora en formato ISO (ej: 2026-07-05T12:00:00Z)"),
+    lat: float = Query(..., description="Latitud en grados decimales"),
+    lon: float = Query(..., description="Longitud en grados decimales"),
+    include_transits: bool = Query(False, description="Incluir tránsitos vs natal (opcional)"),
+    include_solar_return: bool = Query(False, description="Incluir Solar Return (opcional)"),
+    solar_return_year: int = Query(None, description="Año para Solar Return (opcional, por defecto año actual)"),
+    include_ranking: bool = Query(False, description="Incluir ranking de ciudades para Solar Return (opcional)")
+):
+    """
+    Endpoint unificado que retorna carta natal + todas las técnicas persas/clásicas en un solo JSON.
+    
+    Este endpoint es la **fuente única de verdad** para Lilly Engine.
+    
+    Incluye:
+    - Carta base (planetas, aspectos, casas)
+    - Dignidades esenciales y accidentales
+    - Lotes (Fortuna, Espíritu, Eros, Necesidad)
+    - Firdaria (períodos planetarios)
+    - Profecciones (anual y mensual)
+    - Mansión lunar
+    - Estrellas fijas
+    - Solar Return (opcional)
+    - Ranking de ciudades para Solar Return (opcional)
+    - Tránsitos (opcional)
+    
+    Manejo resiliente: si algún sub-cálculo falla, retorna {"error": "..."} sin abortar el endpoint.
+    """
+    if lat is None or lon is None or date is None:
+        raise HTTPException(status_code=400, detail="Missing lat/lon/date")
+    
+    try:
+        date_utc = datetime.fromisoformat(date.replace("Z", "+00:00"))
+    except Exception:
+        raise HTTPException(status_code=422, detail="Invalid date format")
+    
+    # 1. Get base chart (chart-detailed internally for houses/dignities)
+    chart_detailed = None
+    try:
+        chart_detailed = get_chart_detailed(date, lat, lon)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Chart calculation failed: {str(e)}")
+    
+    # Extract core values for sub-calculations
+    planets_raw = chart_detailed.get("planets") or []
+    by_name = {(p.get("name") or ""): p for p in planets_raw}
+    
+    def get_lon(planet_entry: dict):
+        for k in ("longitude", "lon"):
+            if k in planet_entry and isinstance(planet_entry[k], (int, float)):
+                return float(planet_entry[k])
+        return None
+    
+    sun_lon = get_lon(by_name.get("Sun", {})) or 0.0
+    moon_lon = get_lon(by_name.get("Moon", {})) or 0.0
+    venus_lon = get_lon(by_name.get("Venus", {}))
+    mercury_lon = get_lon(by_name.get("Mercury", {}))
+    
+    asc_str = (chart_detailed.get("asc") or chart_detailed.get("houses", {}).get("asc"))
+    asc_sign = None
+    if isinstance(asc_str, str) and asc_str.strip():
+        asc_sign = asc_str.split(" ")[0]
+    
+    asc_lon = chart_detailed.get("asc_longitude") or chart_detailed.get("ascLong") or chart_detailed.get("ascLon")
+    if asc_lon is None:
+        asc_lon = chart_detailed.get("houses", {}).get("asc_longitude")
+    
+    # Cusps for lots
+    cusps = None
+    houses = chart_detailed.get("houses")
+    if isinstance(houses, dict) and isinstance(houses.get("houses"), list):
+        cusps = [h.get("longitude") for h in houses["houses"] if isinstance(h.get("longitude"), (int, float))]
+    elif isinstance(houses, list):
+        cusps = [h.get("longitude") for h in houses if isinstance(h.get("longitude"), (int, float))]
+    
+    # Planets list for fixed stars and transits
+    planets_list = []
+    for p in planets_raw:
+        lon_val = get_lon(p)
+        if lon_val is None:
+            continue
+        name = p.get("name") or "?"
+        planets_list.append({"name": name, "longitude": float(lon_val)})
+    
+    # Build extended block (resilient sub-calls)
+    extended = {}
+    
+    # Dignities (already in chart_detailed planets, extract summary)
+    extended["dignities"] = {"note": "Dignities included per-planet in chart.planets[].dignity"}
+    
+    # Lots
+    try:
+        from core.lots import calculate_all_lots
+        if sun_lon and moon_lon and asc_lon:
+            planets_dict = {
+                "Sun": sun_lon,
+                "Moon": moon_lon,
+                "Venus": venus_lon if venus_lon else 0,
+                "Mercury": mercury_lon if mercury_lon else 0
+            }
+            extended["lots"] = calculate_all_lots(planets_dict, asc_lon, cusps)
+        else:
+            extended["lots"] = {"error": "Missing sun/moon/asc for lots calculation"}
+    except Exception as e:
+        extended["lots"] = {"error": f"Lots calculation failed: {str(e)}"}
+    
+    # Fardars
+    try:
+        from core.fardars import calculate_fardars, get_current_fardar, is_diurnal_chart
+        if sun_lon and asc_lon:
+            is_diurnal = is_diurnal_chart(sun_lon, asc_lon)
+            fardars = calculate_fardars(date_utc, is_diurnal)
+            current = get_current_fardar(date_utc, is_diurnal, None)
+            extended["fardars"] = {
+                "fardars": fardars,
+                "current": current,
+                "is_diurnal": is_diurnal
+            }
+        else:
+            extended["fardars"] = {"error": "Missing sun/asc for fardars"}
+    except Exception as e:
+        extended["fardars"] = {"error": f"Fardars calculation failed: {str(e)}"}
+    
+    # Profections
+    try:
+        from core.profections import calculate_annual_profection, calculate_monthly_profection
+        if asc_sign:
+            annual = calculate_annual_profection(date_utc, asc_sign, None)
+            monthly = calculate_monthly_profection(date_utc, asc_sign, None)
+            extended["profections"] = {**annual, "monthly": monthly}
+        else:
+            extended["profections"] = {"error": "Missing asc_sign for profections"}
+    except Exception as e:
+        extended["profections"] = {"error": f"Profections calculation failed: {str(e)}"}
+    
+    # Lunar mansion
+    try:
+        from core.lunar_mansions import get_lunar_mansion, get_mansion_interpretation
+        if moon_lon:
+            mansion = get_lunar_mansion(moon_lon)
+            interpretation = get_mansion_interpretation(mansion)
+            extended["lunar_mansion"] = {**mansion, "interpretation": interpretation}
+        else:
+            extended["lunar_mansion"] = {"error": "Missing moon for lunar mansion"}
+    except Exception as e:
+        extended["lunar_mansion"] = {"error": f"Lunar mansion calculation failed: {str(e)}"}
+    
+    # Fixed stars
+    try:
+        from core.fixed_stars import get_all_fixed_star_contacts, format_fixed_stars_output
+        if planets_list:
+            contacts = get_all_fixed_star_contacts(planets_list)
+            formatted = format_fixed_stars_output(contacts)
+            extended["fixed_stars"] = formatted
+        else:
+            extended["fixed_stars"] = {"error": "No planets for fixed stars"}
+    except Exception as e:
+        extended["fixed_stars"] = {"error": f"Fixed stars calculation failed: {str(e)}"}
+    
+    # Solar Return (optional)
+    if include_solar_return:
+        try:
+            result = solar_return_chart(date_utc, lat, lon, solar_return_year)
+            extended["solar_return"] = result
+        except Exception as e:
+            extended["solar_return"] = {"error": f"Solar return calculation failed: {str(e)}"}
+    else:
+        extended["solar_return"] = None
+    
+    # Solar Return Ranking (optional)
+    if include_ranking:
+        try:
+            from core.solar_return_ranking import rank_solar_return_cities
+            # Use birthDate = date for ranking (assumes natal chart as birth)
+            rankings = rank_solar_return_cities(date_utc, solar_return_year, cities=None, top_n=3)
+            extended["solar_return_ranking"] = rankings
+        except Exception as e:
+            extended["solar_return_ranking"] = {"error": f"Ranking calculation failed: {str(e)}"}
+    else:
+        extended["solar_return_ranking"] = None
+    
+    # Transits (optional)
+    if include_transits:
+        try:
+            from core.transits import calculate_transits, filter_major_transits
+            # Calculate current chart for transits
+            current_chart = chart_json(lat, lon, datetime.utcnow())
+            transit_planets_list = [
+                {"name": p.name, "longitude": p.lon, "speed": 0}
+                for p in current_chart.planets
+            ]
+            transits = calculate_transits(planets_list, transit_planets_list)
+            transits = filter_major_transits(transits, major_planets_only=True, max_orb=3.0)
+            extended["transits"] = transits
+        except Exception as e:
+            extended["transits"] = {"error": f"Transits calculation failed: {str(e)}"}
+    else:
+        extended["transits"] = None
+    
+    # Build unified response
+    return {
+        "chart": chart_detailed,
+        "extended": extended
+    }
 
 
 @app.get(
@@ -1588,6 +1834,21 @@ def analyze(payload: AnalyzeRequest = Body(
         forecast_block = {"error": "module not available"}
     t1_forecast = time.perf_counter()
 
+    # 9) Solar Return summary (optional block, conditional on near birthday)
+    solar_return_block = None
+    t0_solar_return = time.perf_counter()
+    try:
+        from core.solar_return_summary import summarize_solar_return, is_near_birthday
+        # Include if within 30 days of birthday
+        if is_near_birthday(birth_dt, current_dt, window_days=30):
+            solar_return_block = summarize_solar_return(
+                birth_dt, payload.birth.lat, payload.birth.lon, year=current_dt.year, lang="es"
+            )
+    except Exception as e:
+        # Fail silently to avoid breaking full analysis
+        solar_return_block = None
+    t1_solar_return = time.perf_counter()
+
     response = {
         "person": {
             "name": payload.person.name if payload.person else None,
@@ -1601,7 +1862,8 @@ def analyze(payload: AnalyzeRequest = Body(
             "sect": sect_label,
             "firdaria": {"current": firdaria_current} if firdaria_current is not None else {"current": None},
             "profection": {"house": profection_house_num},
-            "lunar_transit": lunar_transit
+            "lunar_transit": lunar_transit,
+            "solar_return": solar_return_block,
         },
         "life_cycles": life_cycles_block,
         "forecast": forecast_block,
@@ -1619,7 +1881,8 @@ def analyze(payload: AnalyzeRequest = Body(
             "profection_ms": round((t1_profection - t0_profection) * 1000, 2),
             "lunar_ms": round((t1_lunar - t0_lunar) * 1000, 2),
             "cycles_ms": round((t1_cycles - t0_cycles) * 1000, 2),
-            "forecast_ms": round((t1_forecast - t0_forecast) * 1000, 2)
+            "forecast_ms": round((t1_forecast - t0_forecast) * 1000, 2),
+            "solar_return_ms": round((t1_solar_return - t0_solar_return) * 1000, 2),
         })
     except Exception:
         pass
@@ -1832,3 +2095,185 @@ def interpret_endpoint(data: InterpretInput = Body(
         pass
 
     return JSONResponse(content=result)
+
+
+# ============================================================
+# IGP (Predictive Geographic Intelligence) — Sprint 1
+# ============================================================
+
+class IGPBirthData(BaseModel):
+    """Birth data for IGP optimization."""
+    date: str = Field(..., description="Birth datetime (ISO8601, UTC preferred)")
+    lat: float = Field(..., description="Birth latitude (decimal degrees)")
+    lon: float = Field(..., description="Birth longitude (decimal degrees)")
+
+
+class IGPPreferences(BaseModel):
+    """User preferences for IGP search."""
+    min_score: Optional[float] = Field(None, ge=0.0, le=1.0, description="Minimum score filter (0.0–1.0)")
+    exclude_regions: Optional[List[str]] = Field(None, description="Regions to exclude (e.g., ['ocean'])")
+    max_candidates: Optional[int] = Field(50, ge=1, le=500, description="Max cities to return")
+    continents: Optional[List[str]] = Field(None, description="Continent allowlist (optional)")
+
+
+class IGPOptimizeRequest(BaseModel):
+    """Request body for /api/rs/optimize endpoint."""
+    birth: IGPBirthData
+    target_year: int = Field(..., description="Year for Solar Return (e.g., 2026)")
+    intent: str = Field("general", description="Scoring intent: general|health|career|relationships|creative")
+    preferences: Optional[IGPPreferences] = None
+    refine: bool = Field(False, description="Apply local refinement (Sprint 2, currently ignored)")
+    diversity: bool = Field(False, description="Apply geographic diversity (Sprint 2, currently ignored)")
+    language: str = Field("es", description="Response language: es|en|pt|fr")
+
+
+@app.post(
+    "/api/rs/optimize",
+    summary="IGP — Find optimal Solar Return locations",
+    description="Phase 1 (Sprint 1): Batch evaluation of cities for optimal SR relocation. Refinement and diversity deferred to Sprint 2.",
+    tags=["IGP"]
+)
+def igp_optimize(data: IGPOptimizeRequest):
+    """
+    IGP optimization endpoint — Sprint 1 implementation.
+    
+    Evaluates multiple cities in parallel to find optimal Solar Return locations.
+    
+    Returns:
+        JSON with best_locations, score_summary, astro_metadata
+    
+    Sprint 1 scope:
+        - Batch evaluation of cities (Phase 1)
+        - Parallel processing with multiprocessing
+        - Basic caching (in-memory LRU)
+    
+    Sprint 2 additions:
+        - Local refinement (refine flag)
+        - Geographic diversity clustering (diversity flag)
+        - Intent-based weighting
+        - Lilly narrative reasoning
+    """
+    from core.igp_optimizer import (
+        compute_sr_instant,
+        batch_evaluate_cities,
+        load_cities_dataset
+    )
+    from core.igp_cache import get_global_cache
+    
+    t0 = time.perf_counter()
+    
+    # Parse birth datetime
+    try:
+        birth_date = datetime.fromisoformat(data.birth.date.replace("Z", "+00:00"))
+    except Exception:
+        raise HTTPException(status_code=422, detail="Invalid birth date format")
+    
+    # Validate target year
+    if data.target_year < birth_date.year:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Target year {data.target_year} cannot be before birth year {birth_date.year}"
+        )
+    
+    # Compute SR instant
+    try:
+        t0_sr = time.perf_counter()
+        sr_datetime = compute_sr_instant(
+            birth_date,
+            data.birth.lat,
+            data.birth.lon,
+            data.target_year
+        )
+        t1_sr = time.perf_counter()
+    except ImportError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        logger.exception("SR instant computation failed: %s", str(e))
+        raise HTTPException(status_code=500, detail="SR computation error")
+    
+    # Load cities dataset (MVP: use existing RELOCATION_CITIES)
+    # TODO: Switch to external cities.json when available
+    try:
+        from core.solar_return_ranking import RELOCATION_CITIES
+        cities = [
+            {
+                'name': name,
+                'lat': data['lat'],
+                'lon': data['lon'],
+                'country': data.get('region', 'Unknown')
+            }
+            for name, data in RELOCATION_CITIES.items()
+        ]
+    except Exception as e:
+        logger.exception("Cities dataset load failed: %s", str(e))
+        raise HTTPException(status_code=500, detail="Cities dataset unavailable")
+    
+    # Get cache instance
+    cache = get_global_cache(max_size=10000)
+    
+    # Batch evaluate cities
+    try:
+        t0_batch = time.perf_counter()
+        results = batch_evaluate_cities(
+            sr_datetime=sr_datetime,
+            cities=cities,
+            weights=None,  # Sprint 2
+            intent=data.intent,
+            cache=cache,  # Currently not used in batch_evaluate_cities, Sprint 1 TODO
+            max_workers=8
+        )
+        t1_batch = time.perf_counter()
+    except Exception as e:
+        logger.exception("Batch evaluation failed: %s", str(e))
+        raise HTTPException(status_code=500, detail="Evaluation error")
+    
+    # Apply preferences filters
+    if data.preferences and data.preferences.min_score is not None:
+        results = [r for r in results if r['score'] >= data.preferences.min_score]
+    
+    if data.preferences and data.preferences.max_candidates:
+        results = results[:data.preferences.max_candidates]
+    
+    # Format response
+    best_locations = results[:10]  # Top 10 for display
+    
+    # Compute score summary (aggregate stats)
+    scores = [r['score'] for r in results]
+    score_summary = {
+        'mean': sum(scores) / len(scores) if scores else 0.0,
+        'max': max(scores) if scores else 0.0,
+        'min': min(scores) if scores else 0.0,
+        'top_10_avg': sum(s['score'] for s in best_locations) / len(best_locations) if best_locations else 0.0
+    }
+    
+    t1 = time.perf_counter()
+    
+    # Log event
+    try:
+        log_event("igp.optimize", {
+            "dur_ms": round((t1 - t0) * 1000, 2),
+            "sr_instant_ms": round((t1_sr - t0_sr) * 1000, 2),
+            "batch_eval_ms": round((t1_batch - t0_batch) * 1000, 2),
+            "cities_evaluated": len(results),
+            "top_score": best_locations[0]['score'] if best_locations else 0.0
+        })
+    except Exception:
+        pass
+    
+    response = {
+        "best_locations": best_locations,
+        "alternatives": results[10:20] if len(results) > 10 else [],
+        "clusters": [],  # Sprint 2
+        "score_summary": score_summary,
+        "astro_metadata": {
+            "source": "igp",
+            "sr_datetime": sr_datetime.isoformat(),
+            "refinement_applied": False,  # Sprint 2
+            "cities_evaluated": len(results),
+            "refinement_iterations": 0,  # Sprint 2
+            "duration_ms": round((t1 - t0) * 1000, 2)
+        },
+        "reasoning": "Narrative generation deferred to Sprint 2"  # Lilly integration
+    }
+    
+    return JSONResponse(content=response)

@@ -13,6 +13,7 @@ Practical examples of requests and responses for main endpoints.
 | `/api/astro/solar-return` | GET | Solar Return chart | Optional year |
 | `/api/astro/forecast` | GET | Time series + peaks | Requires date range |
 | `/api/astro/life-cycles` | GET | Major events (Saturn Return, etc.) | Only birthDate |
+| `/api/rs/optimize` | POST | IGP: Optimal SR locations | Batch evaluation of cities for relocation |
 
 ---
 ## 1. POST /analyze
@@ -216,7 +217,106 @@ uvicorn abu_engine.main:app --port 8000 | jq 'select(.event=="request" and .meta
 Production usage: collect only JSON and send to aggregator (Elastic, Loki, etc.). Format is line-oriented for easy parsing.
 
 ---
+## 8. POST /api/rs/optimize (IGP - Intelligent Geographic Prediction)
+
+**Purpose**: Find optimal Solar Return relocation cities based on astrological scoring.
+
+**Request**:
+```json
+{
+  "birth": {
+    "date": "1990-01-15T10:30:00Z",
+    "lat": 40.7128,
+    "lon": -74.0060
+  },
+  "target_year": 2026,
+  "intent": "general",
+  "preferences": {
+    "min_score": 0.15,
+    "max_candidates": 10,
+    "continents": ["Europe", "North America"]
+  },
+  "refine": false,
+  "diversity": false,
+  "language": "es"
+}
+```
+
+**cURL Example**:
+```bash
+curl -X POST http://localhost:8000/api/rs/optimize \
+  -H "Content-Type: application/json" \
+  -d '{
+    "birth": {"date": "1990-01-15T10:30:00Z", "lat": 40.7128, "lon": -74.0060},
+    "target_year": 2026
+  }'
+```
+
+**Response**:
+```json
+{
+  "best_locations": [
+    {
+      "city": "Amsterdam",
+      "country": "Netherlands",
+      "lat": 52.3676,
+      "lon": 4.9041,
+      "score": 0.235,
+      "rank": 1
+    },
+    {
+      "city": "Barcelona",
+      "country": "Spain",
+      "lat": 41.3874,
+      "lon": 2.1686,
+      "score": 0.228,
+      "rank": 2
+    }
+  ],
+  "alternatives": [
+    {
+      "city": "Lisbon",
+      "country": "Portugal",
+      "lat": 38.7223,
+      "lon": -9.1393,
+      "score": 0.195,
+      "rank": 11
+    }
+  ],
+  "clusters": [],
+  "score_summary": {
+    "mean": 0.18,
+    "max": 0.235,
+    "min": 0.05,
+    "top_10_avg": 0.22
+  },
+  "astro_metadata": {
+    "source": "igp",
+    "sr_datetime": "2026-01-15T14:23:45+00:00",
+    "cities_evaluated": 16,
+    "refinement_applied": false,
+    "refinement_iterations": 0,
+    "duration_ms": 2098.87
+  },
+  "reasoning": "Narrative generation deferred to Sprint 2"
+}
+```
+
+**Notes**:
+- Evaluates multiple cities in parallel (default: 8 workers)
+- Scores normalized to 0.0–1.0 range
+- `refine` and `diversity` flags deferred to Sprint 2
+- Intent-based weighting (`intent` param) deferred to Sprint 2
+- Current dataset: 16 cities from `RELOCATION_CITIES` constant
+
+**Performance**:
+- 16 cities: ~2s
+- 100 cities: ~3.5s
+- 1,000 cities: ~35s (8 workers)
+
+---
 ## References
 - `docs/Analyze_Endpoint_Contract.md`
 - `docs/Interpret_Flow.md`
+- `docs/IGP_Sprint_B_Summary.md`
 - `next_app/types/contracts.ts`

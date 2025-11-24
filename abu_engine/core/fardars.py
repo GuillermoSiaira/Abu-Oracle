@@ -43,6 +43,13 @@ def is_diurnal_chart(sun_longitude: float, asc_longitude: float) -> bool:
     return sun_from_asc < 180
 
 
+def _normalize_dt(dt: datetime) -> datetime:
+    """Ensure datetime is timezone-aware UTC for consistent arithmetic."""
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
+
+
 def calculate_fardars(birth_date: datetime, is_diurnal: bool) -> List[Dict]:
     """
     Calcula los períodos de Fardars (75 años total).
@@ -67,8 +74,9 @@ def calculate_fardars(birth_date: datetime, is_diurnal: bool) -> List[Dict]:
         ]
     """
     sequence = DIURNAL_SEQUENCE if is_diurnal else NOCTURNAL_SEQUENCE
-    
-    fardars = []
+
+    birth_date = _normalize_dt(birth_date)
+    fardars: List[Dict] = []
     current_date = birth_date
     
     for major_planet, major_years in sequence:
@@ -83,8 +91,8 @@ def calculate_fardars(birth_date: datetime, is_diurnal: bool) -> List[Dict]:
         fardars.append({
             "major": major_planet,
             "years": major_years,
-            "start": current_date.isoformat(),
-            "end": end_date.isoformat(),
+            "start": current_date.astimezone(timezone.utc).isoformat(),
+            "end": end_date.astimezone(timezone.utc).isoformat(),
             "sub": sub_periods
         })
         
@@ -113,7 +121,7 @@ def calculate_sub_periods(
     total_years = sum(years for _, years in sequence)
     
     sub_periods = []
-    current_date = start_date
+    current_date = _normalize_dt(start_date)
     
     for sub_planet, sub_base_years in rotated:
         # Duración proporcional del subperíodo
@@ -124,8 +132,8 @@ def calculate_sub_periods(
         
         sub_periods.append({
             "planet": sub_planet,
-            "start": current_date.isoformat(),
-            "end": end_date.isoformat(),
+            "start": current_date.astimezone(timezone.utc).isoformat(),
+            "end": end_date.astimezone(timezone.utc).isoformat(),
             "duration_years": round(sub_duration_years, 2)
         })
         
@@ -159,17 +167,19 @@ def get_current_fardar(
         }
     """
     if query_date is None:
-        query_date = datetime.utcnow()
+        query_date = datetime.now(timezone.utc)
+    query_date = _normalize_dt(query_date)
+    birth_date = _normalize_dt(birth_date)
     
     def _compute():
         fardars = calculate_fardars(birth_date, is_diurnal)
         for fardar in fardars:
-            fardar_start = datetime.fromisoformat(fardar["start"])
-            fardar_end = datetime.fromisoformat(fardar["end"])
+            fardar_start = _normalize_dt(datetime.fromisoformat(fardar["start"]))
+            fardar_end = _normalize_dt(datetime.fromisoformat(fardar["end"]))
             if fardar_start <= query_date < fardar_end:
                 for sub in fardar["sub"]:
-                    sub_start = datetime.fromisoformat(sub["start"])
-                    sub_end = datetime.fromisoformat(sub["end"])
+                    sub_start = _normalize_dt(datetime.fromisoformat(sub["start"]))
+                    sub_end = _normalize_dt(datetime.fromisoformat(sub["end"]))
                     if sub_start <= query_date < sub_end:
                         return {
                             "major": fardar["major"],

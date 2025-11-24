@@ -12,14 +12,12 @@ def test_imports():
     """Test that all required modules can be imported."""
     print("=== Testing Imports ===")
     
-    try:
-        from abu_engine.core.chart import find_solar_return, solar_return_chart
-        from abu_engine.main import app
-        print("✓ All imports successful\n")
-        return True
-    except ImportError as e:
-        print(f"✗ Import failed: {e}\n")
-        return False
+    from abu_engine.core.chart import find_solar_return, solar_return_chart
+    from abu_engine.main import app
+    print("✓ All imports successful\n")
+    assert find_solar_return is not None
+    assert solar_return_chart is not None
+    assert app is not None
 
 
 def test_endpoint_exists():
@@ -30,13 +28,9 @@ def test_endpoint_exists():
     
     routes = [route.path for route in app.routes]
     
-    if "/api/astro/solar-return" in routes:
-        print("✓ Solar Return endpoint registered")
-        print(f"  All routes: {[r for r in routes if '/api/' in r]}\n")
-        return True
-    else:
-        print(f"✗ Solar Return endpoint not found in routes\n")
-        return False
+    assert "/api/astro/solar-return" in routes, "Solar Return endpoint not found in routes"
+    print("✓ Solar Return endpoint registered")
+    print(f"  All routes: {[r for r in routes if '/api/' in r]}\n")
 
 
 def test_function_signature():
@@ -53,27 +47,24 @@ def test_function_signature():
     
     print(f"Function parameters: {params}")
     
-    if all(p in params for p in expected):
-        print("✓ Function signature correct\n")
-        return True
-    else:
-        print(f"✗ Missing expected parameters. Expected: {expected}\n")
-        return False
+    assert all(p in params for p in expected), f"Missing expected parameters. Expected: {expected}"
+    print("✓ Function signature correct\n")
 
 
 if __name__ == "__main__":
     print("Starting quick Solar Return validation...\n")
     
-    results = []
-    results.append(test_imports())
-    results.append(test_endpoint_exists())
-    results.append(test_function_signature())
-    
-    print("=" * 60)
-    if all(results):
+    try:
+        test_imports()
+        test_endpoint_exists()
+        test_function_signature()
+        
+        print("=" * 60)
         print("✓ All quick validations passed!")
         print("  Solar Return endpoint is ready to use.")
-    else:
-        print("✗ Some validations failed")
+        print("=" * 60)
+    except AssertionError as e:
+        print("=" * 60)
+        print(f"✗ Validation failed: {e}")
+        print("=" * 60)
         sys.exit(1)
-    print("=" * 60)

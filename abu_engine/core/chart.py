@@ -258,8 +258,8 @@ def solar_return_chart(birth_date: datetime, lat: float, lon: float, year: Optio
         "birth_date": birth_date.isoformat(),
         "location": {"lat": lat, "lon": lon},
         "year": year or sr_datetime.year,
-        "planets": [p.dict() for p in chart.planets],
-        "aspects": [a.dict() for a in chart.aspects],
+        "planets": [p.model_dump() for p in chart.planets],
+        "aspects": [a.model_dump() for a in chart.aspects],
         "score_summary": {
             "total_score": score,
             "num_aspects": len(chart.aspects),

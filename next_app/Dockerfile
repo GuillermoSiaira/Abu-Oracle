@@ -1,20 +1,20 @@
-# Usar Node.js como base
 FROM node:18-alpine
 
-# Establecer directorio de trabajo
 WORKDIR /app
 
-# Copiar package.json y package-lock.json
+# Copiamos package.json
 COPY package*.json ./
 
-# Instalar dependencias
+# Instalamos dependencias
 RUN npm install
 
-# Copiar el código fuente
+# Copiamos el resto del código
 COPY . .
 
-# Exponer el puerto
+# ⬅️ ESTO ES LO QUE FALTA (MUY IMPORTANTE)
+RUN npm run build
+
 EXPOSE 3000
 
-# Comando para ejecutar la aplicación en modo desarrollo
-CMD ["npm", "run", "dev"]
+# ⬅️ Producción: ejecuta el build ya generado
+CMD ["npm", "run", "start"]

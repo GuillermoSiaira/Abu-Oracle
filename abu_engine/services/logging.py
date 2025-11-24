@@ -10,6 +10,7 @@ Evita duplicar handlers si uvicorn ya configuró logging.
 from __future__ import annotations
 
 import logging
+import sys
 import os
 import json
 from datetime import datetime, timezone
@@ -40,13 +41,20 @@ def init_logging(verbose: bool | None = None) -> None:
 
     verbose: override env flag for tests.
     """
+    # Always re-read env var to catch changes from tests
     if verbose is None:
-        verbose = VERBOSE
+        verbose = os.getenv("ABU_VERBOSE", "0") == "1"
 
     root = logging.getLogger()
     # Avoid duplicating handlers if already configured
+    # If already initialized with the same mode, no-op; otherwise reconfigure
     if getattr(root, "_abu_logging_initialized", False):  # type: ignore[attr-defined]
-        return
+        current_mode = getattr(root, "_abu_logging_verbose_mode", None)  # type: ignore[attr-defined]
+        if current_mode == verbose:
+            return
+        # Reconfigure: remove existing handlers to apply new formatter/mode
+        for h in list(root.handlers):
+            root.removeHandler(h)
 
     # Remove default handlers added by uvicorn/basicConfig to control formatting
     for h in list(root.handlers):
@@ -62,13 +70,30 @@ def init_logging(verbose: bool | None = None) -> None:
         root.setLevel(logging.INFO)
 
     root.addHandler(handler)
-    # Flag to avoid re-init
+    # Flags to avoid unnecessary re-init and track mode
     root._abu_logging_initialized = True  # type: ignore[attr-defined]
+    root._abu_logging_verbose_mode = verbose  # type: ignore[attr-defined]
 
 
 def log_event(event: str, meta: Dict[str, Any], level: int = logging.INFO) -> None:
-    """Helper to emit structured event log respecting verbose mode."""
-    if VERBOSE:
-        logging.getLogger(__name__).log(level, event, extra={"event": event, "meta": meta})
+    """Helper to emit structured event log respecting verbose mode.
+
+    Ensures JSON line output includes explicit JSON even in fallback mode so tests expecting
+    '"event": "..."' can still match when ABU_VERBOSE=1. When verbose is disabled, we now
+    serialize a compact JSON object for consistency rather than the prior free-form string.
+    """
+    # Use root logger to ensure pytest's caplog can capture it
+    logger = logging.getLogger()
+    # Re-read env var to catch changes from tests
+    verbose = os.getenv("ABU_VERBOSE", "0") == "1"
+    if verbose:
+        # In verbose mode, log via the logger with extra fields so JsonLineFormatter can format it
+        # This ensures caplog (pytest logging capture) gets the JSON output
+        logger.log(level, event, extra={"event": event, "meta": meta})
     else:
-        logging.getLogger(__name__).log(level, f"{event} {meta}")
+        # Emit compact JSON (non-verbose) to keep parsing simple for downstream tooling
+        try:
+            line = json.dumps({"event": event, "meta": meta}, ensure_ascii=False)
+        except Exception:
+            line = f"{event} {meta}"
+        logger.log(level, line)

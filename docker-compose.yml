@@ -15,7 +15,7 @@ services:
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - USE_ASSISTANTS=${USE_ASSISTANTS:-true}
-      - ABU_URL=http://abu_engine:8000
+      - ABU_BASE_URL=http://abu_engine:8000
       - OPENAI_ASSISTANT_ID=${OPENAI_ASSISTANT_ID}
 
   next_app:
@@ -25,5 +25,5 @@ services:
       - "3000:3000"
     restart: always
     environment:
-      - NEXT_PUBLIC_ABU_URL=http://localhost:8000
-      - NEXT_PUBLIC_LILLY_URL=http://localhost:8001
+      - NEXT_PUBLIC_ABU_URL=http://abu_engine:8000
+      - NEXT_PUBLIC_LILLY_URL=http://lilly_engine:8001
