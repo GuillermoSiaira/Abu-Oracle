@@ -1,0 +1,189 @@
+﻿{
+    "maestro":  {
+                    "metadata":  {
+                                     "mode":  "persian_cosmology",
+                                     "calculated_by":  "abu_engine",
+                                     "interpreted_by":  "lilly_engine",
+                                     "version":  "1.0",
+                                     "generated_at":  "2025-11-14T01:54:26.747048Z",
+                                     "request_context":  {
+                                                             "language":  "es",
+                                                             "birthDate":  "1978-07-05T21:15:00Z",
+                                                             "lat":  -34.6037,
+                                                             "lon":  -58.3816
+                                                         }
+                                 },
+                    "cosmology_context":  {
+                                              "system":  "persian_medieval",
+                                              "key_principles":  [
+                                                                     "Four Qualities Framework (heat, cold, moisture, dryness)",
+                                                                     "Four Elements (fire, air, water, earth)",
+                                                                     "Planetary natures (Saturn cold+dry, Jupiter hot+moist, etc.)",
+                                                                     "Essential and accidental dignities",
+                                                                     "Lord of the Year methodology (á¹¢Äá¸¥ib al-Sana)",
+                                                                     "Annual revolution as renewal of cosmic decree",
+                                                                     "Use of profections, Fardars and lunar mansions for timing"
+                                                                 ]
+                                          },
+                    "year_overview":  {
+                                          "rs_location":  null,
+                                          "ascendant_rs":  {
+                                                               "sign":  null,
+                                                               "degree":  null,
+                                                               "element":  null
+                                                           },
+                                          "sun_rs":  {
+                                                         "sign":  "Cancer",
+                                                         "house_rs":  6
+                                                     },
+                                          "year_element":  "water",
+                                          "year_tone_keywords":  [
+                                                                     "emotional depth",
+                                                                     "family focus",
+                                                                     "inner work",
+                                                                     "intuition",
+                                                                     "healing",
+                                                                     "memory"
+                                                                 ]
+                                      },
+                    "elemental_analysis":  {
+                                               "counts_by_element":  {
+                                                                         "fire":  4,
+                                                                         "earth":  2,
+                                                                         "air":  1,
+                                                                         "water":  5
+                                                                     },
+                                               "dominant_element_reasoning":  {
+                                                                                  "ascendant_element":  null,
+                                                                                  "sun_element":  "water",
+                                                                                  "angular_water_planets":  [
+                                                                                                                "Moon"
+                                                                                                            ],
+                                                                                  "additional_notes":  "Derived from chart.planets and house positions (angularity)."
+                                                                              },
+                                               "interpretation":  {
+                                                                      "core_drivers":  [
+
+                                                                                       ]
+                                                                  }
+                                           },
+                    "lord_of_year":  {
+                                         "candidates":  {
+                                                            "time_lord":  "Jupiter"
+                                                        },
+                                         "evaluation":  {
+                                                            "angularity_scores":  {
+                                                                                      "Jupiter":  1
+                                                                                  },
+                                                            "essential_dignity_scores":  {
+                                                                                             "Jupiter":  5
+                                                                                         },
+                                                            "accidental_dignity_scores":  {
+                                                                                              "Jupiter":  1
+                                                                                          }
+                                                        },
+                                         "final_lord":  "Jupiter",
+                                         "lord_keywords":  [
+                                                               "planet_nature: hot, moist"
+                                                           ]
+                                     },
+                    "angularity_and_dignities":  {
+                                                     "strong_planets":  [
+                                                                            {
+                                                                                "planet":  "Moon",
+                                                                                "reason":  "angular, essential_debility"
+                                                                            },
+                                                                            {
+                                                                                "planet":  "Mercury",
+                                                                                "reason":  "angular, essential_debility"
+                                                                            },
+                                                                            {
+                                                                                "planet":  "Pluto",
+                                                                                "reason":  "angular, essential_debility"
+                                                                            }
+                                                                        ],
+                                                     "weak_planets":  [
+                                                                          {
+                                                                              "planet":  "Sun",
+                                                                              "reason":  "essential_debility"
+                                                                          },
+                                                                          {
+                                                                              "planet":  "Moon",
+                                                                              "reason":  "angular, essential_debility"
+                                                                          },
+                                                                          {
+                                                                              "planet":  "Mercury",
+                                                                              "reason":  "angular, essential_debility"
+                                                                          },
+                                                                          {
+                                                                              "planet":  "Venus",
+                                                                              "reason":  "essential_debility"
+                                                                          },
+                                                                          {
+                                                                              "planet":  "Mars",
+                                                                              "reason":  "essential_debility"
+                                                                          },
+                                                                          {
+                                                                              "planet":  "Jupiter",
+                                                                              "reason":  "essential_debility"
+                                                                          },
+                                                                          {
+                                                                              "planet":  "Saturn",
+                                                                              "reason":  "essential_debility"
+                                                                          },
+                                                                          {
+                                                                              "planet":  "Uranus",
+                                                                              "reason":  "essential_debility"
+                                                                          },
+                                                                          {
+                                                                              "planet":  "Neptune",
+                                                                              "reason":  "essential_debility"
+                                                                          },
+                                                                          {
+                                                                              "planet":  "Pluto",
+                                                                              "reason":  "angular, essential_debility"
+                                                                          },
+                                                                          {
+                                                                              "planet":  "North Node",
+                                                                              "reason":  "essential_debility"
+                                                                          },
+                                                                          {
+                                                                              "planet":  "South Node",
+                                                                              "reason":  "essential_debility"
+                                                                          }
+                                                                      ],
+                                                     "combustion_flags":  [
+
+                                                                          ]
+                                                 },
+                    "rs_natal_interplay":  {
+                                               "rs_asc_falls_in_natal_house":  null,
+                                               "rs_sun_falls_in_natal_house":  null,
+                                               "themes_unlocked":  [
+                                                                       "Will be refined when RSâNatal overlay is fully integrated.",
+                                                                       "Lunar mansion of the year: Al-Tarf"
+                                                                   ]
+                                           },
+                    "transits_contextualized":  {
+                                                    "major_transits":  [
+
+                                                                       ]
+                                                },
+                    "monthly_windows":  {
+                                            "primary_by_sign":  [
+                                                                    {
+                                                                        "month":  4,
+                                                                        "sign":  "Aries",
+                                                                        "theme":  "Derived from profection lord and house; to be refined."
+                                                                    }
+                                                                ],
+                                            "secondary_by_house":  [
+
+                                                                   ]
+                                        },
+                    "critical_days":  [
+
+                                      ]
+                },
+    "narrative":  "### Resumen Inicial\nEl aÃ±o se presenta bajo el elemento agua, lo que sugiere una tonalidad emocional y profunda. Se destacan temas como el enfoque en la familia, el trabajo interno y la sanaciÃ³n. El Sol se encuentra en CÃ¡ncer, especÃ­ficamente en la sexta casa, lo que refuerza la necesidad de cuidar la salud y las relaciones cotidianas.\n\n### DinÃ¡micas Elementales\nEl elemento dominante es el agua, con cinco planetas alineados en esta categorÃ­a. La Luna, ubicada en un Ã¡ngulo significativo, intensifica la conexiÃ³n emocional y la intuiciÃ³n durante este periodo. La presencia predominante de agua sugiere un aÃ±o de introspecciÃ³n y desarrollo emocional.\n\n### SeÃ±or del AÃ±o\nJÃºpiter se erige como el seÃ±or del aÃ±o, caracterizado por su naturaleza caliente y hÃºmeda. Su influencia se siente en la expansiÃ³n de temas relacionados con la familia, la espiritualidad y la bÃºsqueda de significado. JÃºpiter, aunque angular, presenta cierta debilidad esencial, lo que puede moderar su impacto.\n\n### Capa de Tiempo\nEn tÃ©rminos de profecciones, se sugiere que el cuarto mes (Aries) serÃ¡ clave, derivando de la naturaleza del seÃ±or de la profecciÃ³n. La mansiÃ³n lunar del aÃ±o, Al-Tarf, tambiÃ©n aportarÃ¡ un enfoque adicional en los temas de transformaciÃ³n y conexiÃ³n emocional.\n\n### SuperposiciÃ³n del Retorno Solar\nLos temas del Retorno Solar destacan la importancia de la salud y el bienestar diario. La interacciÃ³n entre el Sol del Retorno y su posiciÃ³n natal requiere una integraciÃ³n mÃ¡s profunda para comprender completamente su influencia, aunque ya se vislumbran oportunidades de crecimiento personal y familiar.\n\n### DÃ­as CrÃ­ticos y TrÃ¡nsitos\nActualmente, no se identifican trÃ¡nsitos mayores ni dÃ­as crÃ­ticos seÃ±alados, lo que podrÃ­a indicar un periodo de calma que permite la reflexiÃ³n y el trabajo interno.\n\n### Resumen Final\nEste aÃ±o, marcado por la influencia de JÃºpiter y el elemento agua, se enfoca en la profundidad emocional y la sanaciÃ³n familiar. La atenciÃ³n debe dirigirse hacia el cuidado personal y el desarrollo de la intuiciÃ³n. La combinaciÃ³n de energÃ­a acuÃ¡tica y la posiciÃ³n de JÃºpiter sugiere un periodo propicio para la introspecciÃ³n y el crecimiento en el Ã¡mbito familiar y espiritual."
+}

@@ -1,0 +1,18 @@
+{
+  "aspects": {
+    "conjunction": 0.8,
+    "sextile": 0.6,
+    "square": -0.7,
+    "trine": 0.9,
+    "opposition": -0.8
+  },
+  "planets": {
+    "sun": 1.0,
+    "moon": 0.8,
+    "mercury": 0.5,
+    "venus": 0.9,
+    "mars": -0.6,
+    "jupiter barycenter": 1.2,
+    "saturn barycenter": -0.9
+  }
+}

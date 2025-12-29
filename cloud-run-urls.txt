@@ -1,0 +1,10 @@
+﻿Abu Engine: https://abu-engine-bbrsyawaca-uc.a.run.app
+Lilly Engine: https://lilly-engine-503488473965.us-central1.run.app
+Deployed: 2025-11-10 21:46:05
+
+Abu Swagger: https://abu-engine-bbrsyawaca-uc.a.run.app/docs
+Lilly Swagger: https://lilly-engine-503488473965.us-central1.run.app/docs
+
+✅ Ambos servicios desplegados correctamente
+✅ OpenAI API Key configurada en Secret Manager
+✅ Permisos de acceso configurados

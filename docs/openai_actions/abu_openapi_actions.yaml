@@ -1,0 +1,240 @@
+openapi: 3.1.0
+info:
+  title: Abu Engine Actions
+  version: 1.0.0
+  description: OpenAI Assistant action spec for Abu computational astrology endpoints (Cloud Run).
+servers:
+  - url: https://abu-engine-bbrsyawaca-uc.a.run.app
+paths:
+  /api/astro/chart:
+    get:
+      operationId: get_chart
+      summary: Obtener carta natal o de evento puntual.
+      description: Devuelve posiciones planetarias, aspectos y casas para una fecha/hora y coordenadas geográficas.
+      parameters:
+        - in: query
+          name: date
+          required: true
+          description: Fecha/hora ISO8601 (ej. 1990-01-01T12:00:00Z)
+          schema:
+            type: string
+        - in: query
+          name: lat
+          required: true
+          description: Latitud decimal
+          schema:
+            type: number
+        - in: query
+          name: lon
+          required: true
+          description: Longitud decimal
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Carta calculada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  planets:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name: { type: string }
+                        longitude: { type: number }
+                  aspects:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type: { type: string }
+                        orb: { type: number }
+                  houses:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        number: { type: integer }
+                        cusp: { type: number }
+  /api/astro/forecast:
+    get:
+      operationId: get_forecast
+      summary: Obtener series temporales de transitos y picos.
+      parameters:
+        - in: query
+          name: birthDate
+          required: true
+          schema: { type: string }
+        - in: query
+          name: lat
+          required: true
+          schema: { type: number }
+        - in: query
+          name: lon
+          required: true
+          schema: { type: number }
+        - in: query
+          name: start
+          required: true
+          schema: { type: string }
+        - in: query
+          name: end
+          required: true
+          schema: { type: string }
+        - in: query
+          name: step
+          required: false
+          schema: { type: string }
+        - in: query
+          name: horizon
+          required: false
+          schema: { type: string }
+      responses:
+        '200':
+          description: Forecast
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  timeseries: { type: array, items: { type: object } }
+                  peaks: { type: array, items: { type: object } }
+  /api/astro/life-cycles:
+    get:
+      operationId: get_life_cycles
+      summary: Obtener eventos de ciclos de vida.
+      parameters:
+        - in: query
+          name: birthDate
+          required: true
+          schema: { type: string }
+        - in: query
+          name: lat
+          required: false
+          schema: { type: number }
+        - in: query
+          name: lon
+          required: false
+          schema: { type: number }
+      responses:
+        '200':
+          description: Ciclos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  events:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        cycle: { type: string }
+                        planet: { type: string }
+                        angle: { type: number }
+                        approx: { type: string }
+                  interpretation:
+                    type: object
+  /api/astro/solar-return:
+    get:
+      operationId: get_solar_return
+      summary: Calcular carta de retorno solar para un año.
+      parameters:
+        - in: query
+          name: birthDate
+          required: true
+          schema: { type: string }
+        - in: query
+          name: lat
+          required: true
+          schema: { type: number }
+        - in: query
+          name: lon
+          required: true
+          schema: { type: number }
+        - in: query
+          name: year
+          required: false
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Retorno solar
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  solar_return_datetime: { type: string }
+                  planets: { type: array, items: { type: object } }
+                  aspects: { type: array, items: { type: object } }
+                  score_summary: { type: object }
+  /api/rs/optimize:
+    post:
+      operationId: optimize_sr_locations
+      summary: Evaluar y rankear ubicaciones para el retorno solar.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                birth_profile:
+                  type: object
+                  properties:
+                    birthDate: { type: string }
+                    lat: { type: number }
+                    lon: { type: number }
+                target_year: { type: integer }
+      responses:
+        '200':
+          description: Ranking de ubicaciones
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  best_locations:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        city: { type: string }
+                        score: { type: number }
+                        country: { type: string }
+                  score_summary:
+                    type: object
+  /api/ai/interpret:
+    post:
+      operationId: interpret_astrological_data
+      summary: Interpretar datos astrológicos compuestos (eventos, transitos, picos).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                events: { type: array, items: { type: object } }
+                transits: { type: array, items: { type: object } }
+                planets: { type: array, items: { type: object } }
+                aspects: { type: array, items: { type: object } }
+                timeseries: { type: array, items: { type: object } }
+                peaks: { type: array, items: { type: object } }
+                language: { type: string }
+                question: { type: string }
+      responses:
+        '200':
+          description: Interpretación
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  headline: { type: string }
+                  narrative: { type: string }
+                  actions: { type: array, items: { type: string } }
+                  astro_metadata: { type: object }

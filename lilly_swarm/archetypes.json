@@ -1,0 +1,27 @@
+{
+  "Saturn Return": {
+    "theme": "Madurez, responsabilidad y nuevos comienzos.",
+    "keywords": ["disciplina", "cambio", "crecimiento"],
+    "tone": "introspectivo"
+  },
+  "Uranus Opposition": {
+    "theme": "Rebeldía, libertad y redefinición de la identidad.",
+    "keywords": ["libertad", "cambio", "reinvención"],
+    "tone": "positivo"
+  },
+  "Neptune Square": {
+    "theme": "Desafíos de claridad, espiritualidad y confusión.",
+    "keywords": ["intuición", "confusión", "espiritualidad"],
+    "tone": "neutral"
+  },
+  "Pluto Square": {
+    "theme": "Transformación profunda y poder personal.",
+    "keywords": ["transformación", "poder", "renacimiento"],
+    "tone": "introspectivo"
+  },
+  "Chiron Return": {
+    "theme": "Sanación, integración y cierre de heridas antiguas.",
+    "keywords": ["sanación", "integración", "sabiduría"],
+    "tone": "positivo"
+  }
+}
