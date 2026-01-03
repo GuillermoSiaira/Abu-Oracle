@@ -37,36 +37,27 @@ def calculate_houses(
 ) -> Dict:
     """
     Calcula las cúspides de las casas y los ángulos (ASC, MC, etc.).
-    
-    Args:
-        dt: Fecha y hora (UTC)
-        lat: Latitud en grados decimales
-        lon: Longitud en grados decimales
-        house_system: Sistema de casas (default: Placidus)
-    
-    Returns:
-        dict: {
-            "asc": float (longitud del Ascendente),
-            "mc": float (longitud del MC),
-            "armc": float (ARMC),
-            "vertex": float,
-            "equatorial_asc": float,
-            "co_asc_koch": float,
-            "cusps": [float] * 12 (cúspides casas 1-12)
-        }
     """
     if not SWE_AVAILABLE:
         raise ImportError("pyswisseph no está instalado")
     
+    # --- CORRECCIÓN DE SEGURIDAD ---
+    # Si house_system llega como string (ej: 'P'), lo forzamos a bytes (b'P')
+    if isinstance(house_system, str):
+        house_system = house_system.encode('ascii')
+    # -------------------------------
+
     # Convertir datetime a Julian Day
     jd = swe.julday(dt.year, dt.month, dt.day, 
                     dt.hour + dt.minute / 60.0 + dt.second / 3600.0)
     
     # Calcular casas
-    # swe.houses devuelve (cusps, ascmc)
-    # cusps[0] está vacío, cusps[1-12] son las cúspides
-    # ascmc[0] = ASC, ascmc[1] = MC, ascmc[2] = ARMC, etc.
-    cusps, ascmc = swe.houses(jd, lat, lon, house_system)
+    try:
+        # Ahora house_system siempre es bytes, swe.houses no fallará por tipo
+        cusps, ascmc = swe.houses(jd, lat, lon, house_system)
+    except Exception as e:
+        # Fallback de seguridad por si falla el cálculo interno
+        raise ValueError(f"Error en swe.houses: {str(e)}")
 
     # Normalize cusp list to exactly 12 floats in [0,360)
     cusps_list = list(cusps[1:13]) if len(cusps) >= 13 else list(cusps)

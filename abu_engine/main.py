@@ -20,6 +20,7 @@ from core.extended_calc import (
     get_sign_name,
     normalize_lon
 )
+import logging
 from core.solar_return_ranking import rank_solar_return_locations, RELOCATION_CITIES
 import logging
 import time
@@ -2188,7 +2189,7 @@ def igp_optimize(data: IGPOptimizeRequest):
     except ImportError as e:
         raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
-        logger.exception("SR instant computation failed: %s", str(e))
+        logging.exception("SR instant computation failed: %s", str(e))
         raise HTTPException(status_code=500, detail="SR computation error")
     
     # Load cities dataset (MVP: use existing RELOCATION_CITIES)
@@ -2205,7 +2206,7 @@ def igp_optimize(data: IGPOptimizeRequest):
             for name, data in RELOCATION_CITIES.items()
         ]
     except Exception as e:
-        logger.exception("Cities dataset load failed: %s", str(e))
+        logging.exception("Cities dataset load failed: %s", str(e))
         raise HTTPException(status_code=500, detail="Cities dataset unavailable")
     
     # Get cache instance
@@ -2224,7 +2225,7 @@ def igp_optimize(data: IGPOptimizeRequest):
         )
         t1_batch = time.perf_counter()
     except Exception as e:
-        logger.exception("Batch evaluation failed: %s", str(e))
+        logging.exception("Batch evaluation failed: %s", str(e))
         raise HTTPException(status_code=500, detail="Evaluation error")
     
     # Apply preferences filters

@@ -86,6 +86,12 @@ Plan por etapas para elevar el nivel epistemológico y técnico:
 
 ---
 
+## Referencias cruzadas y alineación epistemológica
+- Para los axiomas fundacionales y el marco ontológico de todo el sistema, ver: [AXIOMATICS_OF_HEAVENS_2025-12-30.md]
+- Todo roadmap, variable computacional o experimento futuro debe declarar explícitamente su alineación con los axiomas y principios allí establecidos.
+
+---
+
 ## 3. Clave conceptual
 
 Lo que estás construyendo NO es:

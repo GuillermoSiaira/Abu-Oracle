@@ -81,4 +81,11 @@ La reputación del agente es una composición ponderada de la confiabilidad de s
 
 ---
 
+**Referencias cruzadas:**
+- Para fundamentos teóricos y justificación de la medición de eficiencia y optimización, ver:
+  - Whitepaper: [WHITEPAPER_ABU_ORACLE_2025-12-23.md], secciones 2 y 6 (optimización, computabilidad, audibilidad, eficiencia).
+  - Roadmap técnico: [ABU_ENGINE_ASTRO_VARIABLES_AND_ROADMAP_2025-12-23.md], variables optimizables y costo computacional.
+
+---
+
 **Este documento debe ser referenciado en el whitepaper de Abu Oracle y en la documentación técnica de reputación y telemetría de agentes.**

@@ -25,6 +25,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { ResultsDisplay } from "@/components/results-display";
+import { useAppStore } from "@/lib/store"; // <--- IMPORTACIÓN CLAVE
 
 interface BirthData {
   name: string;
@@ -42,6 +43,10 @@ interface CurrentData {
 }
 
 export function AbuAnalyzer() {
+  // --- STORE GLOBAL (EL PUENTE AL CHAT) ---
+  // @ts-ignore
+  const setAbuData = useAppStore((state) => state.setAbuData);
+
   const [birthData, setBirthData] = useState<BirthData>({
     name: "",
     date: "1990-07-05",
@@ -130,7 +135,13 @@ export function AbuAnalyzer() {
         },
       };
 
+      // 1. Guardar en estado local (para dibujar el gráfico)
       setResults(enrichedData);
+
+      // 2. ¡CONEXIÓN CLAVE! Guardar en Store Global (para que Lilly lo vea)
+      console.log("💾 Guardando datos en Store Global para Lilly...", enrichedData);
+      setAbuData(enrichedData);
+
     } catch (err) {
       console.error("[v0] Error calling /api/astro/chart/extended:", err);
       setError(
