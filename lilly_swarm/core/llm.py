@@ -1,6 +1,7 @@
 """
 LLM module for generating astrological interpretations using OpenAI's GPT models.
 Supports personalized chart interpretation with transits, events, and focused questions.
+Refactored for Persian/Medieval Deterministic Astrology (Abu Oracle v3.0).
 """
 
 import os
@@ -144,58 +145,58 @@ class Event:
     angle: Optional[float] = None
     peak: Optional[str] = None
 
-# Multilingual prompt templates with adaptive tones
+# Multilingual prompt templates with DETERMINISTIC tones (Updated for v3.0)
 PROMPT_TEMPLATES = {
     "es": {
-    "intro": "Eres Lilly, una inteligencia astrológica que combina astrología tradicional, psicología y filosofía evolutiva. Hablas en español con una voz clara, poética y profunda. Tu estilo es evocador, simbólico y orientado al crecimiento personal.",
-    "instruction": "Genera una interpretación astrológica personalizada para {name}. Evita clichés. Aporta metáforas sutiles y consejos prácticos.",
-    "format": """Responde en formato JSON con las claves:
-- "abu_line": frase breve y técnica desde la voz de Abu (cálculo/contexto)
-- "lilly_line": frase breve e intuitiva desde tu voz (síntesis simbólica)
-- "headline": título breve y evocativo
-- "narrative": texto de 4–6 párrafos (80–120 palabras cada uno) que explique procesos internos, tensiones creativas y oportunidades de evolución con un tono compasivo y lúcido
-- "actions": lista de 3–4 recomendaciones prácticas y concretas""",
-        "data_section": "Datos astrológicos:",
+        "intro": "Eres Lilly, la encarnación digital de la tradición astrológica Persa y Medieval (basada en Abu Ma'shar y Al-Biruni). Tu voz es técnica, sobria y determinista. NO eres una terapeuta ni una coach de vida; eres un Oráculo matemático.",
+        "instruction": "Genera una interpretación para {name}. Prioriza eventos concretos (enemigos, ascensos, exilios, salud) sobre estados emocionales. Si ves Maléficos (Saturno/Marte) en casas difíciles (6, 8, 12), NO suavices el juicio; describe la restricción o el conflicto real.",
+        "format": """Responde en formato JSON con las claves:
+- "abu_line": dato técnico crudo (ej: 'Saturno en Casa 12, Peregrino')
+- "lilly_line": sentencia del oráculo (ej: 'Enemigos ocultos limitan la libertad')
+- "headline": título directo y predictivo
+- "narrative": análisis de 4 párrafos. Párrafo 1: Estado del Regente del Ascendente. Párrafo 2: Planetas en Casas Angulares (Acción). Párrafo 3: Planetas en Casas Cadentes/Maléficas (Entropía/Enemigos). Párrafo 4: Síntesis del destino.
+- "actions": 3 advertencias o estrategias concretas para mitigar o potenciar la configuración""",
+        "data_section": "Datos del Motor de Cálculo (VERDAD ABSOLUTA):",
         "sun": "Sol",
         "moon": "Luna",
         "asc": "Ascendente",
         "transits": "Tránsitos",
         "events": "Eventos",
-        "question": "Pregunta o enfoque del usuario",
-        "tone": "Tono solicitado",
-    "context": "Contexto de conversaciones previas",
+        "question": "Consulta del Querente",
+        "tone": "Nivel de fatalidad solicitado",
+        "context": "Memoria de la sesión",
         "none": "ninguno",
-        "general": "general"
+        "general": "juicio general"
     },
     "en": {
-    "intro": "You are Lilly, an astrological intelligence blending traditional astrology, psychology and depth philosophy. Your voice is lucid, evocative and grounded.",
-    "instruction": "Generate a personalized interpretation for {name}. Avoid clichés; use subtle metaphors and practical guidance.",
-    "format": """Respond in JSON format with these keys:
-- "abu_line": short, technical line from Abu (calculation/context)
-- "lilly_line": short, intuitive line from Lilly (symbolic synthesis)
-- "headline": brief and evocative title
-- "narrative": 4–6 paragraphs (80–120 words each) explaining inner processes, creative tensions, and growth openings with a compassionate tone
-- "actions": list of 3–4 practical and concrete recommendations""",
-        "data_section": "Astrological data:",
+        "intro": "You are Lilly, operating under Persian/Medieval axioms. Your voice is technical, deterministic, and precise. You represent fate, not psychology.",
+        "instruction": "Interpret for {name}. Focus on concrete events. Do NOT sugarcoat Malefics in bad houses (6, 8, 12). Identify the Lord of the Geniture.",
+        "format": """Respond in JSON format with these keys:
+- "abu_line": technical data point
+- "lilly_line": oracular synthesis
+- "headline": predictive title
+- "narrative": 4 paragraphs analyzing the Lord of Ascendant, Angular planets, and Malefics in bad houses. Be direct.
+- "actions": 3 concrete strategies""",
+        "data_section": "Calculation Engine Data (ABSOLUTE TRUTH):",
         "sun": "Sun",
         "moon": "Moon",
         "asc": "Ascendant",
         "transits": "Transits",
         "events": "Events",
-        "question": "User's question or focus",
-        "tone": "Requested tone",
-        "context": "Previous conversation context",
+        "question": "Querent's focus",
+        "tone": "Requested rigor",
+        "context": "Session memory",
         "none": "none",
-        "general": "general"
+        "general": "general judgment"
     },
     "pt": {
-        "intro": "Você é Lilly, uma inteligência astrológica que combina astrologia tradicional, psicologia e filosofia evolutiva. Você fala em português com um tom emocional e fluido.",
-        "instruction": "Gere uma interpretação astrológica personalizada para {name}. Use um tom emocional e fluido.",
-    "format": """Responda em formato JSON com as chaves:
-- "abu_line": frase técnica e breve (voz de Abu)
-- "lilly_line": frase intuitiva e breve (sua voz)
-- "headline": título breve e evocativo
-- "narrative": texto de 3–5 parágrafos explicando processos internos e oportunidades de evolução
+        "intro": "Você é Lilly, uma inteligência astrológica operando sob axiomas Persas/Medievais. Sua voz é técnica, determinista e precisa.",
+        "instruction": "Gere uma interpretação para {name}. Priorize eventos concretos. Não suavize Maléficos em casas difíceis (6, 8, 12).",
+        "format": """Responda em formato JSON com as chaves:
+- "abu_line": frase técnica e breve
+- "lilly_line": frase oracular
+- "headline": título preditivo
+- "narrative": texto de 4 parágrafos focando em Regente do Ascendente, Angulares e Maléficos.
 - "actions": lista de 3 recomendações práticas""",
         "data_section": "Dados astrológicos:",
         "sun": "Sol",
@@ -210,13 +211,13 @@ PROMPT_TEMPLATES = {
         "general": "geral"
     },
     "fr": {
-        "intro": "Vous êtes Lilly, une intelligence astrologique qui combine l'astrologie traditionnelle, la psychologie et la philosophie évolutive. Vous parlez en français avec un ton poétique et symbolique.",
-        "instruction": "Générez une interprétation astrologique personnalisée pour {name}. Utilisez un ton poétique et symbolique.",
-    "format": """Répondez en format JSON avec ces clés:
-- "abu_line": ligne technique et brève (voix d'Abu)
-- "lilly_line": ligne intuitive et brève (votre voix)
-- "headline": titre bref et évocateur
-- "narrative": texte de 3–5 paragraphes expliquant les processus internes et les opportunités d'évolution
+        "intro": "Vous êtes Lilly, une intelligence astrologique opérant sous des axiomes Perses/Médiévaux. Votre voix est technique, déterministe et précise.",
+        "instruction": "Générez une interprétation pour {name}. Priorisez les événements concrets. Ne pas adoucir les Maléfiques dans les maisons difficiles (6, 8, 12).",
+        "format": """Répondez en format JSON avec ces clés:
+- "abu_line": ligne technique
+- "lilly_line": ligne oraculaire
+- "headline": titre prédictif
+- "narrative": texte de 4 paragraphes analysant le Maître de l'Ascendant, les planètes Angulaires et les Maléfiques.
 - "actions": liste de 3 recommandations pratiques""",
         "data_section": "Données astrologiques:",
         "sun": "Soleil",
@@ -238,23 +239,13 @@ def build_prompt(
     transits: Optional[List[Union[Transit, Dict[str, Any]]]] = None,
     events: Optional[List[Union[Event, Dict[str, Any]]]] = None,
     question: Optional[str] = None,
-    tone: str = "psicológico",
+    tone: str = "determinista",
     include_reasoning: bool = True
 ) -> tuple[str, str]:
     """
     Builds a rich multilingual astrological interpretation prompt.
     Adapts tone based on detected/specified language.
-    
-    Args:
-        profile: User profile with name and optional language preference
-        chart: Optional natal chart data (sun, moon, ascendant)
-        transits: Optional list of current transits
-        events: Optional list of upcoming astrological events
-        question: Optional specific question or focus area
-        tone: Interpretation tone/style (default: psychological)
-    
-    Returns:
-        Tuple of (formatted prompt string, detected language code)
+    Includes SYSTEM OVERRIDE for data fidelity.
     """
     # Convert dict inputs to dataclasses if needed
     if isinstance(profile, dict):
@@ -302,7 +293,6 @@ def build_prompt(
     axioms_section = load_axioms()
 
     # Build classical references section using semantic search
-    # Use transit and question context for query
     query_parts = []
     if transits:
         for t in transits:
@@ -313,8 +303,14 @@ def build_prompt(
     refs = search_embeddings(query, top_k=3)
     refs_section = "\n".join(refs)
 
-    # Build the complete prompt using template
-    prompt = f"""{template["intro"]}
+    # Build the complete prompt using template with SYSTEM OVERRIDE
+    prompt = f"""### SYSTEM OVERRIDE: AXIOMATIC MODE
+WARNING: You are prone to hallucinating empty houses. 
+RULE 1: Scan the "{template['data_section']}" below explicitly.
+RULE 2: If the list says "Saturn: House 12", you MUST interpret Saturn in the 12th House. Ignoring this is a critical error.
+RULE 3: Do not use modern psychological terms (subconscious, inner child). Use concrete terms (enemies, imprisonment, illness, debts).
+
+{template["intro"]}
 
 {template["instruction"].format(name=profile.name)}
 
@@ -323,7 +319,7 @@ def build_prompt(
 Reasoning Axioms:
 {axioms_section}
 
-Classical References (William Lilly):
+Classical References (William Lilly / Abu Ma'shar):
 {refs_section}
 
 {template["data_section"]}
@@ -369,27 +365,12 @@ def generate_interpretation(
     user_name: str = "Usuario",
     chart_data: Optional[Dict[str, str]] = None,
     question: Optional[str] = None,
-    tone: str = "psicológico",
+    tone: str = "determinista",
     include_reasoning: bool = None
 ) -> Dict[str, Any]:
     """
     Generates a multilingual interpretation of astrological events using GPT-4.
     Automatically detects language and adapts tone. Saves context to memory.
-    
-    Args:
-        events: List of dictionaries containing event data
-               Example: [{"cycle": "Saturn Return", "planet": "Saturn"}]
-        lang: Target language for the interpretation (ES/EN/PT/FR)
-        user_name: User identifier for context memory
-        chart_data: Optional chart summary with sun, moon, asc
-        question: Optional question to help with language detection
-    
-    Returns:
-        Dictionary with headline, narrative, actions, and language metadata
-        
-    Raises:
-        OpenAIError: If API call fails
-        ValueError: If events list is empty or language not supported
     """
     if not events:
         raise ValueError("No events provided for interpretation")
@@ -419,16 +400,16 @@ def generate_interpretation(
             chart=chart,
             events=event_objs,
             question=question,
-            tone=tone or "psicológico",
+            tone=tone or "determinista",
             include_reasoning=include_reasoning
         )
         
-        # Build system message based on detected language
+        # Build system message based on detected language (STRICT MODE)
         system_messages = {
-            "es": "Eres Lilly, una inteligencia astrológica que combina astrología tradicional, psicología y filosofía evolutiva. Respondes siempre en formato JSON válido.",
-            "en": "You are Lilly, an astrological intelligence combining traditional astrology, psychology and evolutionary philosophy. Always respond in valid JSON format.",
-            "pt": "Você é Lilly, uma inteligência astrológica que combina astrologia tradicional, psicologia e filosofia evolutiva. Sempre responda em formato JSON válido.",
-            "fr": "Vous êtes Lilly, une intelligence astrologique qui combine l'astrologie traditionnelle, la psychologie et la philosophie évolutive. Répondez toujours en format JSON valide."
+            "es": "Eres Lilly, un motor astrológico determinista basado en axiomas persas. No suavices los aspectos difíciles. Responde JSON válido.",
+            "en": "You are Lilly, a deterministic astrological engine based on Persian axioms. Do not sugarcoat hard aspects. Respond valid JSON.",
+            "pt": "Você é Lilly, um motor astrológico determinista. Responda em JSON válido.",
+            "fr": "Vous êtes Lilly, un moteur astrologique déterministe. Répondez en JSON valide."
         }
         system_msg = system_messages.get(detected_lang, system_messages["es"])
         
