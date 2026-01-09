@@ -77,12 +77,12 @@ export default function CityAutocomplete({ onSelect }: CityAutocompleteProps) {
 
   return (
     <div ref={containerRef} className="relative space-y-1">
-      <label className="block text-sm font-medium">Ciudad</label>
+      <label className="block text-sm font-semibold text-gray-700">Ciudad</label>
 
       <input
         type="text"
         placeholder="Ingresa una ciudad"
-        className="w-full rounded-md border px-3 py-2"
+        className="w-full bg-white text-gray-950 border border-gray-300 rounded-md px-3 py-2 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         onFocus={() => {
@@ -91,11 +91,11 @@ export default function CityAutocomplete({ onSelect }: CityAutocompleteProps) {
       />
 
       {showList && results.length > 0 && (
-        <ul className="absolute w-full bg-white border rounded-md shadow-lg z-30 max-h-48 overflow-y-auto">
+        <ul className="absolute w-full bg-white border border-gray-200 rounded-md shadow-xl z-50 max-h-48 overflow-y-auto mt-1">
           {results.map((c, i) => (
             <li
               key={i}
-              className="px-3 py-2 cursor-pointer hover:bg-gray-100"
+              className="px-3 py-2 cursor-pointer text-gray-900 hover:bg-amber-50 transition-colors"
               onClick={() => handleSelect(c)}
             >
               {c.city}, {c.country}

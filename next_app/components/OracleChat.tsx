@@ -1,10 +1,37 @@
+/*
+Abu Oracle – OracleChat.tsx: UI/UX & Context Injection Update
+============================================================
+Fecha: 2026-01-09
+Autor: Abu Oracle Project
+
+Resumen de Cambios:
+-------------------
+1. UI/UX Improvements (High Contrast)
+   - Inputs de formularios actualizados a tema de alto contraste: fondo blanco (`bg-white`), texto negro profundo (`text-gray-950`), foco dorado (`ring-amber-500`).
+   - Motivo: Mejorar accesibilidad y coherencia con la identidad visual Abu Oracle (negro/oro).
+   - Archivos relacionados: `components/birth-data-panel.tsx`, `components/city-autocomplete.tsx`.
+
+2. Logic Fix: Chat Context Injection (“The Amnesia Fix”)
+   - Problema: El chat enviaba solo datos calculados (`abuData`/planets) pero no los datos de nacimiento (`birthData`), causando que Lilly (LLM) pidiera la fecha o alucine.
+   - Solución: En `handleSubmit`, se recupera `birthData` del store global (Zustand) y se construye un objeto `sessionContext` que fusiona meta (fecha, ciudad, coords) y cálculos.
+   - Se resolvió un error de tipos TypeScript en la propiedad `city` con una aserción temporal.
+   - Resultado: Lilly reconoce inmediatamente la fecha y ubicación de la carta, sin requerir input adicional del usuario.
+
+Impacto:
+--------
+- El chat ahora es “context-aware” desde el primer mensaje.
+- Se elimina la “amnesia” de contexto entre Abu y Lilly.
+- La UI es más accesible y alineada con la marca.
+
+Referencia de actualización: ver reporte Gemini 2026-01-09.
+*/
+
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
 import { useAppStore } from "@/lib/store"; 
 import { Send, Terminal } from "lucide-react";
 
-// --- COMPONENTE TERMINAL TYPER ---
 const TerminalMessage = ({ content }: { content: string }) => {
   const [displayedContent, setDisplayedContent] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -45,8 +72,9 @@ export default function OracleChat() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  // 1. CORRECCIÓN: Traemos AMBOS datos del store (Cálculo + Metadata)
   // @ts-ignore
-  const abuData = useAppStore((state) => state.abuData);
+  const { abuData, birthData } = useAppStore();
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -67,12 +95,25 @@ export default function OracleChat() {
     setMessages(prev => [...prev, newMsg]);
 
     try {
+      // 2. CORRECCIÓN: Construimos un Contexto Completo
+      const sessionContext = {
+        meta: birthData ? {
+            date: birthData.birthDate,
+            // Agregamos (birthData as any) para callar a TypeScript
+            city: (birthData as any).city || "Ubicación desconocida", 
+            lat: birthData.lat,
+            lon: birthData.lon
+        } : "Fecha no definida",
+        calculations: abuData 
+      };
+
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messages: [...messages, newMsg], 
-          context: abuData,
+          // Enviamos el paquete completo
+          context: sessionContext,
           session_id: "sidebar-session-v1"
         })
       });
@@ -103,72 +144,69 @@ export default function OracleChat() {
 
   return (
     <div className="flex flex-col h-full bg-[#050505] border-l border-green-900/30 font-mono">
-      
-      {/* HEADER SIDEBAR */}
-      <div className="p-3 border-b border-green-900/30 bg-[#0a0a0a] flex items-center justify-between">
-        <h2 className="text-xs font-bold text-green-500 uppercase tracking-widest flex items-center gap-2">
-          <Terminal className="w-3 h-3" />
-          Terminal Oráculo
-        </h2>
-        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_#00ff00]"></div>
-      </div>
+        {/* ... Header, Lista de Mensajes, Footer ... */}
+        {/* Pega aquí el resto de tu JSX original si no lo copiaste todo */}
+        <div className="p-3 border-b border-green-900/30 bg-[#0a0a0a] flex items-center justify-between">
+            <h2 className="text-xs font-bold text-green-500 uppercase tracking-widest flex items-center gap-2">
+            <Terminal className="w-3 h-3" />
+            Terminal Oráculo
+            </h2>
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_#00ff00]"></div>
+        </div>
 
-      {/* LISTA DE MENSAJES */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-green-900 scrollbar-track-black">
-        {messages.length === 0 && (
-          <div className="text-center text-green-800 text-xs mt-10 select-none">
-            {/* AQUÍ ESTABA EL ERROR: Usamos &gt; en lugar de > */}
-            <p className="mb-2">&gt; ENLACE ESTABLECIDO</p>
-            <p>&gt; ESPERANDO CONSULTA...</p>
-          </div>
-        )}
-        
-        {messages.map((m) => (
-          <div key={m.id} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
-            <span className="text-[10px] uppercase text-green-700 mb-1">
-              {m.role === 'user' ? 'TÚ >>' : 'LILLY >>'}
-            </span>
-            
-            <div className={`max-w-[95%] rounded-sm p-2 text-sm border ${
-              m.role === 'user' 
-                ? 'bg-yellow-900/10 border-yellow-600/30 text-yellow-100' 
-                : 'bg-black border-green-900/50 w-full'
-            }`}>
-              {m.role === 'user' ? (
-                <p className="whitespace-pre-wrap">{m.content}</p>
-              ) : (
-                <TerminalMessage content={m.content} />
-              )}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-green-900 scrollbar-track-black">
+            {messages.length === 0 && (
+            <div className="text-center text-green-800 text-xs mt-10 select-none">
+                <p className="mb-2">&gt; ENLACE ESTABLECIDO</p>
+                <p>&gt; ESPERANDO CONSULTA...</p>
             </div>
-          </div>
-        ))}
-        
-        {isLoading && (
-          <div className="text-xs text-green-500 animate-pulse pl-1">
-            &gt; PROCESANDO...
-          </div>
-        )}
-        <div ref={scrollRef} />
-      </div>
+            )}
+            
+            {messages.map((m) => (
+            <div key={m.id} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
+                <span className="text-[10px] uppercase text-green-700 mb-1">
+                {m.role === 'user' ? 'TÚ >>' : 'LILLY >>'}
+                </span>
+                
+                <div className={`max-w-[95%] rounded-sm p-2 text-sm border ${
+                m.role === 'user' 
+                    ? 'bg-yellow-900/10 border-yellow-600/30 text-yellow-100' 
+                    : 'bg-black border-green-900/50 w-full'
+                }`}>
+                {m.role === 'user' ? (
+                    <p className="whitespace-pre-wrap">{m.content}</p>
+                ) : (
+                    <TerminalMessage content={m.content} />
+                )}
+                </div>
+            </div>
+            ))}
+            
+            {isLoading && (
+            <div className="text-xs text-green-500 animate-pulse pl-1">
+                &gt; PROCESANDO...
+            </div>
+            )}
+            <div ref={scrollRef} />
+        </div>
 
-      {/* INPUT FOOTER */}
-      <form onSubmit={handleSubmit} className="p-3 bg-[#0a0a0a] border-t border-green-900/30 flex gap-2">
-        <input
-          ref={inputRef}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Comando de entrada..."
-          className="flex-1 bg-black/40 border border-green-900/50 rounded-sm py-2 px-3 text-sm text-green-400 focus:outline-none focus:border-green-500 placeholder-green-900"
-          disabled={isLoading}
-        />
-        <button 
-          type="submit" 
-          disabled={isLoading || !input.trim()}
-          className="text-xs bg-green-700 text-black font-bold px-3 py-2 rounded-sm hover:bg-green-600 disabled:opacity-50 disabled:bg-green-900 uppercase tracking-wider"
-        >
-          <Send className="w-4 h-4" />
-        </button>
-      </form>
+        <form onSubmit={handleSubmit} className="p-3 bg-[#0a0a0a] border-t border-green-900/30 flex gap-2">
+            <input
+            ref={inputRef}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Comando de entrada..."
+            className="flex-1 bg-black/40 border border-green-900/50 rounded-sm py-2 px-3 text-sm text-green-400 focus:outline-none focus:border-green-500 placeholder-green-900"
+            disabled={isLoading}
+            />
+            <button 
+            type="submit" 
+            disabled={isLoading || !input.trim()}
+            className="text-xs bg-green-700 text-black font-bold px-3 py-2 rounded-sm hover:bg-green-600 disabled:opacity-50 disabled:bg-green-900 uppercase tracking-wider"
+            >
+            <Send className="w-4 h-4" />
+            </button>
+        </form>
     </div>
   );
 }

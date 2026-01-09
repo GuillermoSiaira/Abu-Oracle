@@ -82,9 +82,6 @@ export default function BirthDataPanel() {
       const abuRes = await runAbuAnalyze(abuPayload);
       setAbuData(abuRes);
 
-      // Ahora NO llamamos a Lilly Engine.
-      // El nuevo flujo de interpretación ocurre en el sidebar (OracleChat) usando OpenAI.
-
       router.push("/chart");
 
     } catch (err: any) {
@@ -97,17 +94,23 @@ export default function BirthDataPanel() {
     }
   }
 
+  // Clases comunes para inputs habilitados (Alto Contraste)
+  const inputClasses = "w-full bg-white text-gray-950 border border-gray-300 rounded-md px-3 py-2 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all";
+  
+  // Clases para inputs deshabilitados (Legibles pero diferenciados)
+  const disabledInputClasses = "w-full bg-gray-200 text-gray-900 border border-gray-300 rounded-md px-3 py-2 font-medium cursor-not-allowed";
+
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-6 bg-card p-6 rounded-xl shadow-sm"
+      className="space-y-6 bg-card p-6 rounded-xl shadow-md border border-gray-100"
     >
       {/* FECHA DE NACIMIENTO */}
       <div className="space-y-1">
-        <label className="block text-sm font-medium">Fecha de nacimiento</label>
+        <label className="block text-sm font-semibold text-gray-700">Fecha de nacimiento</label>
         <input
           type="datetime-local"
-          className="w-full rounded-md border px-3 py-2"
+          className={inputClasses}
           value={birthDate}
           onChange={(e) => setBirthDate(e.target.value)}
           required
@@ -115,6 +118,8 @@ export default function BirthDataPanel() {
       </div>
 
       {/* AUTOCOMPLETE DE CIUDAD */}
+      {/* Nota: Asegúrate de pasar estilos similares al CityAutocomplete si acepta className, 
+          o edita ese componente internamente para usar 'text-gray-950' */}
       <CityAutocomplete
         onSelect={({ city, lat, lon }) => {
           setCity(city);
@@ -124,37 +129,43 @@ export default function BirthDataPanel() {
       />
 
       {/* LAT/LON */}
-      <div className="space-y-1">
-        <label className="block text-sm font-medium">Latitud (auto)</label>
-        <input
-          type="number"
-          step="0.0001"
-          className="w-full rounded-md border px-3 py-2 bg-gray-100"
-          value={lat}
-          disabled
-        />
-      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-1">
+          <label className="block text-sm font-medium text-gray-600">Latitud (auto)</label>
+          <input
+            type="number"
+            step="0.0001"
+            className={disabledInputClasses}
+            value={lat}
+            disabled
+          />
+        </div>
 
-      <div className="space-y-1">
-        <label className="block text-sm font-medium">Longitud (auto)</label>
-        <input
-          type="number"
-          step="0.0001"
-          className="w-full rounded-md border px-3 py-2 bg-gray-100"
-          value={lon}
-          disabled
-        />
+        <div className="space-y-1">
+          <label className="block text-sm font-medium text-gray-600">Longitud (auto)</label>
+          <input
+            type="number"
+            step="0.0001"
+            className={disabledInputClasses}
+            value={lon}
+            disabled
+          />
+        </div>
       </div>
 
       {localError && (
-        <p className="text-red-600 text-sm">{localError}</p>
+        <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+            <p className="text-red-700 text-sm font-medium flex items-center gap-2">
+                ⚠️ {localError}
+            </p>
+        </div>
       )}
 
       <button
         type="submit"
-        className="bg-primary text-primary-foreground px-4 py-2 rounded-md w-full font-medium"
+        className="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 px-4 rounded-md transition-colors shadow-sm focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
       >
-        Generar carta
+        Generar Carta Astral
       </button>
     </form>
   );
