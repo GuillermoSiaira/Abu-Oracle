@@ -60,17 +60,26 @@ Orden recomendado de composición del prompt:
 
 ## 6. Future Roadmap
 
-| Phase | Focus                    | Description                                                  |
-|------:|--------------------------|--------------------------------------------------------------|
-| v2.1  | Context Memory Integration | Persist previous readings per user; in-context injection      |
-| v2.2  | Reasoning Framework      | Active axioms and logical consistency enforcement            |
-| v2.3  | Classical Corpus         | Semantic retrieval from Christian Astrology                   |
-| v2.4  | Relocation Logic         | Solar return + city suggestions with transparent heuristics   |
-| v3.0  | Symbolic Engine          | Internal logical module (posiblemente on-chain/DAO)           |
+**Estado al 2026-02:**
+- Frontend con chat integrado en `/chart` (tabs Carta/Técnicas/Tránsitos) funcionando en entorno local/Compose; el chat envía contexto de Abu.
+- Lilly en Cloud Run sigue en modo fallback por egress a `api.openai.com`; en Compose funciona contra `lilly_swarm`.
+- Próximo foco: resiliencia LLM en cloud (egress) + guardrails/evaluación.
+
+| Phase | Focus                      | Description                                                                 |
+|------:|----------------------------|-----------------------------------------------------------------------------|
+| v2.1  | Context Memory Integration | Persist previous readings per user; in-context injection                     |
+| v2.2  | Reasoning Framework        | Active axioms and logical consistency enforcement                           |
+| v2.3  | Classical Corpus           | Semantic retrieval from Christian Astrology                                |
+| v2.4  | Relocation Logic           | Solar return + city suggestions with transparent heuristics                |
+| v2.5  | Evaluación y Guardrails    | Golden set + regression/smoke tests; chequeo de consistencia narrativa/JSON |
+| v2.6  | Observabilidad y Resiliencia | Health/metrics para Abu y Lilly; trazas de fallback y alertas tempranas     |
+| v2.7  | UX de Contexto (FE)        | Superficies UI para memoria, idioma, localización y transparencia de fuentes |
+| v3.0  | Symbolic Engine            | Internal logical module (posiblemente on-chain/DAO)                          |
 
 Hitos complementarios:
-- Observabilidad (health checks, métricas, logs enriquecidos).
-- Ensayos controlados (tests) y smoke tests en CI.
+- Orquestación y feature flags: selección de `LILLY_MODEL`, modo fallback y toggles de evaluadores.
+- Evaluación continua: harness de golden set + smoke tests en CI y pre-release.
+- Observabilidad completa: health checks, métricas, trazas de fallback y logs enriquecidos.
 
 ## 7. Open Research Topics
 - Representación simbólica de axiomas astrológicos (formalización ligera vs lógicas modales/temporales).

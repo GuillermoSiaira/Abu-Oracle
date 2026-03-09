@@ -7,7 +7,8 @@
 2. ✅ Arquitectura modular validada (Abu cálculo + Lilly interpretación + Orchestrator coordinación)
 3. ✅ Tests end-to-end exitosos con datos reales de usuario
 4. ✅ Documentación completa de diseño y operación
-5. ⚠️ Problema identificado: conectividad Cloud Run → OpenAI (infraestructura, no código)
+5. ✅ UI `/chart` con chat integrado (Compose) enviando contexto de Abu al backend `/api/chat` → `lilly_swarm`
+6. ⚠️ Lilly en Cloud Run sigue en fallback por conectividad saliente a `api.openai.com`
 
 ## Arquitectura implementada
 

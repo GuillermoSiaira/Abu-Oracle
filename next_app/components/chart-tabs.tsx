@@ -1,5 +1,6 @@
 'use client'
 
+import dynamic from "next/dynamic"
 import {
   Tabs,
   TabsList,
@@ -12,6 +13,13 @@ import { PersianTechniquesTab } from './persian-techniques-tab'
 import { TransitsTab } from './transits-tab'
 import { useAppStore } from '@/lib/store'
 
+const HFRelocationMap = dynamic(() => import("@/components/HFRelocationMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="text-center py-12 text-muted-foreground">Cargando mapa…</div>
+  ),
+})
+
 export function ChartTabs() {
   const { abuData, includeTransits } = useAppStore()
 
@@ -23,14 +31,17 @@ export function ChartTabs() {
     )
   }
 
+  const gridCols = includeTransits ? "grid-cols-4" : "grid-cols-3"
+
   return (
     <Tabs defaultValue="chart" className="w-full">
-      <TabsList className="grid w-full grid-cols-3">
+      <TabsList className={`grid w-full ${gridCols}`}>
         <TabsTrigger value="chart">Carta Natal</TabsTrigger>
         <TabsTrigger value="persian">Técnicas Persas</TabsTrigger>
         {includeTransits && (
           <TabsTrigger value="transits">Tránsitos</TabsTrigger>
         )}
+        <TabsTrigger value="relocation">Relocation</TabsTrigger>
       </TabsList>
 
       <TabsContent value="chart" className="space-y-4">
@@ -46,6 +57,10 @@ export function ChartTabs() {
           <TransitsTab />
         </TabsContent>
       )}
+
+      <TabsContent value="relocation" className="space-y-4">
+        <HFRelocationMap geojsonUrl="/geojson/subject_1000_hf.geojson" rankingUrl="/rankings/subject_1000_ranking.json" />
+      </TabsContent>
     </Tabs>
   )
 }

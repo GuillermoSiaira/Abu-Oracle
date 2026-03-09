@@ -50,14 +50,25 @@ def calculate_houses(
     # Convertir datetime a Julian Day
     jd = swe.julday(dt.year, dt.month, dt.day, 
                     dt.hour + dt.minute / 60.0 + dt.second / 3600.0)
-    
-    # Calcular casas
+
+    # Autoselección de sistema para latitudes extremas
+    effective_house_system = house_system
+    if abs(lat) > 66.0 and house_system == HOUSE_SYSTEM_PLACIDUS:
+        effective_house_system = HOUSE_SYSTEM_WHOLE_SIGN
+
+    # Calcular casas con fallback automático
     try:
-        # Ahora house_system siempre es bytes, swe.houses no fallará por tipo
-        cusps, ascmc = swe.houses(jd, lat, lon, house_system)
+        cusps, ascmc = swe.houses(jd, lat, lon, effective_house_system)
     except Exception as e:
-        # Fallback de seguridad por si falla el cálculo interno
-        raise ValueError(f"Error en swe.houses: {str(e)}")
+        # Segundo intento con Whole Sign si Placidus u otro sistema falló
+        if effective_house_system != HOUSE_SYSTEM_WHOLE_SIGN:
+            try:
+                effective_house_system = HOUSE_SYSTEM_WHOLE_SIGN
+                cusps, ascmc = swe.houses(jd, lat, lon, effective_house_system)
+            except Exception as e2:
+                raise ValueError(f"Error en swe.houses (fallback): {str(e2)}")
+        else:
+            raise ValueError(f"Error en swe.houses: {str(e)}")
 
     # Normalize cusp list to exactly 12 floats in [0,360)
     cusps_list = list(cusps[1:13]) if len(cusps) >= 13 else list(cusps)
@@ -72,7 +83,8 @@ def calculate_houses(
         "vertex": ascmc[3],
         "equatorial_asc": ascmc[4],
         "co_asc_koch": ascmc[5],
-        "cusps": cusps_list  # Cúspides 1-12
+        "cusps": cusps_list,  # Cúspides 1-12
+        "house_system_used": effective_house_system.decode("ascii") if isinstance(effective_house_system, (bytes, bytearray)) else str(effective_house_system)
     }
 
 

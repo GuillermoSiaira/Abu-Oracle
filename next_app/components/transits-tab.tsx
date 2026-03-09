@@ -3,7 +3,6 @@
 
 import { useAppStore } from "@/lib/store";
 
-// 👉 nuevos componentes simples
 import {
   Card,
   CardHeader,
@@ -12,12 +11,27 @@ import {
 } from "@/components/ui/simple-card";
 
 import { Badge } from "@/components/ui/simple-badge";
-
 import { Moon, Sparkles } from "lucide-react";
+
+// Tip local mínimo (no rompe contrato)
+interface LunarAspect {
+  planet: string;
+  type: string;
+  orb: number;
+}
 
 export function TransitsTab() {
   const abuData = useAppStore((s) => s.abuData);
-  const lunar = abuData?.derived?.lunar_transit;
+
+  if (!abuData) {
+    return (
+      <div className="p-6 text-center text-sm text-muted-foreground">
+        No hay análisis cargado.
+      </div>
+    );
+  }
+
+  const lunar = abuData.derived?.lunar_transit;
 
   if (!lunar || lunar.moon_position == null) {
     return (
@@ -43,11 +57,7 @@ export function TransitsTab() {
   function strengthBadge(strength: Strength) {
     switch (strength) {
       case "fuerte":
-        return (
-          <Badge className="text-xs uppercase tracking-wide">
-            Fuerte
-          </Badge>
-        );
+        return <Badge className="text-xs uppercase tracking-wide">Fuerte</Badge>;
       case "moderado":
         return (
           <Badge variant="outline" className="text-xs uppercase tracking-wide">
@@ -110,7 +120,7 @@ export function TransitsTab() {
             </p>
           ) : (
             <div className="space-y-2">
-              {sortedAspects.map((asp: any, i: number) => {
+              {sortedAspects.map((asp: LunarAspect, i: number) => {
                 const strength = getStrength(asp.orb);
 
                 return (
@@ -145,4 +155,3 @@ export function TransitsTab() {
     </div>
   );
 }
-  

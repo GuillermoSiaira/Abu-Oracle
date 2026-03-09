@@ -28,3 +28,5 @@ services:
       - NEXT_PUBLIC_ABU_URL=http://abu_engine:8000
       - NEXT_PUBLIC_LILLY_URL=http://lilly_swarm:8001
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+    volumes:
+      - ./next_app/public:/app/public

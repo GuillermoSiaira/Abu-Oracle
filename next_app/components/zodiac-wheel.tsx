@@ -19,6 +19,7 @@ interface House {
 
 interface ZodiacWheelProps {
   planets: Planet[];
+  transitPlanets?: Planet[];
   houses?: {
     houses?: House[];
     asc?: number | null;
@@ -80,6 +81,7 @@ const PLANET_COLORS: Record<string, string> = {
 
 export function ZodiacWheel({
   planets,
+  transitPlanets,
   houses,
   birthData,
   sunSign,
@@ -87,7 +89,6 @@ export function ZodiacWheel({
   ascendantSign,
   orientation = "aries",
 }: ZodiacWheelProps) {
-
   // -------------------------
   // CONSTS DE DIBUJO
   // -------------------------
@@ -103,18 +104,15 @@ export function ZodiacWheel({
   // -------------------------
   const rotationOffset = useMemo(() => {
     if (orientation === "ascendant" && houses?.asc != null) {
-      // Ajuste correcto → AC hacia la izquierda (9h) o arriba?
-      // Estándar en astrología: AC a la izquierda → 180°
-      // Pero tu UI quiere AC ARRIBA → 90° (vertical superior)
-      return houses.asc - 90;  // esta es la que alinea bien el wheel
+      // UI: AC arriba
+      return houses.asc - 90;
     }
     return 0; // Aries arriba
   }, [orientation, houses?.asc]);
 
   const polarToCartesian = (angle: number, radius: number) => {
-    // Normalizamos
-    const normalized = ((angle - rotationOffset + 360) % 360);
-    const adjusted = (normalized - 90) * (Math.PI / 180); // CORRECTO
+    const normalized = (angle - rotationOffset + 360) % 360;
+    const adjusted = (normalized - 90) * (Math.PI / 180);
 
     return {
       x: centerX + radius * Math.cos(adjusted),
@@ -128,10 +126,7 @@ export function ZodiacWheel({
   const planetPositions = useMemo(
     () =>
       planets.map((planet) => {
-        const pos = polarToCartesian(
-          planet.longitude,
-          signRadius + 35
-        );
+        const pos = polarToCartesian(planet.longitude, signRadius + 35);
         return {
           ...planet,
           x: pos.x,
@@ -154,19 +149,17 @@ export function ZodiacWheel({
     const desc = asc != null ? (asc + 180) % 360 : null;
     const ic = mc != null ? (mc + 180) % 360 : null;
     return { asc, mc, desc, ic };
-  }, [houses]);
+  }, [houses?.asc, houses?.mc]);
 
   // -------------------------
   // RENDER
   // -------------------------
   return (
     <div className="w-full space-y-6">
-      {/* Info opcional del nativo */}
       {(birthData || sunSign || moonSign || ascendantSign) && (
         <div className="space-y-4 pb-6 border-b-2 border-primary/30 text-center" />
       )}
 
-      {/* SVG Rueda */}
       <svg viewBox="0 0 600 600" className="w-full h-full max-w-3xl mx-auto">
         <defs>
           <radialGradient id="zodiacGradient" cx="50%" cy="50%" r="50%">
@@ -192,10 +185,41 @@ export function ZodiacWheel({
         </defs>
 
         {/* Círculos base */}
-        <circle cx={centerX} cy={centerY} r={outerRadius} fill="url(#zodiacGradient)" stroke="#D4AF37" strokeWidth="3" />
-        <circle cx={centerX} cy={centerY} r={houseRadius} fill="none" stroke="#D4AF37" strokeWidth="2" opacity="0.5" />
-        <circle cx={centerX} cy={centerY} r={signRadius} fill="none" stroke="#D4AF37" strokeWidth="2" opacity="0.7" />
-        <circle cx={centerX} cy={centerY} r={innerRadius} fill="none" stroke="#D4AF37" strokeWidth="2" opacity="0.8" />
+        <circle
+          cx={centerX}
+          cy={centerY}
+          r={outerRadius}
+          fill="url(#zodiacGradient)"
+          stroke="#D4AF37"
+          strokeWidth="3"
+        />
+        <circle
+          cx={centerX}
+          cy={centerY}
+          r={houseRadius}
+          fill="none"
+          stroke="#D4AF37"
+          strokeWidth="2"
+          opacity="0.5"
+        />
+        <circle
+          cx={centerX}
+          cy={centerY}
+          r={signRadius}
+          fill="none"
+          stroke="#D4AF37"
+          strokeWidth="2"
+          opacity="0.7"
+        />
+        <circle
+          cx={centerX}
+          cy={centerY}
+          r={innerRadius}
+          fill="none"
+          stroke="#D4AF37"
+          strokeWidth="2"
+          opacity="0.8"
+        />
 
         {/* SIGNOS */}
         {ZODIAC_SIGNS.map((sign) => {
@@ -203,12 +227,23 @@ export function ZodiacWheel({
           const divStart = polarToCartesian(sign.start, outerRadius);
           const divEnd = polarToCartesian(sign.start, innerRadius);
 
-          const symbolPos = polarToCartesian(midAngle, (outerRadius + houseRadius) / 2);
+          const symbolPos = polarToCartesian(
+            midAngle,
+            (outerRadius + houseRadius) / 2
+          );
           const namePos = polarToCartesian(midAngle, houseRadius - 20);
 
           return (
             <g key={sign.name}>
-              <line x1={divStart.x} y1={divStart.y} x2={divEnd.x} y2={divEnd.y} stroke="#D4AF37" strokeWidth="2" opacity="0.6" />
+              <line
+                x1={divStart.x}
+                y1={divStart.y}
+                x2={divEnd.x}
+                y2={divEnd.y}
+                stroke="#D4AF37"
+                strokeWidth="2"
+                opacity="0.6"
+              />
               <text
                 x={symbolPos.x}
                 y={symbolPos.y}
@@ -241,7 +276,10 @@ export function ZodiacWheel({
           const angle = i * 10;
           const isMain = i % 3 === 0;
           const start = polarToCartesian(angle, signRadius);
-          const end = polarToCartesian(angle, signRadius - (isMain ? 15 : 8));
+          const end = polarToCartesian(
+            angle,
+            signRadius - (isMain ? 15 : 8)
+          );
           return (
             <line
               key={`deg-${i}`}
@@ -261,15 +299,30 @@ export function ZodiacWheel({
           const start = polarToCartesian(h.cusp, houseRadius);
           const end = polarToCartesian(h.cusp, innerRadius);
 
-          // midpoint
-          const next = houseCusps[(h.number % 12)]?.cusp ?? h.cusp + 30;
+          const next = houseCusps[h.number % 12]?.cusp ?? h.cusp + 30;
           const mid = h.cusp + ((next - h.cusp + 360) % 360) / 2;
           const numPos = polarToCartesian(mid, (houseRadius + signRadius) / 2);
 
           return (
             <g key={`h-${h.number}`}>
-              <line x1={start.x} y1={start.y} x2={end.x} y2={end.y} stroke="#8B7355" strokeWidth="1.5" opacity="0.6" strokeDasharray="4 2" />
-              <circle cx={numPos.x} cy={numPos.y} r="14" fill="#1a1a2e" stroke="#8B7355" strokeWidth="1.5" />
+              <line
+                x1={start.x}
+                y1={start.y}
+                x2={end.x}
+                y2={end.y}
+                stroke="#8B7355"
+                strokeWidth="1.5"
+                opacity="0.6"
+                strokeDasharray="4 2"
+              />
+              <circle
+                cx={numPos.x}
+                cy={numPos.y}
+                r="14"
+                fill="#1a1a2e"
+                stroke="#8B7355"
+                strokeWidth="1.5"
+              />
               <text
                 x={numPos.x}
                 y={numPos.y}
@@ -285,8 +338,7 @@ export function ZodiacWheel({
           );
         })}
 
-        {/* ANGL
-ES → ASC / MC / DC / IC */}
+        {/* ANGLES → ASC / MC / DC / IC */}
         {angles.asc != null && (
           <g>
             <line
@@ -406,7 +458,13 @@ ES → ASC / MC / DC / IC */}
         ))}
 
         {/* Centro */}
-        <circle cx={centerX} cy={centerY} r="6" fill="#D4AF37" filter="url(#glow)" />
+        <circle
+          cx={centerX}
+          cy={centerY}
+          r="6"
+          fill="#D4AF37"
+          filter="url(#glow)"
+        />
       </svg>
     </div>
   );

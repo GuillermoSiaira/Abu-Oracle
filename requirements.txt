@@ -1,0 +1,9 @@
+pandas
+numpy
+pyarrow
+pyswisseph
+matplotlib
+tqdm
+pydantic
+skyfield
+scipy

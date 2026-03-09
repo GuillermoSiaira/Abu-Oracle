@@ -86,7 +86,7 @@ export interface Extended {
   fixed_stars: FixedStar[]
   solar_return?: Record<string, any>
   solar_return_ranking?: Record<string, any>
-  transits?: Record<string, any>
+  transits?: Record<string, any> // legacy / experimental
 }
 
 export interface AbuResponse {
@@ -116,8 +116,17 @@ export interface AbuAnalyzeRequest {
 }
 
 // ======================================================
-//  ABU /analyze RESPONSE REAL
+//  ABU /analyze RESPONSE REAL (ACTUALIZADO)
 // ======================================================
+
+// 🔹 Planeta en tránsito (misma semántica que natal, sin casa)
+export interface TransitPlanet {
+  name: string
+  longitude: number
+  sign: string
+  degree_in_sign?: number
+  formatted?: string
+}
 
 export interface AbuAnalyzeResponse {
   person: {
@@ -165,6 +174,11 @@ export interface AbuAnalyzeResponse {
     peaks: Array<{ date: string; score: number; is_peak: boolean }>
   }
 
+  // ✅ NUEVO — tránsitos planetarios completos
+  transits?: {
+    planets: TransitPlanet[]
+  }
+
   question?: string
 }
 
@@ -173,15 +187,14 @@ export interface AbuAnalyzeResponse {
 // ======================================================
 
 export interface LillyResponse {
-  maestro?: Record<string, any>    // JSON Maestro completo
-  narrative?: string               // Narrativa heurística
-  ai?: {                           // Interpretación generada por LLM
+  maestro?: Record<string, any>
+  narrative?: string
+  ai?: {
     headline?: string
     narrative?: string
     actions?: string[]
   }
 }
-
 
 // ======================================================
 //  CHAT UI

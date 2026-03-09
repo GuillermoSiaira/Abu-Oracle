@@ -4,7 +4,9 @@ import { useAppStore } from "@/lib/store";
 import { ZodiacWheel } from "./zodiac-wheel";
 import { useState } from "react";
 
-// Función determinística para obtener signo a partir de longitud
+// ------------------------------------
+// Utils
+// ------------------------------------
 function getSignFromLongitude(long: number): string {
   const signs = [
     "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
@@ -14,11 +16,13 @@ function getSignFromLongitude(long: number): string {
   return signs[index];
 }
 
+// ------------------------------------
+// Component
+// ------------------------------------
 export function NatalChartTab() {
   const abuData = useAppStore((s) => s.abuData);
   const isLoading = useAppStore((s) => s.isLoading);
 
-  // Nuevo: orientación seleccionada por el usuario
   const [orientation, setOrientation] = useState<"aries" | "ascendant">(
     "ascendant"
   );
@@ -26,11 +30,11 @@ export function NatalChartTab() {
   if (isLoading) return <div>Cargando carta…</div>;
   if (!abuData) return <div>No hay análisis disponible.</div>;
 
-  const { chart } = abuData;
+  const { chart, transits } = abuData;
 
-  // -------------------------
-  // ADAPTER → Casas para el Wheel
-  // -------------------------
+  // ------------------------------------
+  // ADAPTER → Casas
+  // ------------------------------------
   const adaptedHouses = chart.houses.houses.map((h: any) => ({
     number: h.house,
     cusp: h.start,
@@ -43,10 +47,10 @@ export function NatalChartTab() {
     mc: chart.houses.mc,
   };
 
-  // -------------------------
-  // ADAPTER → Planetas
-  // -------------------------
-  const planetData = chart.planets.map((p: any) => ({
+  // ------------------------------------
+  // ADAPTER → Planetas natales
+  // ------------------------------------
+  const natalPlanets = chart.planets.map((p: any) => ({
     name: p.name,
     longitude: p.longitude,
     sign: p.sign,
@@ -55,6 +59,21 @@ export function NatalChartTab() {
     house: p.house,
   }));
 
+  // ------------------------------------
+  // ADAPTER → Planetas en tránsito ✅ NUEVO
+  // ------------------------------------
+  const transitPlanets =
+    transits?.planets?.map((p: any) => ({
+      name: p.name,
+      longitude: p.longitude,
+      sign: p.sign,
+      degree: p.degree_in_sign,
+      formatted: p.formatted,
+    })) ?? [];
+
+  // ------------------------------------
+  // RENDER
+  // ------------------------------------
   return (
     <div className="space-y-10">
       <h2 className="text-xl font-semibold">Carta Natal</h2>
@@ -86,7 +105,8 @@ export function NatalChartTab() {
 
       {/* Rueda zodiacal */}
       <ZodiacWheel
-        planets={planetData}
+        planets={natalPlanets}
+        transitPlanets={transitPlanets}  
         houses={houseData}
         orientation={orientation}
       />
@@ -96,7 +116,7 @@ export function NatalChartTab() {
         <h3 className="text-lg font-semibold">Posiciones planetarias</h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {planetData.map((p) => (
+          {natalPlanets.map((p) => (
             <div
               key={p.name}
               className="p-3 rounded-md border bg-card/50 backdrop-blur-sm"
@@ -110,13 +130,13 @@ export function NatalChartTab() {
         </div>
       </div>
 
-      {/* Debug opcional */}
+      {/* Debug */}
       <details className="mt-4">
         <summary className="cursor-pointer text-sm opacity-70">
           Ver JSON completo (debug)
         </summary>
         <pre className="bg-black/20 p-3 rounded text-xs mt-2 overflow-auto max-h-96">
-          {JSON.stringify(chart, null, 2)}
+          {JSON.stringify(abuData, null, 2)}
         </pre>
       </details>
     </div>

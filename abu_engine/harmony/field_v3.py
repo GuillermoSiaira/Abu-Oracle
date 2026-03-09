@@ -1,0 +1,192 @@
+"""HF Core v3: additive, minimal model for relocation.
+
+Design goals:
+- Keep HF v1 aspects untouched and reusable.
+- Add angularity (ASC/MC) and house occupancy as additive terms, not multiplicative.
+- Provide a small, auditable API ready for product use and future acceleration.
+"""
+
+from __future__ import annotations
+
+from typing import Dict, Mapping, Optional, Sequence
+import math
+
+from .field import aggregate_field
+from .resonance import ASPECTS, SIGMAS, ASPECT_WEIGHTS, angular_distance_deg
+from .schema_v2 import PLANET_ORDER, DEFAULT_PLANET_WEIGHTS
+from .houses import assign_planet_houses
+
+
+# Defaults for HF v3 weights
+DEFAULT_BETA: float = 0.6
+DEFAULT_GAMMA: float = 0.3
+DEFAULT_SIGMA_ANGLE: float = 10.0
+
+# Simple, fixed house weights (can be tuned downstream)
+DEFAULT_HOUSE_WEIGHTS: Dict[int, float] = {
+    1: 1.2,
+    2: 1.0,
+    3: 1.0,
+    4: 1.1,
+    5: 1.05,
+    6: 0.9,
+    7: 1.1,
+    8: 0.95,
+    9: 1.05,
+    10: 1.2,
+    11: 1.0,
+    12: 0.85,
+}
+
+
+def gaussian_strength(delta_deg: float, sigma_deg: float) -> float:
+    if sigma_deg <= 0:
+        raise ValueError("sigma_deg must be positive")
+    return math.exp(-((delta_deg ** 2) / (2.0 * sigma_deg * sigma_deg)))
+
+
+def compute_hf_aspects(
+    angles_deg: Mapping[str, float],
+    aspects: Mapping[str, float] = ASPECTS,
+    sigmas: Mapping[str, float] = SIGMAS,
+    aspect_weights: Mapping[str, float] = ASPECT_WEIGHTS,
+) -> float:
+    """Return HF_aspects using HF v1 aggregation (HF_total).
+
+    Args:
+        angles_deg: Mapping of point name to longitude degrees (expects HF v1 points).
+    """
+
+    agg = aggregate_field(angles_deg, aspects=aspects, sigmas=sigmas, aspect_weights=aspect_weights)
+    return float(agg.get("HF_total", 0.0))
+
+
+def compute_hf_angles(
+    angles_deg: Mapping[str, float],
+    sigma_angle: float = DEFAULT_SIGMA_ANGLE,
+    planet_weights: Mapping[str, float] = DEFAULT_PLANET_WEIGHTS,
+) -> float:
+    """Compute angular contribution using proximity to ASC and MC (additive score).
+
+    Args:
+        angles_deg: Mapping with planet longitudes and ASC/MC (degrees).
+        sigma_angle: Gaussian sigma in degrees for angular proximity.
+        planet_weights: Optional per-planet weights (default 1.0 each).
+    """
+
+    asc = angles_deg.get("ASC")
+    mc = angles_deg.get("MC")
+    if asc is None or mc is None:
+        return 0.0
+
+    total = 0.0
+    for planet in PLANET_ORDER:
+        if planet not in angles_deg:
+            continue
+        p_lon = float(angles_deg[planet])
+        w = float(planet_weights.get(planet, 1.0))
+
+        delta_asc = angular_distance_deg(p_lon, float(asc))
+        delta_mc = angular_distance_deg(p_lon, float(mc))
+
+        s_asc = gaussian_strength(delta_asc, sigma_angle)
+        s_mc = gaussian_strength(delta_mc, sigma_angle)
+
+        total += w * (s_asc + s_mc)
+
+    return float(total)
+
+
+def compute_hf_houses(
+    angles_deg: Mapping[str, float],
+    cusps: Optional[Sequence[float]] = None,
+    house_weights: Mapping[int, float] = DEFAULT_HOUSE_WEIGHTS,
+    planet_weights: Mapping[str, float] = DEFAULT_PLANET_WEIGHTS,
+) -> float:
+    """Compute a simple house occupancy score (additive).
+
+    Args:
+        angles_deg: Mapping with planet longitudes.
+        cusps: Optional list of 12 cusp longitudes (deg). Required for non-zero output.
+        house_weights: Weight per house number (1-12).
+        planet_weights: Optional per-planet weights.
+    """
+
+    if not cusps or len(cusps) < 12:
+        return 0.0
+
+    planet_positions = {p: float(angles_deg[p]) for p in PLANET_ORDER if p in angles_deg}
+    assignments = assign_planet_houses(planet_positions, list(cusps))
+
+    score = 0.0
+    for planet, house_idx in assignments.items():
+        w_p = float(planet_weights.get(planet, 1.0))
+        w_h = float(house_weights.get(int(house_idx), 1.0))
+        score += w_p * w_h
+
+    return float(score)
+
+
+def compute_hf_v3(
+    angles_deg: Mapping[str, float],
+    cusps: Optional[Sequence[float]] = None,
+    beta: float = DEFAULT_BETA,
+    gamma: float = DEFAULT_GAMMA,
+    sigma_angle: float = DEFAULT_SIGMA_ANGLE,
+    aspects: Mapping[str, float] = ASPECTS,
+    sigmas: Mapping[str, float] = SIGMAS,
+    aspect_weights: Mapping[str, float] = ASPECT_WEIGHTS,
+    house_weights: Mapping[int, float] = DEFAULT_HOUSE_WEIGHTS,
+    planet_weights: Mapping[str, float] = DEFAULT_PLANET_WEIGHTS,
+) -> Dict[str, float]:
+    """Compute HF v3 additive score.
+
+    HF_total_v3 = HF_aspects + beta * HF_angles + gamma * HF_houses
+
+    Returns a dict with components and hyperparameters.
+    """
+
+    hf_aspects = compute_hf_aspects(angles_deg, aspects=aspects, sigmas=sigmas, aspect_weights=aspect_weights)
+    hf_angles = compute_hf_angles(angles_deg, sigma_angle=sigma_angle, planet_weights=planet_weights)
+    hf_houses = compute_hf_houses(angles_deg, cusps=cusps, house_weights=house_weights, planet_weights=planet_weights)
+
+    hf_total_v3 = hf_aspects + beta * hf_angles + gamma * hf_houses
+
+    return {
+        "hf_total_v3": float(hf_total_v3),
+        "hf_aspects": float(hf_aspects),
+        "hf_angles": float(hf_angles),
+        "hf_houses": float(hf_houses),
+        "beta": float(beta),
+        "gamma": float(gamma),
+        "sigma_angle": float(sigma_angle),
+    }
+
+
+def example_usage() -> Dict[str, float]:
+    """Tiny example demonstrating the API (using mock angles)."""
+
+    mock_angles = {
+        "Sun": 10.0,
+        "Moon": 40.0,
+        "Mercury": 70.0,
+        "Venus": 120.0,
+        "Mars": 190.0,
+        "Jupiter": 220.0,
+        "Saturn": 250.0,
+        "Uranus": 300.0,
+        "Neptune": 310.0,
+        "Pluto": 330.0,
+        "ASC": 15.0,
+        "MC": 285.0,
+    }
+    mock_cusps = [i * 30.0 for i in range(12)]  # simplistic whole-sign-like cusps
+
+    return compute_hf_v3(mock_angles, cusps=mock_cusps)
+
+
+# Notes for integration:
+# - In relocation pipelines (e.g., generate_relocation_field.py), pass angles_deg that
+#   already include ASC/MC and a list of 12 cusps if house scoring is desired.
+# - HF_aspects reuses v1 aggregation; no changes needed in upstream data preparation.
+# - Beta/gamma/sigma_angle can be tuned via CLI flags when wiring into scripts.

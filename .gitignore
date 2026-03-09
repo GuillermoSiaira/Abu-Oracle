@@ -80,4 +80,9 @@ astro-texts/
 venv/
 venv310/
 .env
+.venv/
+output/
+**pycache**/
+.venv*
+
 

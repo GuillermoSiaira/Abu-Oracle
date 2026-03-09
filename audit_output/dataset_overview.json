@@ -1,0 +1,41 @@
+{
+  "total_records": 5359,
+  "fields": [
+    "id",
+    "name",
+    "birth_date",
+    "birth_time",
+    "time_precision",
+    "timezone",
+    "latitude",
+    "longitude",
+    "city",
+    "country",
+    "rodden_rating",
+    "source",
+    "url",
+    "scrape_timestamp",
+    "scrape_source",
+    "scrape_version",
+    "html_hash"
+  ],
+  "dtypes": {
+    "id": "int64",
+    "name": "str",
+    "birth_date": "str",
+    "birth_time": "str",
+    "time_precision": "str",
+    "timezone": "str",
+    "latitude": "float64",
+    "longitude": "float64",
+    "city": "float64",
+    "country": "float64",
+    "rodden_rating": "float64",
+    "source": "str",
+    "url": "str",
+    "scrape_timestamp": "str",
+    "scrape_source": "str",
+    "scrape_version": "str",
+    "html_hash": "str"
+  }
+}

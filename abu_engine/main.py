@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 from fastapi.middleware.cors import CORSMiddleware
-from datetime import datetime
+from datetime import datetime, timedelta
 from contextlib import asynccontextmanager
 import requests
 import json
@@ -20,6 +20,7 @@ from core.extended_calc import (
     get_sign_name,
     normalize_lon
 )
+from skyfield.api import load
 import logging
 from core.solar_return_ranking import rank_solar_return_locations, RELOCATION_CITIES
 import logging
@@ -1384,6 +1385,55 @@ def get_fixed_stars(
         raise HTTPException(status_code=500, detail=f"Fixed stars calculation error: {str(e)}")
 
 
+def _compute_planet_speeds_deg_per_day(date: datetime) -> dict:
+    """
+    Calcula velocidad geocéntrica aproximada (°/día) para cada planeta usando diferencia central de 24h.
+    Útil para marcar directo/retrógrado y determinar si un tránsito es aplicativo.
+    """
+    planets = EphemerisSingleton()
+    ts = load.timescale()
+    t_prev = ts.from_datetime(date - timedelta(hours=12))
+    t_next = ts.from_datetime(date + timedelta(hours=12))
+
+    earth = planets["earth"]
+    bodies = {
+        "Sun": planets["sun"],
+        "Moon": planets["moon"],
+        "Mercury": planets["mercury barycenter"],
+        "Venus": planets["venus barycenter"],
+        "Mars": planets["mars barycenter"],
+        "Jupiter": planets["jupiter barycenter"],
+        "Saturn": planets["saturn barycenter"],
+        "Uranus": planets["uranus barycenter"],
+        "Neptune": planets["neptune barycenter"],
+        "Pluto": planets["pluto barycenter"],
+    }
+
+    speeds = {}
+    for name, body in bodies.items():
+        lon_prev = normalize_lon(earth.at(t_prev).observe(body).ecliptic_latlon()[1].degrees)
+        lon_next = normalize_lon(earth.at(t_next).observe(body).ecliptic_latlon()[1].degrees)
+        diff = (lon_next - lon_prev + 540) % 360 - 180  # [-180, 180]
+        speeds[name] = diff  # grados por día (ventana de 24h)
+
+    return speeds
+
+
+def _build_transit_planets(lat: float, lon: float, dt: datetime) -> list:
+    """Calcula posiciones y velocidades de tránsito para alimentar calculate_transits."""
+    transit_chart = chart_json(lat, lon, dt)
+    planet_speeds = _compute_planet_speeds_deg_per_day(dt)
+
+    return [
+        {
+            "name": p.name,
+            "longitude": p.lon,
+            "speed": planet_speeds.get(p.name, 0),
+        }
+        for p in transit_chart.planets
+    ]
+
+
 @app.get(
     "/api/astro/transits",
     response_model=None,
@@ -1414,7 +1464,8 @@ def get_transits(
     date: str = Query(..., description="Fecha de los tránsitos en formato ISO"),
     lat: float = Query(..., description="Latitud"),
     lon: float = Query(..., description="Longitud"),
-    includeMajorOnly: bool = Query(True, description="Filtrar solo planetas exteriores")
+    includeMajorOnly: bool = Query(True, description="Filtrar solo planetas exteriores"),
+    includeMinor: bool = Query(False, description="Incluir aspectos menores")
 ):
     """
     Calcula tránsitos comparando posiciones actuales con la carta natal.
@@ -1431,24 +1482,69 @@ def get_transits(
         
         transit_dt = datetime.fromisoformat(date.replace("Z", "+00:00"))
         
-        # Calcular posiciones de tránsito
-        transit_chart = chart_json(lat, lon, transit_dt)
-        transit_planets_list = [
-            {
-                "name": p.name,
-                "longitude": p.lon,
-                "speed": 0  # TODO: calcular velocidad real
-            }
-            for p in transit_chart.planets
-        ]
-        
+        transit_planets_list = _build_transit_planets(lat, lon, transit_dt)
+
         from core.transits import calculate_transits, filter_major_transits
-        
-        transits = calculate_transits(natal_planets_list, transit_planets_list)
+
+        transits = calculate_transits(
+            natal_planets_list,
+            transit_planets_list,
+            include_minor=includeMinor,
+        )
         
         if includeMajorOnly:
             transits = filter_major_transits(transits, major_planets_only=True, max_orb=3.0)
         
+        return transits
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Transits calculation error: {str(e)}")
+
+
+class TransitsWithNatalRequest(BaseModel):
+    birthDate: str = Field(..., description="Fecha/hora natal en ISO, UTC")
+    birthLat: float = Field(..., description="Latitud natal")
+    birthLon: float = Field(..., description="Longitud natal")
+    transitDate: str = Field(..., description="Fecha/hora del tránsito en ISO, UTC")
+    transitLat: float = Field(..., description="Latitud para el tránsito")
+    transitLon: float = Field(..., description="Longitud para el tránsito")
+    includeMajorOnly: bool = Field(True, description="Filtrar solo planetas exteriores")
+    includeMinor: bool = Field(False, description="Incluir aspectos menores")
+
+
+@app.post(
+    "/api/astro/transits/with-natal",
+    response_model=None,
+    responses={
+        400: {"description": "Missing parameters"},
+        422: {"description": "Invalid date format"},
+        200: {"description": "Tránsitos calculados"},
+    },
+)
+def get_transits_with_natal(body: TransitsWithNatalRequest):
+    """Conveniencia: genera planetas natales y de tránsito a partir de fechas/lugares y calcula aspectos."""
+    try:
+        from core.transits import calculate_transits, filter_major_transits
+
+        birth_dt = datetime.fromisoformat(body.birthDate.replace("Z", "+00:00"))
+        transit_dt = datetime.fromisoformat(body.transitDate.replace("Z", "+00:00"))
+
+        natal_chart = chart_json(body.birthLat, body.birthLon, birth_dt)
+        natal_planets_list = [
+            {"name": p.name, "longitude": p.lon}
+            for p in natal_chart.planets
+        ]
+
+        transit_planets_list = _build_transit_planets(body.transitLat, body.transitLon, transit_dt)
+
+        transits = calculate_transits(
+            natal_planets_list,
+            transit_planets_list,
+            include_minor=body.includeMinor,
+        )
+
+        if body.includeMajorOnly:
+            transits = filter_major_transits(transits, major_planets_only=True, max_orb=3.0)
+
         return transits
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Transits calculation error: {str(e)}")
@@ -1764,6 +1860,7 @@ def analyze(payload: AnalyzeRequest = Body(
     t1_profection = time.perf_counter()
 
     # 6) Tránsito lunar actual y aspectos a planetas natales
+    transit_planets = []  # Inicializar para robustez
     lunar_transit = {"aspects": []}
     t0_lunar = time.perf_counter()
     try:
@@ -1788,6 +1885,19 @@ def analyze(payload: AnalyzeRequest = Body(
     except Exception:
         pass
     t1_lunar = time.perf_counter()
+
+    # Calcular posiciones detalladas de planetas de tránsito (robusto)
+    try:
+        # preferimos el objeto transit_chart si existe
+        transit_planets_dict = {p.name: p.lon for p in transit_chart.planets}
+        detailed_transit_planets = calculate_detailed_positions(transit_planets_dict, houses=None)
+    except Exception:
+        # fallback: si solo tenemos transit_planets como lista de dicts
+        try:
+            transit_planets_dict = {p["name"]: p["longitude"] for p in transit_planets}
+            detailed_transit_planets = calculate_detailed_positions(transit_planets_dict, houses=None)
+        except Exception:
+            detailed_transit_planets = []
 
     # Assemble houses block to strict contract: { houses:[{house,start,end}], asc:number, mc:number }
     def _houses_contract(cusps_list: Optional[List[float]], asc_value: Optional[float], mc_value: Optional[float]):
@@ -1868,6 +1978,9 @@ def analyze(payload: AnalyzeRequest = Body(
         },
         "life_cycles": life_cycles_block,
         "forecast": forecast_block,
+        "transits": {
+            "planets": detailed_transit_planets
+        },
         "question": (payload.person.question if payload.person else "")
     }
 

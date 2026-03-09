@@ -1,36 +1,45 @@
 'use client';
 
+import { ReactNode } from 'react';
 import Navigation from './Navigation';
 import OracleChat from './OracleChat';
-import { ReactNode } from 'react';
+import TechnicalPanel from './TechnicalPanel'; 
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex flex-col h-screen bg-slate-950 text-slate-200 overflow-hidden">
+    <div className="flex flex-col h-screen bg-slate-950 text-slate-200 overflow-hidden font-sans">
       
-      {/* NAVBAR SUPERIOR */}
-      <div className="shrink-0 z-20">
+      {/* 1. TOP BAR (Navigation) */}
+      <div className="shrink-0 z-20 border-b border-slate-800 bg-[#0a0a0a]">
         <Navigation />
       </div>
 
-      {/* SPLIT VIEW */}
+      {/* 2. MAIN WORKSPACE (Split View) */}
       <div className="flex flex-1 overflow-hidden relative">
 
-        {/* MAIN */}
-        <main className="flex-1 overflow-y-auto p-4 md:mr-[350px]">
-          <div className="max-w-6xl mx-auto h-full">
+        {/* COLUMNA IZQUIERDA: Contexto Técnico */}
+        <aside className="
+            hidden lg:flex flex-col 
+            w-[280px] shrink-0
+            bg-[#050505] border-r border-slate-800 
+            z-10
+        ">
+           <TechnicalPanel /> 
+        </aside>
+
+        {/* COLUMNA CENTRAL: Visualización Principal */}
+        <main className="flex-1 overflow-hidden relative bg-slate-950 flex flex-col">
+          <div className="w-full h-full flex flex-col">
             {children}
           </div>
         </main>
 
-        {/* SIDEBAR ORACLE */}
-        <aside
-          className="
+        {/* COLUMNA DERECHA: Oracle Chat */}
+        <aside className="
             hidden md:flex flex-col
-            fixed right-0 inset-y-0
-            w-[350px]
-            bg-slate-900 border-l border-slate-800
-            z-30
+            w-[350px] xl:w-[400px] shrink-0
+            bg-[#050505] border-l border-slate-800
+            z-30 shadow-[0_0_15px_rgba(0,0,0,0.5)]
           "
         >
           <OracleChat />

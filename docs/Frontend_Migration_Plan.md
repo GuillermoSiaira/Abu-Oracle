@@ -3,7 +3,7 @@
 # Migración de la UI Persa (v0-repo) al Repo Principal `ai-oracle`
 
 **Versión:** 2025-03  
-**Estado:** Aprobado  
+**Estado:** En curso (chat y tabs activos en `/chart` en entorno Compose)  
 **Autor:** Guillermo Siaira + ChatGPT  
 **Objetivo:** Integrar la UI persa moderna (v0-repo) en el frontend real del proyecto `ai-oracle`, manteniendo 100% intactos los contratos, lógica y endpoints del backend Abu Engine y Lilly Engine.
 
@@ -26,17 +26,13 @@ La migración se realiza sin romper el frontend actual y sin introducir deuda t�
 
 # 🟦 2. Estado Actual de los Repositorios
 
-## Repo principal `ai-oracle`
-* Contiene:
-  * `/next_app` con el frontend anterior.
-  * Páginas `/chart`, `/forecast`, `/interpret`, `/positions`.
-  * Conexión directa a Abu/Lilly usando `fetch` + `useSWR`.
-  * Sin Zustand.
-  * Sin UI persa.
-  * Tailwind básico, sin tema persa.
-* Backend funcional, estable y desplegado:
+## Repo principal `ai-oracle` (estado 2026-02)
+* Frontend `/chart` ya con tabs (Carta/Técnicas/Tránsitos), rueda avanzada y chat integrado contra `/api/chat` → `lilly_swarm` pasando contexto de Abu.
+* Zustand y servicios tipados presentes; tema persa aplicado.
+* Rutas `/forecast`, `/interpret`, `/positions` siguen operativas.
+* Backend:
   * Abu Engine (Cloud Run)
-  * Lilly Engine (Cloud Run)
+  * Lilly Engine (Cloud Run) — ⚠️ LLM en fallback en cloud por egress; en Compose OK.
   * Contratos OpenAPI confirmados
   * JSON Maestro funcional
 
