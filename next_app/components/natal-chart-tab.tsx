@@ -116,17 +116,34 @@ export function NatalChartTab() {
         <h3 className="text-lg font-semibold">Posiciones planetarias</h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {natalPlanets.map((p) => (
-            <div
-              key={p.name}
-              className="p-3 rounded-md border bg-card/50 backdrop-blur-sm"
-            >
-              <p className="font-semibold">{p.name}</p>
-              <p className="text-sm opacity-80">{p.formatted}</p>
-              <p className="text-sm opacity-80">Signo: {p.sign}</p>
-              <p className="text-sm opacity-80">Casa: {p.house}</p>
-            </div>
-          ))}
+          {natalPlanets.map((p) => {
+            // Find corresponding transit planet
+            const tp = transitPlanets?.find((tp) => tp.name === p.name);
+            // Calculate delta (ensuring positive angle difference)
+            const delta = tp ? ((tp.longitude - p.longitude + 360) % 360) : null;
+
+            return (
+              <div
+                key={p.name}
+                className="p-3 rounded-md border bg-card/50 backdrop-blur-sm"
+              >
+                <p className="font-semibold">{p.name}</p>
+                <p className="text-sm opacity-80">{p.formatted}</p>
+                <p className="text-sm opacity-80">Signo: {p.sign}</p>
+                <p className="text-sm opacity-80">Casa: {p.house}</p>
+
+                {tp && (
+                  <div className="mt-2 pt-2 border-t border-slate-700/50">
+                    <p className="text-xs text-slate-400">Tránsito</p>
+                    <p className="text-sm">{tp.formatted}</p>
+                    <p className="text-xs text-amber-400">
+                      Δ {delta?.toFixed(1)}°
+                    </p>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 

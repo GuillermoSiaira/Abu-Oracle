@@ -44,6 +44,10 @@
     error: string | null
 
     includeTransits: boolean
+    transitDate: string | null
+    lang: "es" | "en" | "pt" | "fr"
+
+    userName: string
 
     onboardingStage: OnboardingStage
     onboardingData: OnboardingData
@@ -54,7 +58,10 @@
     setIsLoading: (value: boolean) => void
     setError: (message: string | null) => void
     setIncludeTransits: (value: boolean) => void
+    setTransitDate: (date: string | null) => void
+    setLang: (lang: "es" | "en" | "pt" | "fr") => void
     addChatMessage: (msg: ChatMessage) => void
+    setUserName: (name: string) => void
     clearAll: () => void
 
     setOnboardingStage: (stage: OnboardingStage) => void
@@ -67,6 +74,7 @@
   // ======================================================
 
   const STORAGE_KEY = "ai-oracle-store-v1"
+  const PROFILE_KEY = "ai-oracle-profile-v1"
 
   function loadPersisted() {
     if (typeof window === "undefined") return {}
@@ -96,6 +104,26 @@
     } catch (e) {
       console.error("[Store] Error leyendo localStorage:", e)
       return {}
+    }
+  }
+
+  function loadUserName(): string {
+    if (typeof window === "undefined") return ""
+    try {
+      const raw = window.localStorage.getItem(PROFILE_KEY)
+      if (!raw) return ""
+      return JSON.parse(raw)?.name ?? ""
+    } catch {
+      return ""
+    }
+  }
+
+  function saveUserName(name: string) {
+    if (typeof window === "undefined") return
+    try {
+      window.localStorage.setItem(PROFILE_KEY, JSON.stringify({ name }))
+    } catch (e) {
+      console.error("[Store] Error guardando perfil:", e)
     }
   }
 
@@ -132,6 +160,10 @@
       error: null,
 
       includeTransits: true,
+      transitDate: null,
+      lang: "es",
+
+      userName: loadUserName(),
 
       // ---- Estado de onboarding ----
       onboardingStage: "idle",
@@ -163,6 +195,10 @@
 
       setIncludeTransits: (value) => set({ includeTransits: value }),
 
+      setTransitDate: (date) => set({ transitDate: date }),
+
+      setLang: (lang) => set({ lang }),
+
       addChatMessage: (msg) =>
         set((state) => {
           const newHistory = [...state.chatHistory, msg]
@@ -170,6 +206,11 @@
           persistSelected(next)
           return { chatHistory: newHistory }
         }),
+
+      setUserName: (name) => {
+        saveUserName(name)
+        set({ userName: name })
+      },
 
       // ---------------------------------------------------
       // ONBOARDING MUTATORS
@@ -196,6 +237,7 @@
       clearAll: () => {
         if (typeof window !== "undefined") {
           window.localStorage.removeItem(STORAGE_KEY)
+          // PROFILE_KEY (userName) se preserva intencionalmente
         }
 
         set({
@@ -208,6 +250,7 @@
           includeTransits: true,
           onboardingStage: "idle",
           onboardingData: {},
+          // userName se preserva
         })
       },
     }

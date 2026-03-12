@@ -1,157 +1,263 @@
-// next_app/components/transits-tab.tsx
 "use client";
 
+import { useEffect, useState } from "react";
 import { useAppStore } from "@/lib/store";
 
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from "@/components/ui/simple-card";
+const ABU_URL = process.env.NEXT_PUBLIC_ABU_URL || "http://localhost:8000";
 
-import { Badge } from "@/components/ui/simple-badge";
-import { Moon, Sparkles } from "lucide-react";
+const SIGNS = [
+  "Aries","Taurus","Gemini","Cancer","Leo","Virgo",
+  "Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces",
+];
 
-// Tip local mínimo (no rompe contrato)
-interface LunarAspect {
-  planet: string;
-  type: string;
+const ASPECT_META: Record<string,{ label: string; symbol: string; color: string }> = {
+  conjunction:  { label: "Conjunción",  symbol: "☌", color: "text-amber-400 border-amber-400/40 bg-amber-400/10" },
+  opposition:   { label: "Oposición",   symbol: "☍", color: "text-red-400 border-red-400/40 bg-red-400/10" },
+  square:       { label: "Cuadratura",  symbol: "□", color: "text-orange-400 border-orange-400/40 bg-orange-400/10" },
+  trine:        { label: "Trígono",     symbol: "△", color: "text-emerald-400 border-emerald-400/40 bg-emerald-400/10" },
+  sextile:      { label: "Sextil",      symbol: "⚹", color: "text-teal-400 border-teal-400/40 bg-teal-400/10" },
+  semisextile:  { label: "Semisextil",  symbol: "⚺", color: "text-slate-400 border-slate-400/40 bg-slate-400/10" },
+  quincunx:     { label: "Quincuncio",  symbol: "⚻", color: "text-violet-400 border-violet-400/40 bg-violet-400/10" },
+};
+
+const PLANET_SYMBOLS: Record<string, string> = {
+  Sun:"☉", Moon:"☽", Mercury:"☿", Venus:"♀", Mars:"♂",
+  Jupiter:"♃", Saturn:"♄", Uranus:"♅", Neptune:"♆", Pluto:"♇",
+  "North Node":"☊", "South Node":"☋", ASC:"AC", MC:"MC",
+};
+
+function lonToSignDeg(lon: number): { sign: string; deg: number } {
+  const idx = Math.floor((lon % 360) / 30);
+  const deg = (lon % 360) % 30;
+  return { sign: SIGNS[idx] ?? "?", deg };
+}
+
+interface TransitAspect {
+  natal_planet: string;
+  transit_planet: string;
+  aspect: string;
   orb: number;
+  applying: boolean;
+  exactness: string;
+  natal_longitude: number;
+  transit_longitude: number;
+}
+
+interface GroupedTransit {
+  planet: string;
+  longitude: number;
+  sign: string;
+  deg: number;
+  aspects: TransitAspect[];
 }
 
 export function TransitsTab() {
-  const abuData = useAppStore((s) => s.abuData);
+  const birthData = useAppStore((s) => s.birthData);
+  const transitDate = useAppStore((s) => s.transitDate);
+  const setTransitDate = useAppStore((s) => s.setTransitDate);
+  const [data, setData] = useState<TransitAspect[] | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  if (!abuData) {
+  const effectiveTransitDate = transitDate ?? new Date().toISOString();
+
+  useEffect(() => {
+    if (!birthData?.birthDate || !birthData.lat || !birthData.lon) return;
+
+    setLoading(true);
+    setError(null);
+
+    fetch(`${ABU_URL}/api/astro/transits/with-natal`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        birthDate: birthData.birthDate,
+        birthLat: birthData.lat,
+        birthLon: birthData.lon,
+        transitDate: effectiveTransitDate,
+        transitLat: birthData.lat,
+        transitLon: birthData.lon,
+      }),
+    })
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .then((d) => setData(d))
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
+  }, [birthData?.birthDate, birthData?.lat, birthData?.lon, effectiveTransitDate]);
+
+  if (!birthData) {
     return (
-      <div className="p-6 text-center text-sm text-muted-foreground">
-        No hay análisis cargado.
+      <div className="p-8 text-center text-sm text-slate-500">
+        Ingresá tus datos natales para ver los tránsitos activos.
       </div>
     );
   }
 
-  const lunar = abuData.derived?.lunar_transit;
-
-  if (!lunar || lunar.moon_position == null) {
+  if (loading) {
     return (
-      <div className="p-6 text-center text-sm text-muted-foreground">
-        No hay datos de tránsitos disponibles en este momento.
+      <div className="p-8 text-center text-sm text-slate-400 animate-pulse">
+        Calculando tránsitos…
       </div>
     );
   }
 
-  const sortedAspects = [...lunar.aspects].sort(
-    (a, b) => Math.abs(a.orb) - Math.abs(b.orb)
+  if (error) {
+    return (
+      <div className="p-6 text-sm text-red-400 bg-red-400/10 rounded-lg border border-red-400/20">
+        Error al calcular tránsitos: {error}
+      </div>
+    );
+  }
+
+  if (!data || data.length === 0) {
+    return (
+      <div className="p-8 text-center text-sm text-slate-500">
+        No hay tránsitos significativos en este momento.
+      </div>
+    );
+  }
+
+  // Group aspects by transit planet
+  const grouped: Record<string, GroupedTransit> = {};
+  for (const asp of data) {
+    if (!grouped[asp.transit_planet]) {
+      const { sign, deg } = lonToSignDeg(asp.transit_longitude);
+      grouped[asp.transit_planet] = {
+        planet: asp.transit_planet,
+        longitude: asp.transit_longitude,
+        sign,
+        deg,
+        aspects: [],
+      };
+    }
+    grouped[asp.transit_planet].aspects.push(asp);
+  }
+
+  // Sort aspects within each group by orb (closest first)
+  Object.values(grouped).forEach((g) =>
+    g.aspects.sort((a, b) => Math.abs(a.orb) - Math.abs(b.orb))
   );
 
-  type Strength = "fuerte" | "moderado" | "suave";
+  // Sort groups: outer planets first (most significant)
+  const PLANET_ORDER = ["Pluto","Neptune","Uranus","Saturn","Jupiter","Mars","Sun","Venus","Mercury","Moon"];
+  const sortedGroups = Object.values(grouped).sort(
+    (a, b) => PLANET_ORDER.indexOf(a.planet) - PLANET_ORDER.indexOf(b.planet)
+  );
 
-  function getStrength(orb: number): Strength {
-    const abs = Math.abs(orb);
-    if (abs <= 1) return "fuerte";
-    if (abs <= 3) return "moderado";
-    return "suave";
-  }
+  // Format the displayed date
+  const displayDate = new Date(effectiveTransitDate);
+  const dateLabel = displayDate.toLocaleDateString("es-AR", {
+    day: "numeric", month: "long", year: "numeric",
+  });
 
-  function strengthBadge(strength: Strength) {
-    switch (strength) {
-      case "fuerte":
-        return <Badge className="text-xs uppercase tracking-wide">Fuerte</Badge>;
-      case "moderado":
-        return (
-          <Badge variant="outline" className="text-xs uppercase tracking-wide">
-            Moderado
-          </Badge>
-        );
-      case "suave":
-        return (
-          <Badge
-            variant="outline"
-            className="text-xs uppercase tracking-wide opacity-70"
-          >
-            Suave
-          </Badge>
-        );
-    }
-  }
+  // Date input value (YYYY-MM-DD format)
+  const dateInputValue = effectiveTransitDate.split('T')[0];
 
   return (
-    <div className="space-y-6">
-      {/* POSICIÓN LUNAR */}
-      <Card className="border border-border/60 bg-card/70 backdrop-blur-sm">
-        <CardHeader className="flex flex-row items-center gap-2 pb-2">
-          <Moon className="h-5 w-5 opacity-80" />
-          <CardTitle className="text-base font-semibold">
-            Posición lunar actual
-          </CardTitle>
-        </CardHeader>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-2">
+          <label className="text-xs font-semibold text-slate-400">Fecha:</label>
+          <input
+            type="date"
+            value={dateInputValue}
+            onChange={(e) => {
+              if (e.target.value) {
+                const date = new Date(e.target.value + 'T00:00:00Z');
+                setTransitDate(date.toISOString());
+              }
+            }}
+            className="px-2 py-1 text-sm rounded bg-slate-700/50 border border-slate-600/50 text-slate-200 hover:border-slate-500/70 focus:border-amber-400/70 focus:outline-none"
+          />
+        </div>
+        <h3 className="text-sm font-semibold text-slate-300">
+          Tránsitos activos al {dateLabel}
+        </h3>
+        <span className="text-xs text-slate-500">{data.length} aspectos</span>
+      </div>
 
-        <CardContent className="pt-0">
-          <p className="text-2xl font-semibold">
-            {lunar.moon_position.toFixed(2)}°
-          </p>
-          <p className="text-xs text-muted-foreground mt-1">
-            Longitud eclíptica de la Luna para este momento.
-          </p>
-        </CardContent>
-      </Card>
+      {sortedGroups.map((group) => {
+        const sym = PLANET_SYMBOLS[group.planet] ?? group.planet[0];
+        return (
+          <div
+            key={group.planet}
+            className="rounded-xl border border-slate-700/50 bg-slate-800/40 overflow-hidden"
+          >
+            {/* Planet header */}
+            <div className="flex items-center gap-3 px-4 py-3 bg-slate-700/30 border-b border-slate-700/40">
+              <span className="text-lg w-6 text-center text-amber-400">{sym}</span>
+              <div>
+                <span className="font-semibold text-slate-200">{group.planet}</span>
+                <span className="ml-2 text-xs text-slate-400">
+                  en {group.sign} {group.deg.toFixed(1)}°
+                </span>
+              </div>
+            </div>
 
-      {/* ASPECTOS LUNARES */}
-      <Card className="border border-border/60 bg-card/70 backdrop-blur-sm">
-        <CardHeader className="flex flex-row items-center justify-between pb-3">
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-4 w-4 opacity-80" />
-            <CardTitle className="text-base font-semibold">
-              Aspectos lunares al mapa natal
-            </CardTitle>
-          </div>
-
-          <span className="text-xs text-muted-foreground">
-            {sortedAspects.length} aspecto
-            {sortedAspects.length === 1 ? "" : "s"}
-          </span>
-        </CardHeader>
-
-        <CardContent className="pt-0">
-          {sortedAspects.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              Sin aspectos lunares relevantes en este momento.
-            </p>
-          ) : (
-            <div className="space-y-2">
-              {sortedAspects.map((asp: LunarAspect, i: number) => {
-                const strength = getStrength(asp.orb);
+            {/* Aspects list */}
+            <div className="divide-y divide-slate-700/30">
+              {group.aspects.map((asp, i) => {
+                const meta = ASPECT_META[asp.aspect] ?? {
+                  label: asp.aspect,
+                  symbol: "?",
+                  color: "text-slate-400 border-slate-400/40 bg-slate-400/10",
+                };
+                const natSym = PLANET_SYMBOLS[asp.natal_planet] ?? asp.natal_planet[0];
+                const orbStr = Math.abs(asp.orb).toFixed(2) + "°";
+                const isExact = Math.abs(asp.orb) <= 1;
 
                 return (
                   <div
                     key={i}
-                    className="flex items-start justify-between rounded-lg border bg-background/60 px-3 py-2 text-sm"
+                    className={`flex items-center justify-between px-4 py-2.5 text-sm ${
+                      isExact ? "bg-amber-500/5" : ""
+                    }`}
                   >
-                    <div className="space-y-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-medium">{asp.type}</span>
-                        <span className="text-xs text-muted-foreground">
-                          con
-                        </span>
-                        <span className="font-semibold">{asp.planet}</span>
-                      </div>
-
-                      <div className="text-xs text-muted-foreground">
-                        Orbe: {asp.orb.toFixed(2)}°
-                      </div>
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span
+                        className={`shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border ${meta.color}`}
+                      >
+                        <span>{meta.symbol}</span>
+                        <span className="hidden sm:inline">{meta.label}</span>
+                      </span>
+                      <span className="text-slate-300">
+                        <span className="text-amber-400 mr-1">{natSym}</span>
+                        {asp.natal_planet}
+                      </span>
                     </div>
 
-                    <div className="ml-3 shrink-0">
-                      {strengthBadge(strength)}
+                    <div className="flex items-center gap-2 shrink-0 ml-2 text-xs">
+                      <span
+                        className={`px-1.5 py-0.5 rounded ${
+                          asp.applying
+                            ? "text-emerald-400 bg-emerald-400/10"
+                            : "text-slate-500 bg-slate-700/40"
+                        }`}
+                      >
+                        {asp.applying ? "▶ aplicante" : "◀ separante"}
+                      </span>
+                      <span
+                        className={`font-mono font-semibold ${
+                          isExact ? "text-amber-400" : "text-slate-400"
+                        }`}
+                      >
+                        {orbStr}
+                      </span>
                     </div>
                   </div>
                 );
               })}
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </div>
+        );
+      })}
+
+      <p className="text-xs text-center text-slate-600 pt-2">
+        Aspectos calculados para la ubicación natal · solo aspectos mayores (orbe ≤ 8°)
+      </p>
     </div>
   );
 }

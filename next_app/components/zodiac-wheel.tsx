@@ -104,19 +104,21 @@ export function ZodiacWheel({
   // -------------------------
   const rotationOffset = useMemo(() => {
     if (orientation === "ascendant" && houses?.asc != null) {
-      // UI: AC arriba
-      return houses.asc - 90;
+      // UI: AC arriba (ecliptic 0°=Aries at 9PM, so we rotate to put ASC at 12PM/north)
+      // SVG north is at 270° math angle, so offset = (270 - asc + 360) % 360
+      // Simplified: (90 - asc + 360) % 360 or equivalently 450 - asc mod 360
+      return (450 - houses.asc) % 360;
     }
     return 0; // Aries arriba
   }, [orientation, houses?.asc]);
 
   const polarToCartesian = (angle: number, radius: number) => {
     const normalized = (angle - rotationOffset + 360) % 360;
-    const adjusted = (normalized - 90) * (Math.PI / 180);
+    const adjusted = normalized * (Math.PI / 180);
 
     return {
-      x: centerX + radius * Math.cos(adjusted),
-      y: centerY + radius * Math.sin(adjusted),
+      x: centerX + radius * Math.sin(adjusted),
+      y: centerY - radius * Math.cos(adjusted),
     };
   };
 
@@ -136,6 +138,24 @@ export function ZodiacWheel({
         };
       }),
     [planets, rotationOffset]
+  );
+
+  // -------------------------
+  // TRANSIT PLANETS
+  // -------------------------
+  const transitPlanetPositions = useMemo(
+    () =>
+      transitPlanets?.map((planet) => {
+        const pos = polarToCartesian(planet.longitude, signRadius + 65);
+        return {
+          ...planet,
+          x: pos.x,
+          y: pos.y,
+          symbol: PLANET_SYMBOLS[planet.name] || planet.name.charAt(0),
+          color: PLANET_COLORS[planet.name] || "#FFD700",
+        };
+      }) ?? [],
+    [transitPlanets, rotationOffset]
   );
 
   // -------------------------
@@ -451,6 +471,34 @@ export function ZodiacWheel({
               fill={p.color}
               fontSize="20"
               fontWeight="bold"
+            >
+              {p.symbol}
+            </text>
+          </g>
+        ))}
+
+        {/* TRANSIT PLANETS - OUTER RING */}
+        {transitPlanetPositions.map((p) => (
+          <g key={`transit-${p.name}`}>
+            <circle
+              cx={p.x}
+              cy={p.y}
+              r="18"
+              fill="none"
+              stroke={p.color}
+              strokeWidth="2"
+              opacity="0.6"
+              strokeDasharray="4 2"
+            />
+            <text
+              x={p.x}
+              y={p.y}
+              textAnchor="middle"
+              dominantBaseline="middle"
+              fill={p.color}
+              fontSize="14"
+              fontWeight="bold"
+              opacity="0.7"
             >
               {p.symbol}
             </text>
