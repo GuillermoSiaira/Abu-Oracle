@@ -4,7 +4,7 @@ from typing import Dict, List, Mapping, Tuple
 import itertools
 
 from .chart_vector import POINT_ORDER
-from .resonance import ASPECTS, SIGMAS, ASPECT_WEIGHTS, angular_distance_deg, gaussian_resonance
+from .resonance import ASPECTS, SIGMAS, ASPECT_WEIGHTS, GROUP_WEIGHTS, angular_distance_deg, gaussian_resonance
 
 PairResonance = Dict[str, float]
 PairEntry = Dict[str, object]
@@ -51,14 +51,16 @@ def aggregate_field(
     aspects: Mapping[str, float] = ASPECTS,
     sigmas: Mapping[str, float] = SIGMAS,
     aspect_weights: Mapping[str, float] = ASPECT_WEIGHTS,
+    group_weights: Mapping[str, float] = GROUP_WEIGHTS,
 ) -> Dict[str, object]:
     """Aggregate Harmony Field metrics across all pairs.
 
     Returns a dict with per-aspect totals and grouped scores:
-    - HF_total: sum of all aspect contributions
+    - HF_total: sum of all aspect contributions (legacy, unweighted)
     - HF_harmony: sextile + trine
     - HF_tension: square + opposition
     - HF_conjunction: conjunction only
+    - HF_weighted: w_harmony*harmony + w_tension*tension + w_conjunction*conjunction (v4)
     """
     pairs = compute_pairwise_resonances(angles_deg, aspects, sigmas, aspect_weights)
 
@@ -73,6 +75,12 @@ def aggregate_field(
     hf_conjunction = totals.get("conjunction", 0.0)
     hf_total = sum(totals.values())
 
+    # HF v4: weighted formula (tension subtracts)
+    w_h = group_weights.get("w_harmony", 1.5)
+    w_t = group_weights.get("w_tension", -0.8)
+    w_c = group_weights.get("w_conjunction", 1.0)
+    hf_weighted = w_h * hf_harmony + w_t * hf_tension + w_c * hf_conjunction
+
     return {
         "pairs": pairs,
         "totals": totals,
@@ -80,4 +88,6 @@ def aggregate_field(
         "HF_harmony": hf_harmony,
         "HF_tension": hf_tension,
         "HF_conjunction": hf_conjunction,
+        "HF_weighted": hf_weighted,
+        "group_weights": {"w_harmony": w_h, "w_tension": w_t, "w_conjunction": w_c},
     }

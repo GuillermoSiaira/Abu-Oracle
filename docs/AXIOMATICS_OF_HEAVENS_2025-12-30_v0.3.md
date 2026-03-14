@@ -26,8 +26,53 @@
 
 ---
 
+## 6. Relocation Field Axioms
+*(Added 2026-03-13)*
+
+6.1. The geographic field \( \mathcal{F}(\phi, \lambda) \) is a scalar function over the Earth's surface, defined as the Harmony Field evaluated at each relocation coordinate \( (\phi, \lambda) \) for a fixed natal chart.
+
+6.2. The relocation field is not a prediction of outcomes; it is a measure of structural resonance — the degree to which a given geography activates the natal chart's inherent configuration.
+
+6.3. The natal chart evaluated at birth coordinates defines the reference value \( \mathcal{F}_0 \). The relocation delta \( \Delta\mathcal{F}(\phi, \lambda) = \mathcal{F}(\phi, \lambda) - \mathcal{F}_0 \) is the operationally meaningful quantity.
+
+---
+
+## 7. Domain Specificity Axioms
+*(Added 2026-03-13 — Abu Mashar doctrine, formalized)*
+
+7.1. The astrological chart contains structurally distinct domains, each administered by a set of planetary significators: the lord of the house cusp (the planet ruling the sign on the cusp) and the planets occupying that house.
+
+7.2. **Domain Opacity Axiom**: The global relocation field \( \mathcal{F}(\phi, \lambda) \) is semantically opaque when the consultee's question is domain-specific. A query of the form "where should I develop my career?" cannot be answered by a field that weights all planetary pairs equally.
+
+7.3. **Domain Subset Axiom**: For a query targeting domain \( d \) (associated with house \( H_d \)), the operative field is:
+$$\mathcal{F}_d(\phi, \lambda) = \mathcal{F}(\phi, \lambda \mid P_d)$$
+where \( P_d \) is the planet subset consisting of the lord of \( H_d \) and its occupants. The global field and \( \mathcal{F}_d \) will generally differ, and the difference is structurally significant.
+
+7.4. **Selector Epistemic Axiom**: The domain selector in the user interface is not a navigation feature. It is the implementation of Axiom 7.2. The system must receive the consultee's declared intention before computing the domain field — not as a UX courtesy, but as an epistemic requirement. There is no meaningful default; "global" is a technical reference, not an answer to any real question.
+
+7.5. **House Lord Priority Axiom**: Following Abu Mashar (*Kitab al-Mudkhal al-Kabir*, 9th c.), the lord of the house is the primary administrator of its affairs. A dignified, angular lord can activate the domain regardless of house occupancy. A debilitated, cadent lord renders the domain structurally latent even when the house itself contains planets. This hierarchy is encoded in the scoring weights: lord strength (40/100) > key planet angularity (30/100) > house occupancy (20/100) > support houses (10/100).
+
+---
+
+## 8. Field Facilitation Axioms
+*(Added 2026-03-13)*
+
+8.1. **Latent Structure Axiom**: A high domain score at a given location does not guarantee activation of that domain's affairs. It indicates that the structural conditions for activation are present. External factors (timing, dashas, transits, social context) remain necessary co-causes.
+
+8.2. **Facilitator, Not Predictor**: The relocation field is a facilitator, not a predictor. A location with \( \mathcal{F}_{career} = \text{grade A} \) creates favorable structural conditions for career development; it does not predict career success. The grade communicates resonance, not outcome.
+
+8.3. **Temporal Dependency**: A complete relocation assessment requires both the geographic dimension (\( \mathcal{F}_d \)) and the temporal dimension (active dashas, transits, profections). The geographic field is necessary but not sufficient. A grade-A career location during a dormant Saturn period will underperform a grade-B location during an active Saturn return.
+
+---
+
+## 9. Meta-Axioms
+9.1. All axioms are subject to revision in light of new empirical, computational, or semantic evidence.
+9.2. The system maintains full traceability of all changes to axioms and interpretive rules.
+
+---
+
 **Provenance:** This document supersedes previous versions. All prior axiomatic statements are preserved for audit and traceability.
 
 **Author:** Abu Oracle Project
-**Date:** 2025-12-30
-**Version:** 0.3
+**Date:** 2025-12-30 / updated 2026-03-13
+**Version:** 0.4

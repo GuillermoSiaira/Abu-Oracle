@@ -48,8 +48,12 @@ def calculate_houses(
     # -------------------------------
 
     # Convertir datetime a Julian Day
-    jd = swe.julday(dt.year, dt.month, dt.day, 
-                    dt.hour + dt.minute / 60.0 + dt.second / 3600.0)
+    # ⚠️ swe.julday requiere tiempo en UTC.
+    # Si el datetime tiene timezone, convertimos a UTC explícitamente antes.
+    from datetime import timezone as _tz
+    dt_utc = dt.astimezone(_tz.utc) if dt.tzinfo is not None else dt
+    jd = swe.julday(dt_utc.year, dt_utc.month, dt_utc.day,
+                    dt_utc.hour + dt_utc.minute / 60.0 + dt_utc.second / 3600.0)
 
     # Autoselección de sistema para latitudes extremas
     effective_house_system = house_system

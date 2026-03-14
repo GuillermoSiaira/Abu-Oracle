@@ -1,0 +1,24 @@
+{
+  "headline": "Relocalización HF para Frida Kahlo: Codrington (AG) lidera el ranking",
+  "narrative": "El análisis del campo armónico (Harmony Field) de Frida Kahlo revela un patrón geográfico definido: las ubicaciones óptimas se concentran en latitudes ecuatoriales del hemisferio norte. La puntuación HF natal es 18.26, mientras que la mejor ubicación (Codrington (AG)) alcanza 24.31 — un incremento del 33.1%.\n\nLas tres mejores ciudades son:\n1. **Codrington (AG)** (HF: 24.31) — ASC en Libra, MC en Cáncer\n2. **Ribeira Grande (PT)** (HF: 24.28) — ASC en Libra, MC en Cáncer\n3. **Crane (BB)** (HF: 24.28) — ASC en Libra, MC en Cáncer\n\nEl componente de angularidad (hf_angles) y la distribución de casas (hf_houses) son los factores que más varían geográficamente, mientras que los aspectos planetarios (hf_aspects) permanecen constantes. Esto indica que la relocalización modifica fundamentalmente cómo se expresan las energías planetarias a través de las casas y los ángulos del horizonte.",
+  "actions": [
+    "Evaluar Codrington (AG) como destino prioritario (mayor ganancia HF: +33.1%)",
+    "Considerar Ribeira Grande (PT) y Crane (BB) como alternativas viables",
+    "La angularidad (13% del total) es el factor más sensible a la ubicación",
+    "Comparar el ranking HF con factores prácticos (idioma, clima, oportunidades)"
+  ],
+  "astro_metadata": {
+    "source": "offline",
+    "language": "es",
+    "model": "rule-based",
+    "natal_hf": 18.2635,
+    "max_hf": 24.3112,
+    "gain_pct": 33.11,
+    "top_city": "Codrington (AG)",
+    "components": {
+      "aspects_pct": 79.0,
+      "angles_pct": 13.0,
+      "houses_pct": 44.0
+    }
+  }
+}

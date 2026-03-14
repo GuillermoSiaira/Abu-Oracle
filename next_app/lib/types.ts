@@ -214,4 +214,13 @@ export interface BirthData {
   birthDate: string
   lat: number
   lon: number
+  city?: string | null
+  userName?: string | null
+  residenceCity?: string | null
+  residenceLat?: number | null
+  residenceLon?: number | null
+  futureCity?: string | null
+  futureLat?: number | null
+  futureLon?: number | null
+  futureDate?: string | null
 }

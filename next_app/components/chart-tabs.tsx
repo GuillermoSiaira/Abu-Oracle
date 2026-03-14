@@ -1,6 +1,5 @@
 'use client'
 
-import dynamic from "next/dynamic"
 import {
   Tabs,
   TabsList,
@@ -11,17 +10,14 @@ import {
 import { NatalChartTab } from './natal-chart-tab'
 import { PersianTechniquesTab } from './persian-techniques-tab'
 import { TransitsTab } from './transits-tab'
+import { RelocationTab } from './relocation-tab'
 import { useAppStore } from '@/lib/store'
-
-const HFRelocationMap = dynamic(() => import("@/components/HFRelocationMap"), {
-  ssr: false,
-  loading: () => (
-    <div className="text-center py-12 text-muted-foreground">Cargando mapa…</div>
-  ),
-})
+import { UI, LANG_OPTIONS } from '@/lib/i18n'
+import { Languages } from 'lucide-react'
 
 export function ChartTabs() {
-  const { abuData, includeTransits } = useAppStore()
+  const { abuData, includeTransits, lang, setLang } = useAppStore()
+  const t = UI[lang]
 
   if (!abuData) {
     return (
@@ -35,14 +31,32 @@ export function ChartTabs() {
 
   return (
     <Tabs defaultValue="chart" className="w-full">
-      <TabsList className={`grid w-full ${gridCols}`}>
-        <TabsTrigger value="chart">Carta Natal</TabsTrigger>
-        <TabsTrigger value="persian">Técnicas Persas</TabsTrigger>
-        {includeTransits && (
-          <TabsTrigger value="transits">Tránsitos</TabsTrigger>
-        )}
-        <TabsTrigger value="relocation">Relocation</TabsTrigger>
-      </TabsList>
+      <div className="flex items-center gap-2 mb-1">
+        <TabsList className={`grid flex-1 ${gridCols}`}>
+          <TabsTrigger value="chart">{t.tabChart}</TabsTrigger>
+          <TabsTrigger value="persian">{t.tabPersian}</TabsTrigger>
+          {includeTransits && (
+            <TabsTrigger value="transits">{t.tabTransits}</TabsTrigger>
+          )}
+          <TabsTrigger value="relocation">{t.tabRelocation}</TabsTrigger>
+        </TabsList>
+
+        {/* Language selector */}
+        <div className="relative shrink-0">
+          <select
+            value={lang}
+            onChange={(e) => setLang(e.target.value as typeof lang)}
+            className="appearance-none bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-lg pl-2 pr-6 py-2 focus:outline-none focus:border-amber-500/50 cursor-pointer"
+          >
+            {LANG_OPTIONS.map((l) => (
+              <option key={l.code} value={l.code}>
+                {l.flag} {l.label}
+              </option>
+            ))}
+          </select>
+          <Languages className="w-3 h-3 text-slate-400 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+        </div>
+      </div>
 
       <TabsContent value="chart" className="space-y-4">
         <NatalChartTab />
@@ -59,7 +73,7 @@ export function ChartTabs() {
       )}
 
       <TabsContent value="relocation" className="space-y-4">
-        <HFRelocationMap geojsonUrl="/geojson/subject_1000_hf.geojson" rankingUrl="/rankings/subject_1000_ranking.json" />
+        <RelocationTab />
       </TabsContent>
     </Tabs>
   )

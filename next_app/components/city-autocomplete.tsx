@@ -11,9 +11,11 @@ interface CityResult {
 
 interface CityAutocompleteProps {
   onSelect: (data: { city: string; lat: number; lon: number }) => void;
+  label?: string;
+  placeholder?: string;
 }
 
-export default function CityAutocomplete({ onSelect }: CityAutocompleteProps) {
+export default function CityAutocomplete({ onSelect, label = "Ciudad", placeholder = "Ingresa una ciudad" }: CityAutocompleteProps) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<CityResult[]>([]);
   const [showList, setShowList] = useState(false);
@@ -45,11 +47,8 @@ export default function CityAutocomplete({ onSelect }: CityAutocompleteProps) {
 
     debounceRef.current = setTimeout(async () => {
       try {
-        const base =
-          process.env.NEXT_PUBLIC_ABU_URL || "http://localhost:8000";
-
         const res = await fetch(
-          `${base}/api/cities/search?q=${encodeURIComponent(query)}`
+          `/api/cities/search?q=${encodeURIComponent(query)}`
         );
 
         if (res.ok) {
@@ -77,11 +76,11 @@ export default function CityAutocomplete({ onSelect }: CityAutocompleteProps) {
 
   return (
     <div ref={containerRef} className="relative space-y-1">
-      <label className="block text-sm font-semibold text-gray-700">Ciudad</label>
+      <label className="block text-sm font-semibold text-gray-700">{label}</label>
 
       <input
         type="text"
-        placeholder="Ingresa una ciudad"
+        placeholder={placeholder}
         className="w-full bg-white text-gray-950 border border-gray-300 rounded-md px-3 py-2 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
         value={query}
         onChange={(e) => setQuery(e.target.value)}

@@ -1,0 +1,24 @@
+{
+  "headline": "Relocalización HF para Pablo Picasso: Longyearbyen (SJ) lidera el ranking",
+  "narrative": "El análisis del campo armónico (Harmony Field) de Pablo Picasso revela un patrón geográfico definido: las ubicaciones óptimas se concentran en latitudes medias del hemisferio norte. La puntuación HF natal es 14.88, mientras que la mejor ubicación (Longyearbyen (SJ)) alcanza 21.09 — un incremento del 41.7%.\n\nLas tres mejores ciudades son:\n1. **Longyearbyen (SJ)** (HF: 21.09) — ASC en Virgo, MC en Tauro\n2. **Hermanus (ZA)** (HF: 20.60) — ASC en Cáncer, MC en Tauro\n3. **Longyearbyen (SJ)** (HF: 20.60) — ASC en Virgo, MC en Tauro\n\nEl componente de angularidad (hf_angles) y la distribución de casas (hf_houses) son los factores que más varían geográficamente, mientras que los aspectos planetarios (hf_aspects) permanecen constantes. Esto indica que la relocalización modifica fundamentalmente cómo se expresan las energías planetarias a través de las casas y los ángulos del horizonte.",
+  "actions": [
+    "Evaluar Longyearbyen (SJ) como destino prioritario (mayor ganancia HF: +41.7%)",
+    "Considerar Hermanus (ZA) y Longyearbyen (SJ) como alternativas viables",
+    "La angularidad (18% del total) es el factor más sensible a la ubicación",
+    "Comparar el ranking HF con factores prácticos (idioma, clima, oportunidades)"
+  ],
+  "astro_metadata": {
+    "source": "offline",
+    "language": "es",
+    "model": "rule-based",
+    "natal_hf": 14.8788,
+    "max_hf": 21.0901,
+    "gain_pct": 41.75,
+    "top_city": "Longyearbyen (SJ)",
+    "components": {
+      "aspects_pct": 73.8,
+      "angles_pct": 18.5,
+      "houses_pct": 50.5
+    }
+  }
+}

@@ -1,0 +1,104 @@
+{
+  "table": [
+    {
+      "house": 2,
+      "n_events": 2,
+      "n_positive": 0,
+      "n_negative": 2,
+      "corr_global": NaN,
+      "corr_domain": NaN,
+      "cohens_d_global": NaN,
+      "cohens_d_domain": NaN,
+      "improvement_corr": NaN
+    },
+    {
+      "house": 4,
+      "n_events": 34,
+      "n_positive": 2,
+      "n_negative": 3,
+      "corr_global": -0.0012813245445397544,
+      "corr_domain": 0.30485239903826744,
+      "cohens_d_global": 0.02539923830595085,
+      "cohens_d_domain": 1.311019159505211,
+      "improvement_corr": 0.3061337235828072
+    },
+    {
+      "house": 5,
+      "n_events": 57,
+      "n_positive": 51,
+      "n_negative": 1,
+      "corr_global": 0.19781192126231129,
+      "corr_domain": 0.35295515758244045,
+      "cohens_d_global": NaN,
+      "cohens_d_domain": NaN,
+      "improvement_corr": 0.15514323632012916
+    },
+    {
+      "house": 6,
+      "n_events": 18,
+      "n_positive": 0,
+      "n_negative": 10,
+      "corr_global": -0.31741817648102644,
+      "corr_domain": 0.05111780399205708,
+      "cohens_d_global": NaN,
+      "cohens_d_domain": NaN,
+      "improvement_corr": 0.3685359804730835
+    },
+    {
+      "house": 7,
+      "n_events": 93,
+      "n_positive": 81,
+      "n_negative": 9,
+      "corr_global": 0.09803688826177269,
+      "corr_domain": 0.0875707966292311,
+      "cohens_d_global": 0.2498444844448571,
+      "cohens_d_domain": 0.2463228722231475,
+      "improvement_corr": -0.010466091632541585
+    },
+    {
+      "house": 8,
+      "n_events": 34,
+      "n_positive": 0,
+      "n_negative": 34,
+      "corr_global": NaN,
+      "corr_domain": NaN,
+      "cohens_d_global": NaN,
+      "cohens_d_domain": NaN,
+      "improvement_corr": NaN
+    },
+    {
+      "house": 9,
+      "n_events": 56,
+      "n_positive": 35,
+      "n_negative": 1,
+      "corr_global": 0.014277863905669543,
+      "corr_domain": -0.12344656106883078,
+      "cohens_d_global": NaN,
+      "cohens_d_domain": NaN,
+      "improvement_corr": -0.13772442497450033
+    },
+    {
+      "house": 10,
+      "n_events": 226,
+      "n_positive": 208,
+      "n_negative": 4,
+      "corr_global": 0.08993461683212046,
+      "corr_domain": 0.03313773471212505,
+      "cohens_d_global": 0.8712523781076553,
+      "cohens_d_domain": -0.03315791386134427,
+      "improvement_corr": -0.056796882119995416
+    },
+    {
+      "house": 12,
+      "n_events": 7,
+      "n_positive": 0,
+      "n_negative": 5,
+      "corr_global": 0.4716363567901929,
+      "corr_domain": -0.22384219532221875,
+      "cohens_d_global": NaN,
+      "cohens_d_domain": NaN,
+      "improvement_corr": -0.6954785521124116
+    }
+  ],
+  "n_events": 527
+}

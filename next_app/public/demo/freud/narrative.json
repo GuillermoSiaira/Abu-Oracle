@@ -1,0 +1,24 @@
+{
+  "headline": "Relocalización HF para Sigmund Freud: Atuona (PF) lidera el ranking",
+  "narrative": "El análisis del campo armónico (Harmony Field) de Sigmund Freud revela un patrón geográfico definido: las ubicaciones óptimas se concentran en latitudes ecuatoriales del hemisferio sur. La puntuación HF natal es 14.69, mientras que la mejor ubicación (Atuona (PF)) alcanza 20.97 — un incremento del 42.8%.\n\nLas tres mejores ciudades son:\n1. **Atuona (PF)** (HF: 20.97) — ASC en Géminis, MC en Piscis\n2. **McMurdo Station (AQ)** (HF: 20.96) — ASC en Tauro, MC en Piscis\n3. **Atuona (PF)** (HF: 20.91) — ASC en Cáncer, MC en Piscis\n\nEl componente de angularidad (hf_angles) y la distribución de casas (hf_houses) son los factores que más varían geográficamente, mientras que los aspectos planetarios (hf_aspects) permanecen constantes. Esto indica que la relocalización modifica fundamentalmente cómo se expresan las energías planetarias a través de las casas y los ángulos del horizonte.",
+  "actions": [
+    "Evaluar Atuona (PF) como destino prioritario (mayor ganancia HF: +42.8%)",
+    "Considerar McMurdo Station (AQ) y Atuona (PF) como alternativas viables",
+    "La angularidad (15% del total) es el factor más sensible a la ubicación",
+    "Comparar el ranking HF con factores prácticos (idioma, clima, oportunidades)"
+  ],
+  "astro_metadata": {
+    "source": "offline",
+    "language": "es",
+    "model": "rule-based",
+    "natal_hf": 14.6906,
+    "max_hf": 20.9726,
+    "gain_pct": 42.76,
+    "top_city": "Atuona (PF)",
+    "components": {
+      "aspects_pct": 75.6,
+      "angles_pct": 15.4,
+      "houses_pct": 50.5
+    }
+  }
+}

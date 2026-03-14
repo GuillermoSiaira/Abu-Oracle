@@ -1,0 +1,24 @@
+{
+  "headline": "Relocalización HF para David Bowie: Kugluktuk (CA) lidera el ranking",
+  "narrative": "El análisis del campo armónico (Harmony Field) de David Bowie revela un patrón geográfico definido: las ubicaciones óptimas se concentran en latitudes medias del hemisferio norte. La puntuación HF natal es 19.84, mientras que la mejor ubicación (Kugluktuk (CA)) alcanza 22.35 — un incremento del 12.6%.\n\nLas tres mejores ciudades son:\n1. **Kugluktuk (CA)** (HF: 22.35) — ASC en Libra, MC en Leo\n2. **Gjoa Haven (CA)** (HF: 22.08) — ASC en Libra, MC en Leo\n3. **Alta Floresta (BR)** (HF: 21.99) — ASC en Capricornio, MC en Libra\n\nEl componente de angularidad (hf_angles) y la distribución de casas (hf_houses) son los factores que más varían geográficamente, mientras que los aspectos planetarios (hf_aspects) permanecen constantes. Esto indica que la relocalización modifica fundamentalmente cómo se expresan las energías planetarias a través de las casas y los ángulos del horizonte.",
+  "actions": [
+    "Evaluar Kugluktuk (CA) como destino prioritario (mayor ganancia HF: +12.6%)",
+    "Considerar Gjoa Haven (CA) y Alta Floresta (BR) como alternativas viables",
+    "La angularidad (17% del total) es el factor más sensible a la ubicación",
+    "Comparar el ranking HF con factores prácticos (idioma, clima, oportunidades)"
+  ],
+  "astro_metadata": {
+    "source": "offline",
+    "language": "es",
+    "model": "rule-based",
+    "natal_hf": 19.8391,
+    "max_hf": 22.3485,
+    "gain_pct": 12.65,
+    "top_city": "Kugluktuk (CA)",
+    "components": {
+      "aspects_pct": 75.6,
+      "angles_pct": 17.0,
+      "houses_pct": 47.2
+    }
+  }
+}

@@ -6,7 +6,7 @@ and aggregated field metrics for 12 primary points.
 
 from .chart_vector import POINT_ORDER, build_circle_vector, angle_to_unit_vector
 from .harmonics import DEFAULT_HARMONICS, compute_harmonic_energy, compute_harmonics
-from .resonance import ASPECTS, SIGMAS, ASPECT_WEIGHTS, angular_distance_deg, gaussian_resonance
+from .resonance import ASPECTS, SIGMAS, ASPECT_WEIGHTS, GROUP_WEIGHTS, angular_distance_deg, gaussian_resonance
 from .field import compute_pairwise_resonances, aggregate_field
 from .schema_v2 import (
     PLANET_ORDER,
@@ -40,6 +40,7 @@ __all__ = [
     "ASPECTS",
     "SIGMAS",
     "ASPECT_WEIGHTS",
+    "GROUP_WEIGHTS",
     "angular_distance_deg",
     "gaussian_resonance",
     "compute_pairwise_resonances",

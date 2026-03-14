@@ -1,0 +1,24 @@
+{
+  "headline": "Relocalización HF para Carl Gustav Jung: Kekaha (US) lidera el ranking",
+  "narrative": "El análisis del campo armónico (Harmony Field) de Carl Gustav Jung revela un patrón geográfico definido: las ubicaciones óptimas se concentran en latitudes medias del hemisferio norte. La puntuación HF natal es 17.52, mientras que la mejor ubicación (Kekaha (US)) alcanza 23.31 — un incremento del 33.0%.\n\nLas tres mejores ciudades son:\n1. **Kekaha (US)** (HF: 23.31) — ASC en Leo, MC en Tauro\n2. **Kekaha (US)** (HF: 23.31) — ASC en Leo, MC en Tauro\n3. **Utrik (MH)** (HF: 23.30) — ASC en Leo, MC en Tauro\n\nEl componente de angularidad (hf_angles) y la distribución de casas (hf_houses) son los factores que más varían geográficamente, mientras que los aspectos planetarios (hf_aspects) permanecen constantes. Esto indica que la relocalización modifica fundamentalmente cómo se expresan las energías planetarias a través de las casas y los ángulos del horizonte.",
+  "actions": [
+    "Evaluar Kekaha (US) como destino prioritario (mayor ganancia HF: +33.0%)",
+    "Considerar Kekaha (US) y Utrik (MH) como alternativas viables",
+    "La angularidad (13% del total) es el factor más sensible a la ubicación",
+    "Comparar el ranking HF con factores prácticos (idioma, clima, oportunidades)"
+  ],
+  "astro_metadata": {
+    "source": "offline",
+    "language": "es",
+    "model": "rule-based",
+    "natal_hf": 17.5249,
+    "max_hf": 23.3061,
+    "gain_pct": 32.99,
+    "top_city": "Kekaha (US)",
+    "components": {
+      "aspects_pct": 78.9,
+      "angles_pct": 13.4,
+      "houses_pct": 43.8
+    }
+  }
+}

@@ -8,13 +8,27 @@ Design goals:
 
 from __future__ import annotations
 
-from typing import Dict, Mapping, Optional, Sequence
+from typing import Dict, List, Mapping, Optional, Sequence
+import itertools
 import math
 
 from .field import aggregate_field
-from .resonance import ASPECTS, SIGMAS, ASPECT_WEIGHTS, angular_distance_deg
+from .resonance import ASPECTS, SIGMAS, ASPECT_WEIGHTS, GROUP_WEIGHTS, angular_distance_deg, gaussian_resonance
 from .schema_v2 import PLANET_ORDER, DEFAULT_PLANET_WEIGHTS
 from .houses import assign_planet_houses
+
+
+# Normalise lowercase planet names (from house_significators) → Title-case used in angles_deg
+_LOWER_TO_TITLE: Dict[str, str] = {
+    "sun": "Sun", "moon": "Moon", "mercury": "Mercury", "venus": "Venus",
+    "mars": "Mars", "jupiter": "Jupiter", "saturn": "Saturn", "uranus": "Uranus",
+    "neptune": "Neptune", "pluto": "Pluto", "asc": "ASC", "mc": "MC",
+}
+
+
+def _to_title_subset(planet_subset: List[str]) -> List[str]:
+    """Convert a lowercase planet_subset to the Title-case keys used in angles_deg."""
+    return [_LOWER_TO_TITLE[p] for p in planet_subset if p in _LOWER_TO_TITLE]
 
 
 # Defaults for HF v3 weights
@@ -50,21 +64,51 @@ def compute_hf_aspects(
     aspects: Mapping[str, float] = ASPECTS,
     sigmas: Mapping[str, float] = SIGMAS,
     aspect_weights: Mapping[str, float] = ASPECT_WEIGHTS,
+    group_weights: Mapping[str, float] = GROUP_WEIGHTS,
+    planet_subset: List[str] | None = None,
 ) -> float:
-    """Return HF_aspects using HF v1 aggregation (HF_total).
+    """Return HF_aspects using HF v4 weighted aggregation.
+
+    Uses HF_weighted = w_harmony*harmony + w_tension*tension + w_conjunction*conjunction.
 
     Args:
         angles_deg: Mapping of point name to longitude degrees (expects HF v1 points).
+        group_weights: Group-level weights {w_harmony, w_tension, w_conjunction}.
+        planet_subset: Optional list of lowercase planet names (from house_significators).
+            If None → all 12 points. If provided → only pairs within the subset.
     """
+    if planet_subset is None:
+        agg = aggregate_field(angles_deg, aspects=aspects, sigmas=sigmas,
+                              aspect_weights=aspect_weights, group_weights=group_weights)
+        return float(agg.get("HF_weighted", 0.0))
 
-    agg = aggregate_field(angles_deg, aspects=aspects, sigmas=sigmas, aspect_weights=aspect_weights)
-    return float(agg.get("HF_total", 0.0))
+    # Filtered mode: compute pairwise only for the subset points
+    active = [p for p in _to_title_subset(planet_subset) if p in angles_deg]
+    if len(active) < 2:
+        return 0.0
+
+    totals: Dict[str, float] = {asp: 0.0 for asp in aspects}
+    for a, b in itertools.combinations(active, 2):
+        delta = angular_distance_deg(angles_deg[a], angles_deg[b])
+        for asp_name, asp_angle in aspects.items():
+            sigma = sigmas[asp_name]
+            weight = aspect_weights.get(asp_name, 1.0)
+            totals[asp_name] += weight * gaussian_resonance(delta, asp_angle, sigma)
+
+    hf_harmony = totals.get("sextile", 0.0) + totals.get("trine", 0.0)
+    hf_tension = totals.get("square", 0.0) + totals.get("opposition", 0.0)
+    hf_conjunction = totals.get("conjunction", 0.0)
+    w_h = group_weights.get("w_harmony", 1.5)
+    w_t = group_weights.get("w_tension", -0.8)
+    w_c = group_weights.get("w_conjunction", 1.0)
+    return float(w_h * hf_harmony + w_t * hf_tension + w_c * hf_conjunction)
 
 
 def compute_hf_angles(
     angles_deg: Mapping[str, float],
     sigma_angle: float = DEFAULT_SIGMA_ANGLE,
     planet_weights: Mapping[str, float] = DEFAULT_PLANET_WEIGHTS,
+    planet_subset: List[str] | None = None,
 ) -> float:
     """Compute angular contribution using proximity to ASC and MC (additive score).
 
@@ -72,17 +116,23 @@ def compute_hf_angles(
         angles_deg: Mapping with planet longitudes and ASC/MC (degrees).
         sigma_angle: Gaussian sigma in degrees for angular proximity.
         planet_weights: Optional per-planet weights (default 1.0 each).
+        planet_subset: Optional lowercase planet names to include. ASC/MC are always
+            used as angular targets regardless of this filter.
     """
-
     asc = angles_deg.get("ASC")
     mc = angles_deg.get("MC")
     if asc is None or mc is None:
         return 0.0
 
+    # Determine which bodies to score (subset or full PLANET_ORDER; never ASC/MC as sources)
+    if planet_subset is not None:
+        active_titles = [p for p in _to_title_subset(planet_subset)
+                         if p in PLANET_ORDER and p in angles_deg]
+    else:
+        active_titles = [p for p in PLANET_ORDER if p in angles_deg]
+
     total = 0.0
-    for planet in PLANET_ORDER:
-        if planet not in angles_deg:
-            continue
+    for planet in active_titles:
         p_lon = float(angles_deg[planet])
         w = float(planet_weights.get(planet, 1.0))
 
@@ -102,6 +152,7 @@ def compute_hf_houses(
     cusps: Optional[Sequence[float]] = None,
     house_weights: Mapping[int, float] = DEFAULT_HOUSE_WEIGHTS,
     planet_weights: Mapping[str, float] = DEFAULT_PLANET_WEIGHTS,
+    planet_subset: List[str] | None = None,
 ) -> float:
     """Compute a simple house occupancy score (additive).
 
@@ -110,12 +161,17 @@ def compute_hf_houses(
         cusps: Optional list of 12 cusp longitudes (deg). Required for non-zero output.
         house_weights: Weight per house number (1-12).
         planet_weights: Optional per-planet weights.
+        planet_subset: Optional lowercase planet names to include.
     """
-
     if not cusps or len(cusps) < 12:
         return 0.0
 
-    planet_positions = {p: float(angles_deg[p]) for p in PLANET_ORDER if p in angles_deg}
+    if planet_subset is not None:
+        active = [p for p in _to_title_subset(planet_subset) if p in PLANET_ORDER]
+    else:
+        active = list(PLANET_ORDER)
+
+    planet_positions = {p: float(angles_deg[p]) for p in active if p in angles_deg}
     assignments = assign_planet_houses(planet_positions, list(cusps))
 
     score = 0.0
@@ -136,19 +192,29 @@ def compute_hf_v3(
     aspects: Mapping[str, float] = ASPECTS,
     sigmas: Mapping[str, float] = SIGMAS,
     aspect_weights: Mapping[str, float] = ASPECT_WEIGHTS,
+    group_weights: Mapping[str, float] = GROUP_WEIGHTS,
     house_weights: Mapping[int, float] = DEFAULT_HOUSE_WEIGHTS,
     planet_weights: Mapping[str, float] = DEFAULT_PLANET_WEIGHTS,
+    planet_subset: List[str] | None = None,
 ) -> Dict[str, float]:
-    """Compute HF v3 additive score.
+    """Compute HF v3 additive score (now using v4 weighted aspects).
 
-    HF_total_v3 = HF_aspects + beta * HF_angles + gamma * HF_houses
+    HF_total_v3 = HF_aspects(weighted) + beta * HF_angles + gamma * HF_houses
+
+    Args:
+        planet_subset: Optional list of lowercase planet names (from house_significators).
+            If None → all 12 points (default behaviour).
+            If provided → only those planets participate in aspects, angularity, and house scoring.
 
     Returns a dict with components and hyperparameters.
     """
-
-    hf_aspects = compute_hf_aspects(angles_deg, aspects=aspects, sigmas=sigmas, aspect_weights=aspect_weights)
-    hf_angles = compute_hf_angles(angles_deg, sigma_angle=sigma_angle, planet_weights=planet_weights)
-    hf_houses = compute_hf_houses(angles_deg, cusps=cusps, house_weights=house_weights, planet_weights=planet_weights)
+    hf_aspects = compute_hf_aspects(angles_deg, aspects=aspects, sigmas=sigmas,
+                                    aspect_weights=aspect_weights, group_weights=group_weights,
+                                    planet_subset=planet_subset)
+    hf_angles = compute_hf_angles(angles_deg, sigma_angle=sigma_angle,
+                                  planet_weights=planet_weights, planet_subset=planet_subset)
+    hf_houses = compute_hf_houses(angles_deg, cusps=cusps, house_weights=house_weights,
+                                  planet_weights=planet_weights, planet_subset=planet_subset)
 
     hf_total_v3 = hf_aspects + beta * hf_angles + gamma * hf_houses
 
@@ -160,6 +226,10 @@ def compute_hf_v3(
         "beta": float(beta),
         "gamma": float(gamma),
         "sigma_angle": float(sigma_angle),
+        "group_weights": {"w_harmony": group_weights.get("w_harmony", 1.5),
+                          "w_tension": group_weights.get("w_tension", -0.8),
+                          "w_conjunction": group_weights.get("w_conjunction", 1.0)},
+        "planet_subset": planet_subset,
     }
 
 

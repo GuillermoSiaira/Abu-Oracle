@@ -23,9 +23,26 @@ from core.extended_calc import (
 from skyfield.api import load
 import logging
 from core.solar_return_ranking import rank_solar_return_locations, RELOCATION_CITIES
+from services.relocation import compute_relocation
 import logging
 import time
 from services.logging import init_logging, log_event
+
+# ── Cities cache (loaded once at startup) ──────────────────────────────────
+_CITIES_CACHE: list = []
+
+def _load_cities() -> list:
+    base_dir = Path(__file__).resolve().parent
+    cities_file = base_dir / "data" / "cities.json"
+    try:
+        with open(cities_file, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception as e:
+        logging.error(f"[Abu] Error loading cities.json: {e}")
+        return []
+
+_CITIES_CACHE = _load_cities()
+logging.info(f"[Abu] Cities cache loaded: {len(_CITIES_CACHE)} entries")
 
 
 def send_to_lilly(data: dict) -> dict:
@@ -341,29 +358,17 @@ def search_cities(q: str = Query("", description="Búsqueda de ciudad o país"))
     """
     Busca ciudades por nombre o país.
     Retorna hasta 20 resultados que coincidan con la query.
+    Usa cache en memoria cargado al inicio del servidor.
     """
-    base_dir = Path(__file__).resolve().parent
-    cities_file = base_dir / "data" / "cities.json"
-    
-    try:
-        with open(cities_file, 'r', encoding='utf-8') as f:
-            cities = json.load(f)
-    except Exception as e:
-        logging.error(f"[Abu] Error loading cities.json: {e}")
-        return []
-    
     if not q or len(q) < 2:
-        # Return first 20 cities if no query
-        return cities[:20]
-    
-    # Case-insensitive search in city or country name
+        return _CITIES_CACHE[:20]
+
     q_lower = q.lower()
-    matches = [
-        c for c in cities 
-        if q_lower in c["city"].lower() or q_lower in c["country"].lower()
-    ]
-    
-    return matches[:20]
+    # Prioritize starts-with matches, then contains
+    starts = [c for c in _CITIES_CACHE if c["city"].lower().startswith(q_lower)]
+    contains = [c for c in _CITIES_CACHE if q_lower in c["city"].lower() and not c["city"].lower().startswith(q_lower)]
+    matches = (starts + contains)[:20]
+    return matches
 
 
 @app.get(
@@ -1080,6 +1085,76 @@ def get_solar_return_ranking(
         raise HTTPException(status_code=500, detail=f"Solar return ranking error: {str(e)}")
 
 
+@app.get(
+    "/api/astro/relocation",
+    response_model=None,
+    responses={
+        400: {"description": "Missing birthDate/lat/lon"},
+        422: {"description": "Invalid date format"},
+        200: {
+            "description": "Relocation HF field + city ranking",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "geojson": {"type": "FeatureCollection", "features": []},
+                        "rankings": [{"city": "Zurich", "country": "Switzerland", "hf_total_v3": 21.4}],
+                        "natal_hf": 15.3,
+                        "max_hf": 21.4,
+                        "grid_points": 2409
+                    }
+                }
+            }
+        }
+    }
+)
+def get_relocation(
+    birthDate: str = Query(..., description="Fecha de nacimiento en formato ISO (ej: 1990-01-01T12:00:00Z)"),
+    lat: float = Query(..., description="Latitud natal en grados decimales"),
+    lon: float = Query(..., description="Longitud natal en grados decimales"),
+    step: float = Query(5.0, description="Paso del grid en grados (default 5.0, min 2.5)"),
+    top_n: int = Query(20, description="Número de ciudades en el ranking (default 20)"),
+):
+    """
+    Calcula el campo de armonía (HF) de relocalización para una carta natal.
+
+    Genera un grid global, recalcula casas/ángulos en cada punto, y devuelve:
+    - GeoJSON con el campo HF (para heatmap)
+    - Ranking de ciudades deduplicado (mejor HF por ciudad)
+    - HF natal y máximo del grid
+    """
+    if not birthDate or lat is None or lon is None:
+        raise HTTPException(status_code=400, detail="Missing birthDate/lat/lon")
+
+    try:
+        birth_dt = datetime.fromisoformat(birthDate.replace("Z", "+00:00"))
+    except Exception:
+        raise HTTPException(status_code=422, detail="Invalid birthDate format")
+
+    # Clamp step to minimum 2.5° to prevent abuse
+    step = max(step, 2.5)
+    top_n = min(max(top_n, 1), 50)
+
+    t0 = time.perf_counter()
+    try:
+        result = compute_relocation(birth_dt, lat, lon, step, top_n)
+    except Exception as e:
+        logging.error(f"[Abu] Relocation error: {e}")
+        raise HTTPException(status_code=500, detail=f"Relocation computation error: {str(e)}")
+
+    dur_ms = round((time.perf_counter() - t0) * 1000, 2)
+    try:
+        log_event("relocation", {
+            "dur_ms": dur_ms,
+            "step": step,
+            "grid_points": result["grid_points"],
+            "top_n": top_n,
+        })
+    except Exception:
+        pass
+
+    return JSONResponse(content=result)
+
+
 @app.get("/health")
 def health_check():
     """
@@ -1548,6 +1623,106 @@ def get_transits_with_natal(body: TransitsWithNatalRequest):
         return transits
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Transits calculation error: {str(e)}")
+
+
+# ==========================
+# Domain Ranking endpoints
+# ==========================
+
+@app.get(
+    "/api/astro/domain-score",
+    response_model=None,
+    responses={
+        422: {"description": "Invalid date format or unknown domain"},
+    },
+)
+def get_domain_score(
+    birthDate: str = Query(..., description="Fecha de nacimiento ISO (ej: 1990-07-05T12:00:00Z)"),
+    lat: float = Query(..., description="Latitud de la ciudad a evaluar"),
+    lon: float = Query(..., description="Longitud de la ciudad a evaluar"),
+    domain: str = Query(..., description="Dominio: career|love|health|family|resources|creativity|expansion"),
+    year: int = Query(None, description="Año del Solar Return (None = año actual)"),
+    mode: str = Query("solar_return", description="solar_return | natal"),
+    city_name: str = Query(None, description="Nombre descriptivo de la ciudad"),
+):
+    """
+    Calcula el score de una ciudad especifica para un dominio de vida.
+
+    Implementa el Axioma 8 de Abu Oracle (Especificidad de Dominio):
+    el campo geografico debe filtrarse por los significadores del dominio
+    consultado para ser interpretable.
+
+    Modos:
+    - solar_return: usa la Revolucion Solar del año indicado en esa ciudad
+    - natal: usa la carta natal en esa ubicacion
+    """
+    from core.domain_ranking import score_city_for_domain
+
+    try:
+        birth_dt = datetime.fromisoformat(birthDate.replace("Z", "+00:00"))
+    except Exception:
+        raise HTTPException(status_code=422, detail="Invalid birthDate format")
+
+    result = score_city_for_domain(
+        birth_dt=birth_dt,
+        lat=lat,
+        lon=lon,
+        domain=domain,
+        year=year,
+        mode=mode,
+        city_name=city_name,
+    )
+
+    if result.get("error") and "Unknown domain" in str(result.get("error")):
+        raise HTTPException(status_code=422, detail=result["error"])
+
+    return result
+
+
+@app.post(
+    "/api/astro/domain-ranking",
+    response_model=None,
+    responses={
+        422: {"description": "Invalid date format or unknown domain"},
+    },
+)
+def get_domain_ranking(
+    birthDate: str = Query(..., description="Fecha de nacimiento ISO (ej: 1990-07-05T12:00:00Z)"),
+    domain: str = Query(..., description="Dominio: career|love|health|family|resources|creativity|expansion"),
+    year: int = Query(None, description="Año del Solar Return (None = año actual)"),
+    mode: str = Query("solar_return", description="solar_return | natal"),
+    top_n: int = Query(5, description="Numero de ciudades top a destacar"),
+    cities: list = Body(..., description="Lista de ciudades [{name, lat, lon, country}]"),
+):
+    """
+    Rankea una lista de ciudades para un dominio de vida.
+
+    Las ciudades se reciben en el mismo formato que devuelve /api/cities/search.
+    No hay lista fija — el usuario elige las ciudades desde el frontend.
+
+    Implementa el Axioma 8.2: la geografia optima para la carrera no es
+    la misma que para la salud, y ambas difieren de la de maxima actividad total.
+    """
+    from core.domain_ranking import rank_cities_for_domain
+
+    try:
+        birth_dt = datetime.fromisoformat(birthDate.replace("Z", "+00:00"))
+    except Exception:
+        raise HTTPException(status_code=422, detail="Invalid birthDate format")
+
+    result = rank_cities_for_domain(
+        birth_dt=birth_dt,
+        cities=cities,
+        domain=domain,
+        year=year,
+        mode=mode,
+        top_n=top_n,
+    )
+
+    if result.get("error"):
+        raise HTTPException(status_code=422, detail=result["error"])
+
+    return result
 
 
 # ==========================

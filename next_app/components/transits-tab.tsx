@@ -61,8 +61,11 @@ export function TransitsTab() {
 
   const effectiveTransitDate = transitDate ?? new Date().toISOString();
 
-  useEffect(() => {
+  const fetchTransits = () => {
     if (!birthData?.birthDate || !birthData.lat || !birthData.lon) return;
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
 
     setLoading(true);
     setError(null);
@@ -70,6 +73,7 @@ export function TransitsTab() {
     fetch(`${ABU_URL}/api/astro/transits/with-natal`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      signal: controller.signal,
       body: JSON.stringify({
         birthDate: birthData.birthDate,
         birthLat: birthData.lat,
@@ -84,8 +88,25 @@ export function TransitsTab() {
         return r.json();
       })
       .then((d) => setData(d))
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false));
+      .catch((e) => {
+        if (e.name === "AbortError") {
+          setError("El cálculo tardó demasiado. Intentá de nuevo.");
+        } else {
+          setError(e.message);
+        }
+      })
+      .finally(() => {
+        clearTimeout(timeoutId);
+        setLoading(false);
+      });
+
+    return controller;
+  };
+
+  useEffect(() => {
+    const controller = fetchTransits();
+    return () => { controller?.abort(); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [birthData?.birthDate, birthData?.lat, birthData?.lon, effectiveTransitDate]);
 
   if (!birthData) {
@@ -106,8 +127,14 @@ export function TransitsTab() {
 
   if (error) {
     return (
-      <div className="p-6 text-sm text-red-400 bg-red-400/10 rounded-lg border border-red-400/20">
-        Error al calcular tránsitos: {error}
+      <div className="p-6 space-y-3 text-sm text-red-400 bg-red-400/10 rounded-lg border border-red-400/20">
+        <p>Error al calcular tránsitos: {error}</p>
+        <button
+          onClick={() => fetchTransits()}
+          className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded text-xs transition-colors"
+        >
+          Reintentar
+        </button>
       </div>
     );
   }

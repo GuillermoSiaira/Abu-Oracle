@@ -1,0 +1,24 @@
+{
+  "headline": "Relocalización HF para Mohandas Gandhi: Tin-Akoff (BF) lidera el ranking",
+  "narrative": "El análisis del campo armónico (Harmony Field) de Mohandas Gandhi revela un patrón geográfico definido: las ubicaciones óptimas se concentran en latitudes ecuatoriales del hemisferio norte. La puntuación HF natal es 23.46, mientras que la mejor ubicación (Tin-Akoff (BF)) alcanza 31.52 — un incremento del 34.4%.\n\nLas tres mejores ciudades son:\n1. **Tin-Akoff (BF)** (HF: 31.52) — ASC en Leo, MC en Tauro\n2. **Yendi (GH)** (HF: 31.50) — ASC en Leo, MC en Tauro\n3. **Magway (MM)** (HF: 31.16) — ASC en Escorpio, MC en Leo\n\nEl componente de angularidad (hf_angles) y la distribución de casas (hf_houses) son los factores que más varían geográficamente, mientras que los aspectos planetarios (hf_aspects) permanecen constantes. Esto indica que la relocalización modifica fundamentalmente cómo se expresan las energías planetarias a través de las casas y los ángulos del horizonte.",
+  "actions": [
+    "Evaluar Tin-Akoff (BF) como destino prioritario (mayor ganancia HF: +34.4%)",
+    "Considerar Yendi (GH) y Magway (MM) como alternativas viables",
+    "La angularidad (10% del total) es el factor más sensible a la ubicación",
+    "Comparar el ranking HF con factores prácticos (idioma, clima, oportunidades)"
+  ],
+  "astro_metadata": {
+    "source": "offline",
+    "language": "es",
+    "model": "rule-based",
+    "natal_hf": 23.4555,
+    "max_hf": 31.5247,
+    "gain_pct": 34.4,
+    "top_city": "Tin-Akoff (BF)",
+    "components": {
+      "aspects_pct": 84.3,
+      "angles_pct": 9.5,
+      "houses_pct": 33.1
+    }
+  }
+}

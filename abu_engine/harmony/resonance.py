@@ -29,6 +29,17 @@ ASPECT_WEIGHTS: Dict[str, float] = {
     "opposition": 1.0,
 }
 
+# Group-level weights for HF v4 weighted formula (optimized via grid search)
+# HF_weighted = w_harmony * (sextile+trine) + w_tension * (square+opposition) + w_conjunction * conjunction
+# Optimization v2 (527 bio events, 26 subjects): corr_nn=+0.156, Cohen's d=+0.447
+# Sign pattern confirmed: harmony and tension both SUBTRACT; conjunction ADDS.
+# Conjunctions dominate: w_c=2.5 is the strongest weight.
+GROUP_WEIGHTS: Dict[str, float] = {
+    "w_harmony": -1.0,
+    "w_tension": -1.0,
+    "w_conjunction": 2.5,
+}
+
 
 def angular_distance_deg(a_deg: float, b_deg: float) -> float:
     """Smallest angular distance on the circle in degrees (0–180]."""
