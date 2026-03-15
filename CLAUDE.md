@@ -225,10 +225,17 @@ Investigar causa raíz en el backend y optimizar el cálculo, no solo el timeout
 
 ## Frontend
 
-- URL local: `http://localhost:3000/relocation`
-- Componente mapa: `next_app/components/HFRelocationMap.tsx`
-- Ruta activa: `next_app/app/relocation/RelocationClient.tsx` (única consumer del mapa)
-- Ruta eliminada: `next_app/app/relocation-map/` (borrada)
+- URL local dev: `http://localhost:3001` (Docker ocupa :3000)
+- Rutas activas:
+  - `next_app/app/page.tsx` — Home vacío: título `ABU ORACLE` (DM_Serif_Display vía `--font-serif`), subtítulo i18n (`t.homeSubtitle`), CTAs rediseñados, form on-demand
+  - `next_app/app/chart/` — Carta natal (requiere `abuData`)
+  - `next_app/app/relocation/RelocationClient.tsx` — Mapa relocalización (única consumer del mapa)
+  - `next_app/app/relocation-map/` — ELIMINADA
+- Componentes UI clave:
+  - `next_app/components/Navigation.tsx` — Top bar global con selector de idioma conectado a `setLang` del store (visible en todas las páginas)
+  - `next_app/components/TechnicalPanel.tsx` — Dignidades/Controladores/Cómputo solo cuando `!!abuData && hasChart`
+  - `next_app/components/OracleChat.tsx` — Sys-init requiere `abuData && birthData`; bloque `SYSTEM_READY / CONNECTED / AWAITING INPUT` cuando `messages.length === 0`
+  - `next_app/components/HFRelocationMap.tsx` — Mapa MapLibre GL heatmap
 - GeoJSON públicos: `next_app/public/geojson/` — formato legacy `subject_*_hf.geojson` + dominios `*_domains.geojson`
 - Rankings públicos: `next_app/public/rankings/`
 

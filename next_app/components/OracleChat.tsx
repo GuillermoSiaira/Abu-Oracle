@@ -139,7 +139,7 @@ export default function OracleChat() {
      Evita UI vacía y comunica estado técnico al evaluador.
   ----------------------------------------------------- */
   useEffect(() => {
-    if (!initialized.current && abuData) {
+    if (!initialized.current && abuData && birthData) {
       initialized.current = true;
 
       setMessages([
@@ -149,7 +149,7 @@ export default function OracleChat() {
           content:
 `> SYSTEM_READY
 > ABU ENGINE: CONNECTED
-> DATA CONTEXT: ${birthData ? 'TEMPORAL + GEOSPATIAL ANCHOR LOADED' : 'NO INPUT DATA'}
+> DATA CONTEXT: TEMPORAL + GEOSPATIAL ANCHOR LOADED
 
 Lilly is online.
 You may query chart significance, planetary geometry,
@@ -257,8 +257,12 @@ or timing vectors derived from the current computation.`
 
       {/* CHAT AREA */}
       <div className="flex-1 overflow-y-auto p-4 space-y-5 scrollbar-thin scrollbar-thumb-slate-800">
-        {messages.length === 0 && !abuData && (
-          <LillyWelcome t={t} />
+        {messages.length === 0 && (
+          <div className="p-4 mt-4 font-mono text-xs text-green-500/70 space-y-1">
+            <p>&gt; SYSTEM_READY</p>
+            <p>&gt; ABU ENGINE: CONNECTED</p>
+            <p>&gt; AWAITING INPUT</p>
+          </div>
         )}
         {messages.map((m) => (
           <div

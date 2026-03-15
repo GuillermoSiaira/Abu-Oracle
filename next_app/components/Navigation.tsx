@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Globe } from 'lucide-react';
+import { useAppStore } from '@/lib/store';
+import { LANG_OPTIONS, type Lang } from '@/lib/i18n';
 
 const navLinks = [
   { href: '/', label: 'Home' },
@@ -12,6 +14,7 @@ const navLinks = [
 
 export default function Navigation() {
   const pathname = usePathname();
+  const { lang, setLang } = useAppStore();
 
   return (
     <header className="w-full h-14 bg-slate-950 border-b border-slate-800 flex items-center px-6 select-none">
@@ -42,6 +45,19 @@ export default function Navigation() {
           );
         })}
       </nav>
+      <div className="ml-auto">
+        <select
+          value={lang}
+          onChange={(e) => setLang(e.target.value as Lang)}
+          className="appearance-none bg-transparent border border-slate-800 text-slate-500 hover:text-slate-300 text-xs rounded px-2 py-1 focus:outline-none focus:border-slate-600 cursor-pointer transition-colors"
+        >
+          {LANG_OPTIONS.map((l) => (
+            <option key={l.code} value={l.code} className="bg-slate-900">
+              {l.flag} {l.label}
+            </option>
+          ))}
+        </select>
+      </div>
     </header>
   );
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import { Activity, Shield, Cpu, Database, Clock } from 'lucide-react';
+import { Shield, Cpu, Database, Clock } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 import { UI } from '@/lib/i18n';
 import { ABU_BASE_URL } from '@/services/abu';
@@ -47,14 +47,6 @@ function StatusDot({ status, label }: { status: ConnStatus; label: string }) {
   );
 }
 
-function EmptyState({ t }: { t: typeof UI['es'] }) {
-  return (
-    <div className="text-center py-4 space-y-1">
-      <p className="text-slate-600 text-[11px]">{t.tpNoChart}</p>
-      <p className="text-slate-700 text-[10px]">{t.tpNoChartHint}</p>
-    </div>
-  );
-}
 
 export default function TechnicalPanel() {
   const { abuData, lang } = useAppStore();
@@ -179,7 +171,7 @@ export default function TechnicalPanel() {
         <h3 className="text-[10px] uppercase tracking-widest text-slate-600 mb-3 flex items-center gap-2">
           <Clock className="w-3 h-3" /> {t.tpCompCtx}
         </h3>
-        {hasChart ? (
+        {!!abuData && hasChart && (
           <div className="space-y-2 text-[11px]">
             <div className="flex justify-between">
               <span>{t.tpRefFrame}:</span>
@@ -198,8 +190,6 @@ export default function TechnicalPanel() {
               <span className="text-slate-500">N/A (Tropical)</span>
             </div>
           </div>
-        ) : (
-          <EmptyState t={t} />
         )}
       </div>
 
@@ -208,7 +198,7 @@ export default function TechnicalPanel() {
         <h3 className="text-[10px] uppercase tracking-widest text-slate-600 mb-3 flex items-center gap-2">
           <Shield className="w-3 h-3" /> {t.tpDignities}
         </h3>
-        {hasChart && planets.length > 0 ? (
+        {!!abuData && hasChart && planets.length > 0 && (
           <div className="space-y-1">
             {planets.map((p: any) => {
               const d = getDignityLabel(p.dignity);
@@ -232,8 +222,6 @@ export default function TechnicalPanel() {
               );
             })}
           </div>
-        ) : (
-          <EmptyState t={t} />
         )}
       </div>
 
@@ -242,7 +230,7 @@ export default function TechnicalPanel() {
         <h3 className="text-[10px] uppercase tracking-widest text-slate-600 mb-3 flex items-center gap-2">
           <Database className="w-3 h-3" /> {t.tpScheme}
         </h3>
-        {hasChart ? (
+        {!!abuData && hasChart && (
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={() => ascRuler && copyController('asc', ascRuler, t.tpAscRuler)}
@@ -280,8 +268,6 @@ export default function TechnicalPanel() {
               </div>
             </div>
           </div>
-        ) : (
-          <EmptyState t={t} />
         )}
       </div>
 
