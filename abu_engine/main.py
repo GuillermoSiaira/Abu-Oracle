@@ -1155,6 +1155,115 @@ def get_relocation(
     return JSONResponse(content=result)
 
 
+# Domain → house number mapping (matches DomainSelector keys in the frontend)
+_DOMAIN_TO_HOUSE: dict[str, int] = {
+    "h1": 1, "h2": 2, "h4": 4, "h5": 5,
+    "h6": 6, "h7": 7, "h9": 9, "h10": 10,
+}
+
+
+@app.get("/api/astro/relocation-field", response_model=None)
+def get_relocation_field(
+    birthDate: str = Query(..., description="Fecha de nacimiento ISO"),
+    lat: float = Query(..., description="Latitud natal"),
+    lon: float = Query(..., description="Longitud natal"),
+    domain: str = Query("global", description="global|h1|h2|h4|h5|h6|h7|h9|h10"),
+    step: float = Query(2.5, description="Paso del grid en grados (min 2.5)"),
+):
+    """
+    Calcula el campo HF de relocalización filtrado por dominio de casa.
+    Con domain='global' → todos los planetas (mismo que /relocation).
+    Con domain='h10' → solo significadores de casa 10.
+    Devuelve GeoJSON con propiedades hf_total/delta_hf.
+    """
+    if not birthDate or lat is None or lon is None:
+        raise HTTPException(status_code=400, detail="Missing birthDate/lat/lon")
+
+    try:
+        birth_dt = datetime.fromisoformat(birthDate.replace("Z", "+00:00"))
+    except Exception:
+        raise HTTPException(status_code=422, detail="Invalid birthDate format")
+
+    step = max(step, 2.5)
+
+    planet_subset = None
+    if domain != "global":
+        house_num = _DOMAIN_TO_HOUSE.get(domain)
+        if house_num:
+            from harmony.houses import house_significators
+            from core.chart import chart_json as _chart_json
+            from core.houses_swiss import calculate_houses as _calc_houses, HOUSE_SYSTEM_PLACIDUS as _HPS
+            chart = _chart_json(lat, lon, birth_dt)
+            planet_pos = {p.name: float(p.lon) for p in chart.planets}
+            natal_h = _calc_houses(birth_dt, lat, lon, _HPS)
+            natal_for_sig = {**planet_pos, "cusps": list(natal_h["cusps"])}
+            planet_subset = house_significators(natal_for_sig, house_num)
+
+    try:
+        from services.relocation import make_grid, compute_field, build_geojson
+        grid = make_grid(step)
+        natal_metrics, rows = compute_field(birth_dt, lat, lon, grid, planet_subset=planet_subset)
+        geojson = build_geojson(rows)
+        geojson["properties"] = {
+            "natal_latitude": lat,
+            "natal_longitude": lon,
+            "natal_hf": natal_metrics["hf_total_v3"],
+            "domain": domain,
+        }
+    except Exception as e:
+        logging.error(f"[Abu] relocation-field error: {e}")
+        raise HTTPException(status_code=500, detail=f"relocation-field error: {str(e)}")
+
+    return JSONResponse(content=geojson)
+
+
+@app.get("/api/astro/sr-relocation-field", response_model=None)
+def get_sr_relocation_field(
+    birthDate: str = Query(..., description="Fecha de nacimiento ISO"),
+    lat: float = Query(..., description="Latitud natal"),
+    lon: float = Query(..., description="Longitud natal"),
+    year: int = Query(None, description="Año del Retorno Solar (default: año actual)"),
+    step: float = Query(2.5, description="Paso del grid en grados (min 2.5)"),
+):
+    """
+    Campo HF de relocalización usando planetas del Retorno Solar.
+
+    Para cada punto del grid, calcula el HF con las posiciones planetarias
+    del momento exacto del RS + ASC/MC local. Muestra qué ubicaciones
+    activan mejor la configuración celeste de ese año.
+    """
+    if not birthDate or lat is None or lon is None:
+        raise HTTPException(status_code=400, detail="Missing birthDate/lat/lon")
+
+    try:
+        birth_dt = datetime.fromisoformat(birthDate.replace("Z", "+00:00"))
+    except Exception:
+        raise HTTPException(status_code=422, detail="Invalid birthDate format")
+
+    step = max(step, 2.5)
+    if year is None:
+        year = datetime.now().year
+
+    try:
+        from services.relocation import make_grid, compute_sr_field, build_geojson
+        grid = make_grid(step)
+        natal_metrics, rows, sr_dt = compute_sr_field(birth_dt, lat, lon, grid, year=year)
+        geojson = build_geojson(rows)
+        geojson["properties"] = {
+            "natal_latitude": lat,
+            "natal_longitude": lon,
+            "natal_hf": natal_metrics["hf_total_v3"],
+            "sr_datetime": sr_dt.isoformat(),
+            "year": year,
+            "mode": "solar_return",
+        }
+    except Exception as e:
+        logging.error(f"[Abu] sr-relocation-field error: {e}")
+        raise HTTPException(status_code=500, detail=f"sr-relocation-field error: {str(e)}")
+
+    return JSONResponse(content=geojson)
+
+
 @app.get("/health")
 def health_check():
     """

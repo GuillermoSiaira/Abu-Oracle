@@ -129,8 +129,14 @@ def compute_field(
     natal_lat: float,
     natal_lon: float,
     grid: List[Tuple[float, float]],
+    planet_subset: List[str] | None = None,
 ) -> Tuple[Dict[str, float], List[dict]]:
-    """Compute natal HF + full relocation grid. Returns (natal_metrics, rows)."""
+    """Compute natal HF + full relocation grid. Returns (natal_metrics, rows).
+
+    Args:
+        planet_subset: Optional list of lowercase planet names (from house_significators).
+            If None → all planets (default). If provided → domain-filtered field.
+    """
     if birth_dt.tzinfo is None:
         birth_dt = birth_dt.replace(tzinfo=timezone.utc)
 
@@ -143,7 +149,7 @@ def compute_field(
     natal_angles["ASC"] = float(natal_houses["asc"])
     natal_angles["MC"] = float(natal_houses["mc"])
     natal_cusps = list(natal_houses["cusps"])
-    natal_hf = compute_hf_v3(natal_angles, cusps=natal_cusps)
+    natal_hf = compute_hf_v3(natal_angles, cusps=natal_cusps, planet_subset=planet_subset)
     natal_total = float(natal_hf["hf_total_v3"])
 
     rows: List[dict] = []
@@ -154,7 +160,7 @@ def compute_field(
             angles = dict(planet_pos)
             angles["ASC"] = float(h["asc"])
             angles["MC"] = float(h["mc"])
-            hf = compute_hf_v3(angles, cusps=cusps)
+            hf = compute_hf_v3(angles, cusps=cusps, planet_subset=planet_subset)
             total = float(hf["hf_total_v3"])
             rows.append({
                 "lat": rlat, "lon": rlon,
@@ -239,6 +245,30 @@ def make_ranking(rows: List[dict], top_n: int = 20) -> List[dict]:
         }
 
     return sorted(seen.values(), key=lambda x: x["hf_total_v3"], reverse=True)[:top_n]
+
+
+# ── Solar Return relocation field ─────────────────────────────────────
+
+def compute_sr_field(
+    birth_dt: datetime,
+    natal_lat: float,
+    natal_lon: float,
+    grid: List[Tuple[float, float]],
+    year: int | None = None,
+    planet_subset: List[str] | None = None,
+) -> Tuple[Dict[str, float], List[dict], datetime]:
+    """Compute HF relocation field using Solar Return planetary positions.
+
+    The SR datetime (exact moment the Sun returns to its natal longitude) is
+    independent of location, so we find it once and reuse the planetary positions
+    for every grid point — only the local ASC/MC (houses) vary.
+
+    Returns (natal_metrics, rows, sr_datetime).
+    """
+    from core.chart import find_solar_return
+    sr_dt = find_solar_return(birth_dt, natal_lat, natal_lon, year)
+    natal_metrics, rows = compute_field(sr_dt, natal_lat, natal_lon, grid, planet_subset=planet_subset)
+    return natal_metrics, rows, sr_dt
 
 
 # ── Main entry point ─────────────────────────────────────────────────

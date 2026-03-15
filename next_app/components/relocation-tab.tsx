@@ -6,6 +6,7 @@ import { UI } from "@/lib/i18n";
 import { ABU_BASE_URL } from "@/services/abu";
 import RankingTable from "@/components/RankingTable";
 import { LifeDomainSelector, type LifeDomain } from "@/components/LifeDomainSelector";
+import { DomainSelector, type Domain } from "@/components/DomainSelector";
 import { Globe, Loader2, AlertCircle, Star } from "lucide-react";
 import dynamic from "next/dynamic";
 
@@ -75,12 +76,89 @@ export function RelocationTab() {
   const [rankingUrl, setRankingUrl] = useState<string | null>(null);
   const blobUrlsRef = useRef<string[]>([]);
 
+  // HF domain field for natal mode
+  const [hfDomain, setHfDomain] = useState<Domain>("global");
+  const [domainFieldLoading, setDomainFieldLoading] = useState(false);
+
+  // Solar Return relocation field
+  const [srGeojsonUrl, setSrGeojsonUrl] = useState<string | null>(null);
+  const [srNatalHf, setSrNatalHf] = useState<number | null>(null);
+  const [srDatetime, setSrDatetime] = useState<string | null>(null);
+  const [srFieldLoading, setSrFieldLoading] = useState(false);
+
   // Cleanup blob URLs on unmount
   useEffect(() => {
     return () => {
       blobUrlsRef.current.forEach((u) => URL.revokeObjectURL(u));
     };
   }, []);
+
+  // Fetch domain HF field when hfDomain changes (natal mode)
+  useEffect(() => {
+    if (!data || !birthData) return;
+    if (hfDomain === "global") {
+      // Restore the original global geojson blob URL
+      const geoBlob = new Blob([JSON.stringify(data.geojson)], { type: "application/json" });
+      const geoUrl = URL.createObjectURL(geoBlob);
+      blobUrlsRef.current.push(geoUrl);
+      setGeojsonUrl(geoUrl);
+      return;
+    }
+
+    setDomainFieldLoading(true);
+    const params = new URLSearchParams({
+      birthDate: birthData.birthDate,
+      lat: String(birthData.lat),
+      lon: String(birthData.lon),
+      domain: hfDomain,
+      step: "2.5",
+    });
+
+    fetch(`${ABU_BASE_URL}/api/astro/relocation-field?${params}`)
+      .then((r) => {
+        if (!r.ok) throw new Error(`Error ${r.status}`);
+        return r.json();
+      })
+      .then((geojson) => {
+        const blob = new Blob([JSON.stringify(geojson)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        blobUrlsRef.current.push(url);
+        setGeojsonUrl(url);
+      })
+      .catch(() => {/* keep current map on error */})
+      .finally(() => setDomainFieldLoading(false));
+  }, [hfDomain, data, birthData]);
+
+  // Fetch Solar Return field when switching to SR mode or changing year
+  useEffect(() => {
+    if (mode !== 'solar_return' || !data || !birthData) return;
+
+    setSrFieldLoading(true);
+    setSrGeojsonUrl(null);
+    const params = new URLSearchParams({
+      birthDate: birthData.birthDate,
+      lat: String(birthData.lat),
+      lon: String(birthData.lon),
+      year: String(srYear),
+      step: "2.5",
+    });
+
+    fetch(`${ABU_BASE_URL}/api/astro/sr-relocation-field?${params}`)
+      .then((r) => {
+        if (!r.ok) throw new Error(`Error ${r.status}`);
+        return r.json();
+      })
+      .then((geojson) => {
+        const blob = new Blob([JSON.stringify(geojson)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        blobUrlsRef.current.push(url);
+        setSrGeojsonUrl(url);
+        setSrNatalHf(geojson.properties?.natal_hf ?? null);
+        setSrDatetime(geojson.properties?.sr_datetime ?? null);
+      })
+      .catch(() => {/* keep null — map won't render */})
+      .finally(() => setSrFieldLoading(false));
+  }, [mode, srYear, data, birthData]);
 
   // Fetch domain ranking when domain or base data changes
   useEffect(() => {
@@ -128,7 +206,7 @@ export function RelocationTab() {
       birthDate: birthData.birthDate,
       lat: String(birthData.lat),
       lon: String(birthData.lon),
-      step: "5",
+      step: "2.5",
       top_n: "20",
     });
 
@@ -200,6 +278,7 @@ export function RelocationTab() {
           {t.computing}
         </p>
         <p className="text-slate-600 text-xs">{t.computingNote}</p>
+        <p className="text-slate-700 text-xs">Calculando 9425 puntos · resolución 2.5°</p>
       </div>
     );
   }
@@ -268,9 +347,20 @@ export function RelocationTab() {
 
       {mode === 'natal' && (
         <>
+          {/* Domain selector */}
+          <DomainSelector domain={hfDomain} onDomainChange={setHfDomain} />
+
           {/* Map */}
           {geojsonUrl && (
-            <div className="rounded-lg overflow-hidden border border-slate-700">
+            <div className="rounded-lg overflow-hidden border border-slate-700 relative">
+              {domainFieldLoading && (
+                <div className="absolute inset-0 z-20 flex items-center justify-center bg-slate-900/70 rounded-lg">
+                  <div className="flex items-center gap-2 text-slate-300 text-sm">
+                    <Loader2 className="w-4 h-4 animate-spin text-amber-400" />
+                    Calculando campo de dominio…
+                  </div>
+                </div>
+              )}
               <HFRelocationMap
                 geojsonUrl={geojsonUrl}
                 rankingUrl={rankingUrl ?? undefined}
@@ -292,8 +382,8 @@ export function RelocationTab() {
       )}
 
       {mode === 'solar_return' && (
-        <div className="rounded-lg border border-slate-700 p-3 space-y-3">
-          {/* Year selector */}
+        <div className="space-y-3">
+          {/* Year selector + SR datetime */}
           <div className="flex items-center gap-3 text-sm">
             <Star className="w-4 h-4 text-amber-400 shrink-0" />
             <label className="text-slate-400">Retorno Solar</label>
@@ -306,8 +396,49 @@ export function RelocationTab() {
                 <option key={y} value={y}>{y}</option>
               ))}
             </select>
-            <span className="text-xs text-slate-600 italic ml-auto">Mejores ciudades por área de vida</span>
+            {srDatetime && !srFieldLoading && (
+              <span className="text-xs text-slate-500 font-mono ml-auto">
+                ☀ {new Date(srDatetime).toLocaleString(lang === 'es' ? 'es-AR' : 'en-US', {
+                  month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'UTC'
+                })} UTC
+              </span>
+            )}
           </div>
+
+          {/* SR Heatmap */}
+          <div className="rounded-lg overflow-hidden border border-slate-700 relative">
+            {srFieldLoading && (
+              <div className="absolute inset-0 z-20 flex items-center justify-center bg-slate-900/70 rounded-lg" style={{ minHeight: "55vh" }}>
+                <div className="flex flex-col items-center gap-2 text-slate-300 text-sm">
+                  <Loader2 className="w-6 h-6 animate-spin text-amber-400" />
+                  <span>Calculando Retorno Solar {srYear}…</span>
+                  <span className="text-xs text-slate-500">9425 puntos · planetas del RS</span>
+                </div>
+              </div>
+            )}
+            {!srFieldLoading && !srGeojsonUrl && data && (
+              <div className="flex items-center justify-center bg-slate-900/50 rounded-lg" style={{ minHeight: "55vh" }}>
+                <p className="text-slate-600 text-xs">Cargando campo SR…</p>
+              </div>
+            )}
+            {srGeojsonUrl && (
+              <HFRelocationMap
+                geojsonUrl={srGeojsonUrl}
+                natalHf={srNatalHf ?? undefined}
+                initialZoom={2}
+                mapHeight="55vh"
+                legendLow={t.legendLow}
+                legendHigh={t.legendHigh}
+              />
+            )}
+          </div>
+
+          {/* Domain ranking */}
+          <div className="rounded-lg border border-slate-700 p-3 space-y-3">
+            <div className="flex items-center gap-2 text-xs text-slate-500">
+              <span className="font-medium text-slate-300">Mejor ubicación por área de vida</span>
+              <span className="text-slate-600">· Doctrina Abu Mashar · Solar Return {srYear}</span>
+            </div>
 
           <LifeDomainSelector
             domain={lifeDomain}
@@ -356,6 +487,7 @@ export function RelocationTab() {
               Selecciona un dominio para ver que ciudades activan mejor ese area de tu vida.
             </p>
           )}
+          </div>
         </div>
       )}
     </div>
