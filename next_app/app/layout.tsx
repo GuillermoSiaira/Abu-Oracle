@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { DM_Serif_Display, Inter } from "next/font/google";
 import "./globals.css";
-import DashboardLayout from "@/components/DashboardLayout";
+import DashboardLayoutClient from "@/components/DashboardLayoutClient";
 
 const dmSerif = DM_Serif_Display({
   subsets: ["latin"],
@@ -23,9 +23,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className={`${dmSerif.variable} ${inter.variable}`}>
-        <DashboardLayout>
+        <DashboardLayoutClient>
           {children}
-        </DashboardLayout>
+        </DashboardLayoutClient>
       </body>
     </html>
   );

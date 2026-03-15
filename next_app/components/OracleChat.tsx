@@ -29,8 +29,10 @@ Notas importantes:
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { useAppStore } from "@/lib/store"; 
+import Link from 'next/link';
+import { useAppStore } from "@/lib/store";
 import { Send, Terminal } from "lucide-react";
+import { UI } from '@/lib/i18n';
 
 /* ---------------------------------------------------------
    TerminalMessage
@@ -38,7 +40,7 @@ import { Send, Terminal } from "lucide-react";
    Renderiza la respuesta del LLM con efecto de tipeo
    estilo terminal (UX técnico / demo grant).
 --------------------------------------------------------- */
-const TerminalMessage = ({ content }: { content: string }) => {
+export const TerminalMessage = ({ content }: { content: string }) => {
   const [displayedContent, setDisplayedContent] = useState("");
   const [isTyping, setIsTyping] = useState(false);
 
@@ -74,6 +76,44 @@ const TerminalMessage = ({ content }: { content: string }) => {
 };
 
 /* ---------------------------------------------------------
+   LillyWelcome
+   ---------------------------------------------------------
+   Empty-state block shown when no chart is loaded.
+   Reuses TerminalMessage for typewriter effect.
+   CTAs appear after the typewriter finishes (~text.length ms).
+--------------------------------------------------------- */
+function LillyWelcome({ t }: { t: (typeof UI)[keyof typeof UI] }) {
+  const [showCtas, setShowCtas] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShowCtas(true), t.lillyWelcome.length + 500);
+    return () => clearTimeout(timer);
+  }, [t.lillyWelcome.length]);
+
+  return (
+    <div className="p-4 space-y-5 mt-6">
+      <TerminalMessage content={t.lillyWelcome} />
+      {showCtas && (
+        <div className="flex flex-col gap-2 pl-1">
+          <Link
+            href="/"
+            className="text-xs font-mono text-amber-400/80 hover:text-amber-300 border border-amber-500/20 hover:border-amber-400/40 rounded-sm px-3 py-1.5 transition-colors w-fit"
+          >
+            → {t.lillyCtaData}
+          </Link>
+          <Link
+            href="/relocation"
+            className="text-xs font-mono text-green-400/60 hover:text-green-300 border border-green-500/10 hover:border-green-400/30 rounded-sm px-3 py-1.5 transition-colors w-fit"
+          >
+            → {t.lillyCtaDemo}
+          </Link>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------
    ORACLE CHAT – MAIN COMPONENT
 --------------------------------------------------------- */
 export default function OracleChat() {
@@ -86,7 +126,8 @@ export default function OracleChat() {
 
   // Store global (NO asumir tipos internos)
   // @ts-ignore
-  const { abuData, birthData } = useAppStore();
+  const { abuData, birthData, lang } = useAppStore();
+  const t = UI[lang as keyof typeof UI] ?? UI.es;
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -216,6 +257,9 @@ or timing vectors derived from the current computation.`
 
       {/* CHAT AREA */}
       <div className="flex-1 overflow-y-auto p-4 space-y-5 scrollbar-thin scrollbar-thumb-slate-800">
+        {messages.length === 0 && !abuData && (
+          <LillyWelcome t={t} />
+        )}
         {messages.map((m) => (
           <div
             key={m.id}

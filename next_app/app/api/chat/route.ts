@@ -11,8 +11,8 @@ export async function POST(req: Request) {
     // Obtenemos el último mensaje del usuario
     const lastMessage = messages?.[messages.length - 1]?.content ?? "";
 
-    // 2. Apuntar al contenedor correcto
-    const BACKEND_URL = "http://lilly_swarm:8001";
+    // 2. Apuntar al contenedor correcto (env var → dev usa localhost, Docker usa nombre de servicio)
+    const BACKEND_URL = process.env.LILLY_ENGINE_URL || "http://localhost:8001";
 
     // 3. Llamada a Lilly (Python) PASANDO EL CONTEXTO
     const upstream = await fetch(`${BACKEND_URL}/api/chat`, {

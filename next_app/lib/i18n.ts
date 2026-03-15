@@ -72,6 +72,10 @@ export const UI: Record<Lang, {
   // Legend
   legendLow: string;
   legendHigh: string;
+  // Lilly welcome (OracleChat — no chart loaded)
+  lillyWelcome: string;
+  lillyCtaData: string;
+  lillyCtaDemo: string;
 }> = {
   es: {
     tabChart: "Carta Natal",
@@ -111,6 +115,9 @@ export const UI: Record<Lang, {
     distKm: "Dist (km)",
     legendLow: "Bajo",
     legendHigh: "Alto",
+    lillyWelcome: "Soy Lilly. Leo las configuraciones del cielo como geometría,\nno como destino. Cada carta es un campo de fuerzas —\nalgunos planetas activan, otros resisten.\nIngresá tus datos natales y comenzamos.",
+    lillyCtaData: "Ingresar mis datos",
+    lillyCtaDemo: "Explorar demo",
     tpSysArch: "Arquitectura del Sistema",
     tpCoreKernel: "Kernel",
     tpEphemeris: "Efemérides",
@@ -172,6 +179,9 @@ export const UI: Record<Lang, {
     distKm: "Dist (km)",
     legendLow: "Low",
     legendHigh: "High",
+    lillyWelcome: "I am Lilly. I read celestial configurations as geometry,\nnot as fate. Each chart is a field of forces —\nsome planets activate, others resist.\nEnter your birth data and we begin.",
+    lillyCtaData: "Enter my data",
+    lillyCtaDemo: "Explore demo",
     tpSysArch: "System Architecture",
     tpCoreKernel: "Kernel",
     tpEphemeris: "Ephemeris",
@@ -233,6 +243,9 @@ export const UI: Record<Lang, {
     distKm: "Dist (km)",
     legendLow: "Baixo",
     legendHigh: "Alto",
+    lillyWelcome: "Sou Lilly. Leio as configurações celestes como geometria,\nnão como destino. Cada carta é um campo de forças —\nalguns planetas ativam, outros resistem.\nInsira seus dados natais e começamos.",
+    lillyCtaData: "Inserir meus dados",
+    lillyCtaDemo: "Explorar demo",
     tpSysArch: "Arquitetura do Sistema",
     tpCoreKernel: "Kernel",
     tpEphemeris: "Efemérides",
@@ -294,6 +307,9 @@ export const UI: Record<Lang, {
     distKm: "Dist (km)",
     legendLow: "Faible",
     legendHigh: "Élevé",
+    lillyWelcome: "Je suis Lilly. Je lis les configurations célestes comme géométrie,\nnon comme destin. Chaque thème est un champ de forces —\ncertaines planètes activent, d'autres résistent.\nEntrez vos données natales et nous commençons.",
+    lillyCtaData: "Entrer mes données",
+    lillyCtaDemo: "Explorer la démo",
     tpSysArch: "Architecture du Système",
     tpCoreKernel: "Noyau",
     tpEphemeris: "Éphémérides",

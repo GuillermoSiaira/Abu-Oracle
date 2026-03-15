@@ -28,10 +28,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         </aside>
 
         {/* COLUMNA CENTRAL: Visualización Principal */}
-        <main className="flex-1 overflow-hidden relative bg-slate-950 flex flex-col">
-          <div className="w-full h-full flex flex-col">
-            {children}
-          </div>
+        <main className="flex-1 overflow-y-auto relative bg-slate-950">
+          {children}
         </main>
 
         {/* COLUMNA DERECHA: Oracle Chat */}

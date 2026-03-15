@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 from fastapi.middleware.cors import CORSMiddleware
+import os
 from datetime import datetime, timedelta
 from contextlib import asynccontextmanager
 import requests
@@ -94,10 +95,11 @@ app = FastAPI(title="Abu Engine", lifespan=lifespan)
 app.swagger_ui_parameters = {"defaultModelsExpandDepth": -1}
 
 # Configurar CORS
+# allow_origins=["*"] — dev local y staging. Producción (Cloud Run) gestiona CORS por configuración GCP.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # solo frontend local
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"]
 )
