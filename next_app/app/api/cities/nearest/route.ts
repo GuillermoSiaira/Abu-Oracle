@@ -10,7 +10,7 @@ let citiesCache: Array<{ lat: number; lon: number; city: string; country: string
 function loadCities() {
   if (citiesCache) return citiesCache;
 
-  const filePath = path.join(process.cwd(), '..', 'data', 'external', 'worldcities.csv');
+  const filePath = path.join(process.cwd(), 'data', 'external', 'worldcities.csv');
   const csv = fs.readFileSync(filePath, 'utf-8');
   const lines = csv.split('\n');
 

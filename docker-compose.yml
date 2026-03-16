@@ -38,3 +38,4 @@ services:
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
     volumes:
       - ./next_app/public:/app/public
+      - ./data/external:/app/data/external:ro
