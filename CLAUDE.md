@@ -501,6 +501,26 @@ La próxima tarea es siempre la primera sin tilde `✅` en el plan de desarrollo
 
 **Estado panel guía al 2026-03-16**: TechnicalPanel reescrito — LEYENDO AHORA + SEÑOR DEL AÑO + EXPLORAR operativos. `screen-open` devuelve `{ response, suggestions }`. `store.ts` mantiene `lastLillyEvent` y `lillySuggestions` en memoria (no persisten).
 
+---
+
+### Fixes OracleChat — sesión 2026-03-16 (post Fase 8.10)
+
+Tres bugs corregidos en `next_app/components/OracleChat.tsx`. Commits: `854b83e`, `24b6929`, `07b201b`.
+
+**Fix 1 — Reset al cambiar sujeto** (`854b83e`)
+- Causa: `initialized.current` (useRef) nunca se reseteaba → al cambiar de carta `screen_open` no re-disparaba y los mensajes del sujeto anterior persistían en el array local `messages`.
+- Fix: `prevAbuRef` compara la referencia del objeto `abuData`. Si cambia → reset `initialized + messages + lastLillyEvent + lillySuggestions`.
+- Patrón: `prevAbuRef.current !== undefined && prevAbuRef.current !== abuData` → reset.
+
+**Fix 2 — Guard `isComplete`** (`24b6929`)
+- Causa: `abuData && birthData` acepta cualquier objeto truthy, incluso localStorage corrupto o respuesta parcial.
+- Fix: `const isComplete = (d) => Array.isArray(d?.chart?.planets) && d.chart.planets.length > 0` como condición adicional antes de disparar.
+
+**Fix 3 — `screen_open` solo en `/chart`** (`07b201b`)
+- Causa: `OracleChat` vive en `DashboardLayout` (todas las rutas). Al recargar `/`, `abuData` se rehidrata desde localStorage → `isComplete` pasa → Lilly disparaba en Home sin que el usuario hiciera nada.
+- Fix: `usePathname()` de `next/navigation` → `isChartPage = pathname === '/chart'` → guard completo: `!initialized.current && isChartPage && isComplete(abuData) && birthData`.
+- `isChartPage` agregado a deps del useEffect.
+
 Para tareas que toquen la integración con Lilly (Fase 9 en adelante), leer `ARCHITECTURE.md` antes de escribir código.
 
 Al completar una tarea, marcarla con `✅` en este archivo y hacer commit.
