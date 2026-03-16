@@ -19,9 +19,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
         {/* COLUMNA IZQUIERDA: Contexto Técnico */}
         <aside className="
-            hidden lg:flex flex-col 
-            w-[280px] shrink-0
-            bg-[#050505] border-r border-slate-800 
+            hidden lg:flex flex-col
+            w-[180px] shrink-0
+            bg-[#050505] border-r border-slate-800
             z-10
         ">
            <TechnicalPanel /> 
@@ -35,7 +35,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         {/* COLUMNA DERECHA: Oracle Chat */}
         <aside className="
             hidden md:flex flex-col
-            w-[350px] xl:w-[400px] shrink-0
+            w-[380px] shrink-0
             bg-[#050505] border-l border-slate-800
             z-30 shadow-[0_0_15px_rgba(0,0,0,0.5)]
           "

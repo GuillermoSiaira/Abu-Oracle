@@ -44,18 +44,51 @@ export async function POST(req: Request) {
       }`,
       `Firdaria actual: mayor ${firdaria_major || '—'} · menor ${firdaria_minor || '—'}`,
       `Idioma de respuesta: ${lang || 'es'}`,
+      ``,
+      `Al final de tu interpretación, añade exactamente este bloque sin modificarlo:`,
+      ``,
+      `[SUGERENCIAS]`,
+      `{"suggestions": [`,
+      `  {"type": "click_planet"|"click_technique"|"click_domain", "target": string, "label": string},`,
+      `  ...`,
+      `]}`,
+      ``,
+      `Elige los 3 elementos más significativos de esta carta para sugerir.`,
+      `Priorizar: planetas angulares, planetas en domicilio/exaltación, señor del año, señor del ASC.`,
+      `Para click_domain usar: h1, h2, h4, h5, h6, h7, h9, h10.`,
+      `Para click_technique usar: sect, profection, firdaria, lot_fortuna, lot_spirit.`,
+      `Para click_planet usar el nombre del planeta en inglés (Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn).`,
     ].join('\n');
 
     const client = new Anthropic({ apiKey });
     const response = await client.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 512,
+      max_tokens: 768,
       system: LILLY_SYSTEM_PROMPT,
       messages: [{ role: 'user', content: contextBlock }],
     });
 
-    const text = response.content[0].type === 'text' ? response.content[0].text : '';
-    return NextResponse.json({ response: text });
+    const rawText = response.content[0].type === 'text' ? response.content[0].text : '';
+
+    // Parse [SUGERENCIAS] block from the end of the response
+    let text = rawText;
+    let suggestions: Array<{ type: string; target: string; label: string }> = [];
+    const sugMarker = '[SUGERENCIAS]';
+    const sugIdx = rawText.indexOf(sugMarker);
+    if (sugIdx !== -1) {
+      text = rawText.slice(0, sugIdx).trim();
+      const jsonStr = rawText.slice(sugIdx + sugMarker.length).trim();
+      try {
+        const parsed = JSON.parse(jsonStr);
+        if (Array.isArray(parsed.suggestions)) {
+          suggestions = parsed.suggestions;
+        }
+      } catch {
+        // If JSON is malformed, suggestions stay empty — not fatal
+      }
+    }
+
+    return NextResponse.json({ response: text, suggestions });
   } catch (err: any) {
     console.error('[screen-open]', err);
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });

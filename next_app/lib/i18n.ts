@@ -36,6 +36,12 @@ export const UI: Record<Lang, {
   tpSectMaster: string;
   tpDiurnal: string;
   tpNocturnal: string;
+  // TechnicalPanel guide sections
+  tpReadingNow: string;
+  tpNoSelection: string;
+  tpYearLord: string;
+  tpActivatedHouse: string;
+  tpExplore: string;
   // Persian Techniques tab
   persianSect: string;
   persianSectDiurnal: string;
@@ -179,6 +185,11 @@ export const UI: Record<Lang, {
     tpSectMaster: "MAESTRO DE SECTA",
     tpDiurnal: "DIURNO",
     tpNocturnal: "NOCTURNO",
+    tpReadingNow: "LEYENDO AHORA",
+    tpNoSelection: "Sin selección",
+    tpYearLord: "SEÑOR DEL AÑO",
+    tpActivatedHouse: "Casa activada",
+    tpExplore: "EXPLORAR",
     persianSect: "Secta",
     persianSectDiurnal: "Carta diurna",
     persianSectNocturnal: "Carta nocturna",
@@ -274,6 +285,11 @@ export const UI: Record<Lang, {
     tpSectMaster: "SECT MASTER",
     tpDiurnal: "DIURNAL",
     tpNocturnal: "NOCTURNAL",
+    tpReadingNow: "READING NOW",
+    tpNoSelection: "No selection",
+    tpYearLord: "YEAR LORD",
+    tpActivatedHouse: "Activated house",
+    tpExplore: "EXPLORE",
     persianSect: "Sect",
     persianSectDiurnal: "Diurnal chart",
     persianSectNocturnal: "Nocturnal chart",
@@ -369,6 +385,11 @@ export const UI: Record<Lang, {
     tpSectMaster: "MESTRE DE SEITA",
     tpDiurnal: "DIURNO",
     tpNocturnal: "NOTURNO",
+    tpReadingNow: "LENDO AGORA",
+    tpNoSelection: "Sem seleção",
+    tpYearLord: "SENHOR DO ANO",
+    tpActivatedHouse: "Casa ativada",
+    tpExplore: "EXPLORAR",
     persianSect: "Seita",
     persianSectDiurnal: "Carta diurna",
     persianSectNocturnal: "Carta noturna",
@@ -464,6 +485,11 @@ export const UI: Record<Lang, {
     tpSectMaster: "MAÎTRE DE SECTE",
     tpDiurnal: "DIURNE",
     tpNocturnal: "NOCTURNE",
+    tpReadingNow: "EN LECTURE",
+    tpNoSelection: "Aucune sélection",
+    tpYearLord: "SEIGNEUR DE L'ANNÉE",
+    tpActivatedHouse: "Maison activée",
+    tpExplore: "EXPLORER",
     persianSect: "Secte",
     persianSectDiurnal: "Thème diurne",
     persianSectNocturnal: "Thème nocturne",

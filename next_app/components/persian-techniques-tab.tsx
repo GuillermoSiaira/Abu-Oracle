@@ -296,7 +296,25 @@ export function PersianTechniquesTab() {
       )}
 
       {/* ---------- LUNAR TRANSITS ---------- */}
-      <section className="p-4 border border-slate-800 rounded-lg bg-[#080808]">
+      <button
+        onClick={() => {
+          if (!lunar) return;
+          setPendingLillyEvent({
+            type: "click_technique",
+            payload: {
+              technique: "lunar_transit",
+              data: {
+                moon_position: lunar.moon_position,
+                moon_sign: lunar.moon_position != null ? getSignFromLongitude(lunar.moon_position) : null,
+                aspects: lunarAspects,
+              },
+              subject_name: subjectName,
+              lang,
+            },
+          });
+        }}
+        className={CLICKABLE_CLASS}
+      >
         <h2 className="text-xs font-mono uppercase tracking-widest text-slate-500 mb-3">{t.persianLunarTransits}</h2>
         {!lunar ? (
           <p className="text-slate-500 text-sm">{t.persianNoLunar}</p>
@@ -318,7 +336,7 @@ export function PersianTechniquesTab() {
             )}
           </div>
         )}
-      </section>
+      </button>
 
       {/* ---------- LIFE CYCLES ---------- */}
       <section className="p-4 border border-slate-800 rounded-lg bg-[#080808]">
@@ -326,9 +344,27 @@ export function PersianTechniquesTab() {
         {cycles.length === 0 ? (
           <p className="text-slate-500 text-sm">{t.persianNoEvents}</p>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             {cycles.slice(0, 12).map((ev: any, idx: number) => (
-              <div key={idx} className="flex justify-between items-start text-xs">
+              <button
+                key={idx}
+                onClick={() => setPendingLillyEvent({
+                  type: "click_technique",
+                  payload: {
+                    technique: "planetary_cycle",
+                    data: {
+                      cycle: ev.cycle,
+                      planet: ev.planet,
+                      aspect_type: ev.cycle,
+                      angle: ev.angle,
+                      exact_date: ev.approx,
+                    },
+                    subject_name: subjectName,
+                    lang,
+                  },
+                })}
+                className="w-full flex justify-between items-start text-xs p-1.5 rounded hover:border-amber-500/30 hover:bg-amber-500/5 border border-transparent cursor-pointer transition-colors"
+              >
                 <div>
                   <span className="text-slate-300 font-medium">{ev.cycle}</span>
                   <span className="text-slate-500 ml-2">{ev.planet} · {ev.angle}°</span>
@@ -336,7 +372,7 @@ export function PersianTechniquesTab() {
                 <span className="text-slate-600 font-mono shrink-0 ml-3">
                   {new Date(ev.approx).toLocaleDateString("es-ES", { dateStyle: "medium" })}
                 </span>
-              </div>
+              </button>
             ))}
           </div>
         )}

@@ -50,6 +50,8 @@
     userName: string
     isDemo: boolean
     pendingLillyEvent: Record<string, any> | null
+    lastLillyEvent: { type: string; label: string } | null
+    lillySuggestions: Array<{ type: string; target: string; label: string }> | null
 
     onboardingStage: OnboardingStage
     onboardingData: OnboardingData
@@ -66,6 +68,8 @@
     setUserName: (name: string) => void
     setIsDemo: (value: boolean) => void
     setPendingLillyEvent: (event: Record<string, any> | null) => void
+    setLastLillyEvent: (evt: { type: string; label: string } | null) => void
+    setLillySuggestions: (s: Array<{ type: string; target: string; label: string }> | null) => void
     clearAll: () => void
 
     setOnboardingStage: (stage: OnboardingStage) => void
@@ -173,6 +177,8 @@
       userName: loadUserName(),
       isDemo: false,
       pendingLillyEvent: null,
+      lastLillyEvent: null,
+      lillySuggestions: null,
 
       // ---- Estado de onboarding ----
       onboardingStage: "idle",
@@ -229,6 +235,10 @@
       setIsDemo: (value) => set({ isDemo: value }),
 
       setPendingLillyEvent: (event) => set({ pendingLillyEvent: event }),
+
+      setLastLillyEvent: (evt) => set({ lastLillyEvent: evt }),
+
+      setLillySuggestions: (s) => set({ lillySuggestions: s }),
 
       // ---------------------------------------------------
       // ONBOARDING MUTATORS

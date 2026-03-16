@@ -377,6 +377,42 @@ pero el endpoint `/analyze` — fuente de `abuData` — no los incluía. Tampoco
 
 ---
 
+### Fase 8.10 — Sesión CC: Layout + Panel Guía + Reactividad Completa ✅ `[COMPLETA 2026-03-16]`
+
+**Tarea CC.1** ✅ — Proporciones de layout
+- `DashboardLayout.tsx`: columna izquierda `280px → 180px`, columna derecha `350/400px → 380px` (fijo, sin breakpoint xl)
+
+**Tarea CC.2** ✅ — Panel izquierdo: de datos estáticos a guía activa
+- `TechnicalPanel.tsx` reescrito: cuando hay carta cargada muestra 3 secciones:
+  - **LEYENDO AHORA** — refleja `lastLillyEvent.label` del store (actualizado en cada evento)
+  - **SEÑOR DEL AÑO** — planeta de la profección + dignidad + casa activada (determinista, sin LLM)
+  - **EXPLORAR** — 3 botones de `lillySuggestions` (del store) que disparan el evento correspondiente
+- `screen-open/route.ts` modificado: incluye instrucción de sugerencias en el context block, parsea bloque `[SUGERENCIAS]` del raw text, devuelve `{ response, suggestions }`. `max_tokens` sube a 768
+- `OracleChat.tsx`: al recibir respuesta de screen_open llama `setLillySuggestions(data.suggestions)`; al procesar cualquier evento deriva un label y llama `setLastLillyEvent({ type, label })`
+- `store.ts`: campos nuevos `lastLillyEvent: { type, label } | null` + `lillySuggestions: Array<{type, target, label}> | null` (no persisten)
+- `i18n.ts`: 5 keys nuevas en 4 idiomas — `tpReadingNow`, `tpNoSelection`, `tpYearLord`, `tpActivatedHouse`, `tpExplore`
+
+**Tarea CC.3** ✅ — Técnicas Persas: tarjetas faltantes reactivas
+- `persian-techniques-tab.tsx`: Tránsitos Lunares convertido a `<button>` con `click_technique / lunar_transit`; Ciclos Planetarios: cada fila es un `<button>` con `click_technique / planetary_cycle`
+- `technique/route.ts`: casos `lunar_transit` (posición Luna + aspectos activos) y `planetary_cycle` (ciclo + planeta + ángulo + fecha) con `max_tokens: 256` (respuestas cortas 2-3 líneas)
+
+**Tarea CC.4** ✅ — Forecast: vectorización + cap de rango (Fase 10)
+- `forecast.py`: nueva función `get_planet_positions_batch()` — vectoriza skyfield: en lugar de `N_dates × N_planets` llamadas, hace `N_planets` llamadas con array de fechas (1 por planeta). `forecast_timeseries` usa batch. `_ts_cache` ya estaba.
+- Cap `_MAX_FORECAST_DAYS = 90` — requests con rango > 90 días se truncan automáticamente
+
+**Archivos modificados en Fase 8.10:**
+- `next_app/components/DashboardLayout.tsx` — proporciones columnas
+- `next_app/components/TechnicalPanel.tsx` — reescrito: panel guía activa
+- `next_app/lib/store.ts` — lastLillyEvent + lillySuggestions
+- `next_app/lib/i18n.ts` — 5 keys tpReadingNow/tpNoSelection/tpYearLord/tpActivatedHouse/tpExplore
+- `next_app/app/api/lilly/screen-open/route.ts` — instrucción sugerencias + parsing
+- `next_app/components/OracleChat.tsx` — setLillySuggestions + setLastLillyEvent
+- `next_app/components/persian-techniques-tab.tsx` — lunar_transit + planetary_cycle click
+- `next_app/app/api/lilly/technique/route.ts` — casos lunar_transit + planetary_cycle
+- `abu_engine/core/forecast.py` — get_planet_positions_batch() + _MAX_FORECAST_DAYS cap
+
+---
+
 ### Fase 9 — Lilly Event System `[PARCIAL]`
 
 click_planet implementado en Fase 8.6 como route independiente.
@@ -396,10 +432,9 @@ El contrato LillyEvent, AbuContext schema y las plantillas del Context Builder e
 
 ---
 
-### Fase 10 — Optimización de tránsitos `[PENDIENTE]`
+### Fase 10 — Optimización de tránsitos ✅ `[COMPLETA 2026-03-16]`
 
-El endpoint `/api/astro/forecast` frecuentemente supera el timeout de 15s del frontend.
-Investigar causa raíz en el backend y optimizar el cálculo, no solo el timeout del FE.
+Vectorización aplicada en Fase 8.10 (CC.4). Ver detalle arriba.
 
 ---
 
@@ -440,10 +475,10 @@ Investigar causa raíz en el backend y optimizar el cálculo, no solo el timeout
   - `next_app/app/relocation-map/` — ELIMINADA
 - Componentes UI clave:
   - `next_app/components/Navigation.tsx` — Top bar global con selector de idioma conectado a `setLang` del store (visible en todas las páginas)
-  - `next_app/components/TechnicalPanel.tsx` — Dignidades/Controladores/Cómputo solo cuando `!!abuData && hasChart`
-  - `next_app/components/OracleChat.tsx` — Cuando `abuData && birthData`: llama `/api/lilly/screen-open` → typewriter. Escucha `pendingLillyEvent` del store → llama la route correspondiente (`/api/lilly/planet`, etc.) e inyecta respuesta. Sin datos: bloque `SYSTEM_READY / AWAITING INPUT`
+  - `next_app/components/TechnicalPanel.tsx` — Panel guía activa (desde Fase 8.10): LEYENDO AHORA (`lastLillyEvent`), SEÑOR DEL AÑO (profección), EXPLORAR (sugerencias de Lilly). Sección `tpSysArch` colapsable + status dots siempre visibles
+  - `next_app/components/OracleChat.tsx` — Cuando `abuData && birthData`: llama `/api/lilly/screen-open` → typewriter + guarda suggestions en store. Escucha `pendingLillyEvent` → llama route, inyecta respuesta, actualiza `lastLillyEvent`. Sin datos: bloque `SYSTEM_READY / AWAITING INPUT`
   - `next_app/components/natal-chart-tab.tsx` — Rueda zodiacal (sin tránsitos) + tarjetas planetarias clickeables. Click → `setPendingLillyEvent` → Lilly responde
-  - `next_app/components/persian-techniques-tab.tsx` — Sect + Profección (con señor del año) + Firdaria (con fallback histórico) + Ciclos
+  - `next_app/components/persian-techniques-tab.tsx` — Sect + Profección + Firdaria + Partes Arábicas + **Tránsitos Lunares** (clickeable, `lunar_transit`) + **Ciclos Planetarios** (cada fila clickeable, `planetary_cycle`)
   - `next_app/components/HFRelocationMap.tsx` — Mapa MapLibre GL heatmap
 - API routes internas (Next.js):
   - `next_app/app/api/chat/route.ts` — proxy a lilly_swarm para chat conversacional
@@ -460,9 +495,11 @@ Investigar causa raíz en el backend y optimizar el cálculo, no solo el timeout
 ## Cómo trabajar con este repo
 
 Cuando Claude Code retome una sesión, leer este archivo primero y preguntar por la fase activa.
-La próxima tarea es siempre la primera sin tilde `✅` en el plan de desarrollo — actualmente **Fase 9 (Lilly Event System completo)** o **Fase 10 (optimización tránsitos)**.
+La próxima tarea es siempre la primera sin tilde `✅` en el plan de desarrollo — actualmente **Fase 9 (Lilly Event System completo)**.
 
-**Estado Lilly al 2026-03-16 (Fase 8.9)**: screen_open ✅, click_planet ✅, click_technique (sect/profección/firdaria/lot) ✅, domain_select ✅, city_select ✅. Todas las routes usan `claude-sonnet-4-6` via `@anthropic-ai/sdk`. System prompt v1.0 **pendiente** — crear `lib/lilly-prompt.ts` e importar en las 5 routes. Pendiente también: click_house, click_transit, Context Builder centralizado (Fase 9).
+**Estado Lilly al 2026-03-16 (Fase 8.10)**: screen_open ✅, click_planet ✅, click_technique (sect/profección/firdaria/lot/**lunar_transit**/**planetary_cycle**) ✅, domain_select ✅, city_select ✅. Todas las routes usan `claude-sonnet-4-6` via `@anthropic-ai/sdk`. System prompt v1.0 en `lib/lilly-prompt.ts` ✅. Pendiente: click_house, click_transit, Context Builder centralizado (Fase 9).
+
+**Estado panel guía al 2026-03-16**: TechnicalPanel reescrito — LEYENDO AHORA + SEÑOR DEL AÑO + EXPLORAR operativos. `screen-open` devuelve `{ response, suggestions }`. `store.ts` mantiene `lastLillyEvent` y `lillySuggestions` en memoria (no persisten).
 
 Para tareas que toquen la integración con Lilly (Fase 9 en adelante), leer `ARCHITECTURE.md` antes de escribir código.
 
