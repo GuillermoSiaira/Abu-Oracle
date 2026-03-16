@@ -10,7 +10,14 @@ let citiesCache: Array<{ lat: number; lon: number; city: string; country: string
 function loadCities() {
   if (citiesCache) return citiesCache;
 
-  const filePath = path.join(process.cwd(), 'data', 'external', 'worldcities.csv');
+  // Docker: process.cwd()=/app, volume en /app/data/external/
+  // Dev:    process.cwd()=next_app/, CSV en ../data/external/
+  const candidates = [
+    path.join(process.cwd(), 'data', 'external', 'worldcities.csv'),
+    path.join(process.cwd(), '..', 'data', 'external', 'worldcities.csv'),
+  ];
+  const filePath = candidates.find(p => fs.existsSync(p));
+  if (!filePath) throw new Error(`worldcities.csv not found. Tried: ${candidates.join(', ')}`);
   const csv = fs.readFileSync(filePath, 'utf-8');
   const lines = csv.split('\n');
 
