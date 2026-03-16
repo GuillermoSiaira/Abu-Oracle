@@ -493,6 +493,7 @@ Vectorización aplicada en Fase 8.10 (CC.4). Ver detalle arriba.
   - `next_app/app/api/lilly/technique/route.ts` — click_technique: sect/profección/firdaria/lot → Anthropic → interpretación
   - `next_app/app/api/lilly/domain/route.ts` — domain_select: dominio HF → Anthropic → interpretación
   - `next_app/app/api/lilly/city/route.ts` — city_select: ciudad relocalización → Anthropic → interpretación (max_tokens=768)
+- `next_app/app/api/cities/nearest/route.ts` — GET `?lat&lon` → ciudad más cercana por haversine sobre `data/external/worldcities.csv` (144k filas, cache en memoria). Path con fallback dev/Docker via `fs.existsSync`.
 - GeoJSON públicos: `next_app/public/geojson/` — formato legacy `subject_*_hf.geojson` + dominios `*_domains.geojson`
 - Rankings públicos: `next_app/public/rankings/`
 
@@ -509,7 +510,30 @@ La próxima tarea es siempre la primera sin tilde `✅` en el plan de desarrollo
 
 ---
 
-### Fixes OracleChat — sesión 2026-03-16 (post Fase 8.10)
+### Features y fixes — sesión post Fase 8.10
+
+#### ZodiacWheel — tooltip hover + click_planet desde la rueda (`4d2cc3f`)
+- `PlanetPosition` exportado con `deg`, `dignity`, `retrograde`
+- `onPlanetClick?: (planet: PlanetPosition) => void` en props
+- `hoveredPlanet` state local — tooltip `foreignObject` con nombre, signo, grado, casa, dignidad, retrógrado
+- Borde amber en planeta hovered (`stroke #fbbf24`, `strokeWidth 4`)
+- Tránsitos: solo hover informativo, sin disparo Lilly
+- `natal-chart-tab`: pasa `dignity` + `retrograde` en `natalPlanets`, conecta `onPlanetClick` a `handlePlanetClick` existente
+
+#### DashboardLayout — Oracle panel resizable (`5098091`, `eb4e704`)
+- `oracleWidth` en state (300–700px, default 440px), persiste en `localStorage('oracleWidth')`
+- Divisor arrastrable `w-1` entre `<main>` y `<aside>` Oracle — `cursor-col-resize`, hover amber
+- `widthRef` + handlers en `useEffect(deps=[])` — evita closure stale en `mouseup`
+
+#### Click en mapa HF → reverse geocoding → city_select (`e5b0f16`, `119e713`, `45aac70`)
+- `GET /api/cities/nearest?lat&lon` — haversine sobre 144k ciudades, cache en memoria al primer request
+- CSV path: `fs.existsSync` prueba `process.cwd()/data/external/` (Docker) y `../data/external/` (dev)
+- `docker-compose.yml`: volume `./data/external:/app/data/external:ro`
+- `HFRelocationMap`: prop `onMapClick`, click handler en `useEffect` separado con `map.off` en cleanup
+- `relocation-tab`: `handleMapClick` con `useCallback` + `isProcessingClick` ref (cooldown 1s)
+- Conectado en mapa natal y mapa SR
+
+#### Fixes OracleChat — sesión 2026-03-16 (post Fase 8.10)
 
 Tres bugs corregidos en `next_app/components/OracleChat.tsx`. Commits: `854b83e`, `24b6929`, `07b201b`.
 
