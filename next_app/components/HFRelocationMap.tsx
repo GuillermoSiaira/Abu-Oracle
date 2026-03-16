@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import maplibregl, { Map, Marker } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 
@@ -58,6 +58,8 @@ const DOMAIN_LABELS: Record<Domain, string> = {
   h10:    "Carrera",
 };
 
+type MapClickData = { lat: number; lon: number; hfScore: number; deltaScore: number };
+
 type HFRelocationMapProps = {
   geojsonUrl: string;
   rankingUrl?: string;
@@ -70,6 +72,8 @@ type HFRelocationMapProps = {
   legendHigh?: string;
   /** Active house domain — reads hf_{domain}/delta_{domain} from multi-domain GeoJSON */
   domain?: Domain;
+  /** Called when user clicks a point on the heatmap */
+  onMapClick?: (data: MapClickData) => void;
 };
 
 type DomainScale = { p5: number; p95: number };
@@ -125,7 +129,10 @@ function pickTopCities(entries: RankingEntry[], topK = 5): CityInfo[] {
   return out;
 }
 
-export function HFRelocationMap({ geojsonUrl, rankingUrl, natalHf, initialZoom = 2, className, mapHeight = "70vh", showLegend = true, legendLow = "Bajo", legendHigh = "Alto", domain }: HFRelocationMapProps) {
+export function HFRelocationMap({ geojsonUrl, rankingUrl, natalHf, initialZoom = 2, className, mapHeight = "70vh", showLegend = true, legendLow = "Bajo", legendHigh = "Alto", domain, onMapClick }: HFRelocationMapProps) {
+  // Ref para evitar closure stale en el useEffect del mapa
+  const onMapClickRef = useRef(onMapClick);
+  useEffect(() => { onMapClickRef.current = onMapClick; }, [onMapClick]);
   const mapRef = useRef<HTMLDivElement | null>(null);
   const mapInstance = useRef<Map | null>(null);
   const markersRef = useRef<Marker[]>([]);
@@ -428,6 +435,16 @@ export function HFRelocationMap({ geojsonUrl, rankingUrl, natalHf, initialZoom =
             ${Number(coords[1]).toFixed(1)}°, ${Number(coords[0]).toFixed(1)}°
           </div>`)
           .addTo(map);
+      });
+
+      map.on("click", "hf-hover", (e) => {
+        if (!e.features || e.features.length === 0) return;
+        const props = e.features[0].properties;
+        if (!props) return;
+        const coords = (e.features[0].geometry as GeoJSON.Point).coordinates;
+        const hfScore = (props[hfKey] ?? props.hf_total ?? 0) as number;
+        const deltaScore = (props[deltaKey] ?? props.delta_hf ?? 0) as number;
+        onMapClickRef.current?.({ lat: coords[1], lon: coords[0], hfScore, deltaScore });
       });
     });
 

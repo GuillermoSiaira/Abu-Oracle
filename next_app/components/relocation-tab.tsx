@@ -126,6 +126,33 @@ export function RelocationTab() {
   const [domainFieldLoading, setDomainFieldLoading] = useState(false);
   const domainInitRef = useRef(false);
 
+  // Map click → nearest city → city_select a Lilly
+  async function handleMapClick({ lat, lon, hfScore, deltaScore }: { lat: number; lon: number; hfScore: number; deltaScore: number }) {
+    try {
+      const res = await fetch(`/api/cities/nearest?lat=${lat}&lon=${lon}`);
+      if (!res.ok) return;
+      const nearest = await res.json();
+      if (!nearest.city) return;
+      setPendingLillyEvent({
+        type: 'city_select',
+        payload: {
+          city_name: nearest.city,
+          country: nearest.country,
+          lat,
+          lon,
+          distance_km: nearest.distance_km,
+          hf_score: hfScore,
+          delta_natal: deltaScore,
+          domain: hfDomain,
+          subject_name: subjectName,
+          lang,
+        },
+      });
+    } catch (e) {
+      console.error('[MapClick]', e);
+    }
+  }
+
   // Solar Return relocation field
   const [srGeojsonUrl, setSrGeojsonUrl] = useState<string | null>(null);
   const [srNatalHf, setSrNatalHf] = useState<number | null>(null);
@@ -466,6 +493,7 @@ export function RelocationTab() {
                 mapHeight="55vh"
                 legendLow={t.legendLow}
                 legendHigh={t.legendHigh}
+                onMapClick={handleMapClick}
               />
             </div>
           )}
@@ -554,6 +582,7 @@ export function RelocationTab() {
                 mapHeight="55vh"
                 legendLow={t.legendLow}
                 legendHigh={t.legendHigh}
+                onMapClick={handleMapClick}
               />
             )}
           </div>
