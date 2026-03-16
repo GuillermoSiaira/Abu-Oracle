@@ -30,6 +30,7 @@ Notas importantes:
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useAppStore } from "@/lib/store";
 import { Send, Terminal } from "lucide-react";
 import { UI } from '@/lib/i18n';
@@ -130,6 +131,8 @@ export default function OracleChat() {
   // @ts-ignore
   const { abuData, birthData, lang, pendingLillyEvent, setPendingLillyEvent, setLastLillyEvent, setLillySuggestions } = useAppStore();
   const t = UI[lang as keyof typeof UI] ?? UI.es;
+  const pathname = usePathname();
+  const isChartPage = pathname === '/chart';
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -152,7 +155,7 @@ export default function OracleChat() {
     prevAbuRef.current = abuData;
 
     const isComplete = (d: any) => Array.isArray(d?.chart?.planets) && d.chart.planets.length > 0;
-    if (!initialized.current && isComplete(abuData) && birthData) {
+    if (!initialized.current && isChartPage && isComplete(abuData) && birthData) {
       initialized.current = true;
 
       // --- Build minimal context from abuData ---
@@ -245,7 +248,7 @@ export default function OracleChat() {
         })
         .finally(() => setIsLoading(false));
     }
-  }, [abuData, birthData, lang]);
+  }, [abuData, birthData, lang, isChartPage]);
 
   /* -----------------------------------------------------
      LILLY EVENT — REACTIVE (click_planet, etc.)
