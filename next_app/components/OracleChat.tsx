@@ -123,6 +123,8 @@ export default function OracleChat() {
 
   // Evita doble inicialización en React.StrictMode
   const initialized = useRef(false);
+  // Detecta cambio de sujeto para resetear el chat
+  const prevAbuRef = useRef<any>(undefined);
 
   // Store global (NO asumir tipos internos)
   // @ts-ignore
@@ -140,6 +142,15 @@ export default function OracleChat() {
      and injects the LLM response with typewriter effect.
   ----------------------------------------------------- */
   useEffect(() => {
+    // Reset chat when subject changes (new abuData object)
+    if (prevAbuRef.current !== undefined && prevAbuRef.current !== abuData) {
+      initialized.current = false;
+      setMessages([]);
+      setLastLillyEvent(null);
+      setLillySuggestions(null);
+    }
+    prevAbuRef.current = abuData;
+
     if (!initialized.current && abuData && birthData) {
       initialized.current = true;
 
