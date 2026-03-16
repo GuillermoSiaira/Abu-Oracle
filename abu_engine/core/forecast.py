@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 from core.coords import get_planet_positions
 from core.aspects import aspect_between
@@ -18,8 +18,61 @@ def _get_timescale():
         _ts_cache = load.timescale()
     return _ts_cache
 
+
+def get_planet_positions_batch(dates_utc: list, lat: float, lon: float) -> List[Dict[str, float]]:
+    """
+    Vectorized: compute ecliptic longitudes for all dates in a single skyfield call per planet.
+    Returns list of dicts (one per date), each mapping planet name → longitude in degrees.
+    Reduces N_dates × N_planets skyfield calls to N_planets calls.
+    """
+    from skyfield.api import Topos
+    planets_loader = EphemerisSingleton()
+    ts = _get_timescale()
+
+    t_array = ts.from_datetimes(dates_utc)
+    earth = planets_loader['earth']
+    observer = earth + Topos(latitude_degrees=lat, longitude_degrees=lon)
+
+    planet_names = [
+        'sun', 'moon', 'mercury barycenter', 'venus barycenter',
+        'mars barycenter', 'jupiter barycenter', 'saturn barycenter',
+    ]
+
+    # Initialize result list
+    results: List[Dict[str, float]] = [{} for _ in dates_utc]
+
+    for name in planet_names:
+        pos = observer.at(t_array).observe(planets_loader[name])
+        _, lon_vals, _ = pos.ecliptic_latlon()
+        key = name.split()[0].capitalize() if ' ' in name else name.capitalize()
+        for i, lon_val in enumerate(lon_vals.degrees):
+            results[i][key] = lon_val
+
+    return results
+
+
+def get_planet_positions(date_utc, lat, lon):
+    """
+    Single-date wrapper (used by non-forecast callers).
+    Uses cached timescale to avoid disk reads.
+    """
+    from skyfield.api import Topos
+    planets_loader = EphemerisSingleton()
+    ts = _get_timescale()
+    t = ts.from_datetime(date_utc)
+    earth = planets_loader['earth']
+    observer = earth + Topos(latitude_degrees=lat, longitude_degrees=lon)
+    planet_names = ['sun', 'moon', 'mercury barycenter', 'venus barycenter', 'mars barycenter', 'jupiter barycenter', 'saturn barycenter']
+    positions = {}
+    for name in planet_names:
+        pos = observer.at(t).observe(planets_loader[name])
+        _, lon_val, _ = pos.ecliptic_latlon()
+        key = name.split()[0].capitalize() if ' ' in name else name.capitalize()
+        positions[key] = lon_val.degrees
+    return positions
+
+
 def forecast_for_locations(date_utc, lat, lon):
-    # ...existing code...
     natal_positions = {"sun": 103.2, "moon": 45.8}
     current_positions = get_planet_positions(date_utc, lat, lon)
     aspects = []
@@ -32,45 +85,43 @@ def forecast_for_locations(date_utc, lat, lon):
     return {"score": score, "aspects": aspects}
 
 
-# ...existing code...
-def get_planet_positions(date_utc, lat, lon):
-    """
-    Devuelve las posiciones eclípticas de los planetas para una fecha y ubicación.
-    """
-    from skyfield.api import Topos
-    # Use shared ephemeris loader that ensures local file and downloads if missing
-    planets = EphemerisSingleton()
-    ts = _get_timescale()  # cached — avoids repeated disk reads
-    t = ts.from_datetime(date_utc)
-    earth = planets['earth']
-    observer = earth + Topos(latitude_degrees=lat, longitude_degrees=lon)
-    planet_names = ['sun', 'moon', 'mercury barycenter', 'venus barycenter', 'mars barycenter', 'jupiter barycenter', 'saturn barycenter']
-    positions = {}
-    for name in planet_names:
-        pos = observer.at(t).observe(planets[name])
-        _, lon_val, _ = pos.ecliptic_latlon()
-        positions[name.split()[0] if ' ' in name else name.capitalize()] = lon_val.degrees
-    return positions
-# ...existing code...
+# Max date range to prevent timeout — requests larger than this are capped.
+_MAX_FORECAST_DAYS = 90
+
 
 def forecast_timeseries(birth_dt, lat, lon, start_dt, end_dt, step='1d', horizon='year'):
     """
-    Calcula F(t) cada step reutilizando el scoring actual.
+    Calcula F(t) cada step usando posiciones vectorizadas (batch skyfield).
+    Rango máximo: _MAX_FORECAST_DAYS días para evitar timeout.
     """
     if step.endswith('d'):
         step_days = int(step[:-1])
         delta = timedelta(days=step_days)
     else:
         delta = timedelta(days=1)
+
+    # Cap range to avoid timeout
+    max_end = start_dt + timedelta(days=_MAX_FORECAST_DAYS)
+    if end_dt > max_end:
+        end_dt = max_end
+
     times = []
     t = start_dt
     while t <= end_dt:
         times.append(t)
         t += delta
-    natal_positions = {"sun": 103.2, "moon": 45.8}  # Simulación
+
+    if not times:
+        return {"timeseries": [], "peaks": []}
+
+    natal_positions = {"sun": 103.2, "moon": 45.8}  # Simulación — sustituir con posiciones reales del birth_dt
+
+    # Vectorized batch computation — one skyfield call per planet across all dates
+    all_positions = get_planet_positions_batch(times, lat, lon)
+
     series = []
-    for t in times:
-        current_positions = get_planet_positions(t, lat, lon)
+    for i, t in enumerate(times):
+        current_positions = all_positions[i]
         aspects = []
         for natal_name, natal_lon in natal_positions.items():
             for planet, lon_val in current_positions.items():
@@ -79,10 +130,13 @@ def forecast_timeseries(birth_dt, lat, lon, start_dt, end_dt, step='1d', horizon
                     aspects.append({"planet": planet, "type": asp, "to": natal_name, "orb_deg": diff})
         score = compute_score(aspects)
         series.append({"t": t.strftime("%Y-%m-%d"), "F": round(score, 4)})
+
     peaks = detect_peaks(series)
     return {"timeseries": series, "peaks": peaks}
 
+
 __all__ = ["forecast_timeseries", "detect_peaks"]
+
 
 def detect_peaks(series: List[Dict[str, Any]], window: int = 3, top_k: int = 10) -> List[Dict[str, Any]]:
     """
@@ -98,7 +152,5 @@ def detect_peaks(series: List[Dict[str, Any]], window: int = 3, top_k: int = 10)
             peaks.append({"t": series[i]["t"], "F": val, "kind": "peak"})
         if all(val < v for v in left + right):
             peaks.append({"t": series[i]["t"], "F": val, "kind": "valley"})
-    # Top K por valor absoluto
     peaks = sorted(peaks, key=lambda x: abs(x["F"]), reverse=True)[:top_k]
     return peaks
-

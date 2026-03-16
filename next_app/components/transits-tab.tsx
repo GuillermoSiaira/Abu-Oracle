@@ -56,11 +56,15 @@ export function TransitsTab() {
   const abuData = useAppStore((s) => s.abuData);
   const transitDate = useAppStore((s) => s.transitDate);
   const setTransitDate = useAppStore((s) => s.setTransitDate);
+  const lang = useAppStore((s) => s.lang);
+  const setPendingLillyEvent = useAppStore((s) => s.setPendingLillyEvent);
+  const subjectName = (birthData as any)?.userName || (abuData as any)?.person?.name || 'Anónimo';
   const [data, setData] = useState<TransitAspect[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const effectiveTransitDate = transitDate ?? new Date().toISOString();
+  const [defaultDate] = useState(() => new Date().toISOString());
+  const effectiveTransitDate = transitDate ?? defaultDate;
 
   const fetchTransits = () => {
     if (!birthData?.birthDate || !birthData.lat || !birthData.lon) return;
@@ -215,7 +219,37 @@ export function TransitsTab() {
             className="rounded-xl border border-slate-700/50 bg-slate-800/40 overflow-hidden"
           >
             {/* Planet header */}
-            <div className="flex items-center gap-3 px-4 py-3 bg-slate-700/30 border-b border-slate-700/40">
+            <div
+              className="flex items-center gap-3 px-4 py-3 bg-slate-700/30 border-b border-slate-700/40 cursor-pointer hover:border-amber-400/40 hover:bg-slate-700/50 transition-colors"
+              onClick={() => {
+                console.log('[click_transit] payload:', {
+                  transit_planet: group.planet,
+                  transit_sign: group.sign,
+                  transit_deg: group.deg,
+                  aspects: group.aspects,
+                  transit_date: effectiveTransitDate,
+                  subject_name: subjectName,
+                  lang,
+                });
+                setPendingLillyEvent({
+                  type: 'click_transit',
+                  payload: {
+                    transit_planet: group.planet,
+                    transit_sign: group.sign,
+                    transit_deg: group.deg,
+                    aspects: group.aspects.map(a => ({
+                      natal_planet: a.natal_planet,
+                      aspect: a.aspect,
+                      orb: a.orb,
+                      applying: a.applying,
+                    })),
+                    transit_date: effectiveTransitDate,
+                    subject_name: subjectName,
+                    lang,
+                  },
+                });
+              }}
+            >
               <span className="text-lg w-6 text-center text-amber-400">{sym}</span>
               <div>
                 <span className="font-semibold text-slate-200">{group.planet}</span>

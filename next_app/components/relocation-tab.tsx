@@ -61,6 +61,38 @@ const DOMAIN_HOUSE_NUM: Record<Domain, number> = {
   global: 0, h1: 1, h2: 2, h4: 4, h5: 5, h6: 6, h7: 7, h9: 9, h10: 10,
 };
 
+const LIFE_DOMAIN_HOUSE: Record<string, number> = {
+  career: 10, love: 7, health: 1, family: 4,
+  resources: 2, creativity: 5, expansion: 9,
+};
+const LIFE_DOMAIN_LABEL: Record<string, string> = {
+  career: "Carrera", love: "Amor", health: "Salud", family: "Familia",
+  resources: "Recursos", creativity: "Creatividad", expansion: "Expansión",
+};
+
+function deriveSignificators(
+  houseNum: number,
+  planets: Array<{ name: string; house: number; sign?: string }>,
+  houseCusps: Array<{ house: number; start: number }>
+): string[] {
+  const SIGN_LORDS: Record<string, string> = {
+    Aries: 'Mars', Taurus: 'Venus', Gemini: 'Mercury', Cancer: 'Moon',
+    Leo: 'Sun', Virgo: 'Mercury', Libra: 'Venus', Scorpio: 'Mars',
+    Sagittarius: 'Jupiter', Capricorn: 'Saturn', Aquarius: 'Saturn',
+    Pisces: 'Jupiter'
+  };
+  const SIGNS = [
+    'Aries','Taurus','Gemini','Cancer','Leo','Virgo',
+    'Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'
+  ];
+  const cusp = houseCusps.find(h => h.house === houseNum);
+  const cuspSign = cusp ? SIGNS[Math.floor(cusp.start / 30) % 12] : null;
+  const lord = cuspSign ? SIGN_LORDS[cuspSign] : null;
+  const occupants = planets.filter(p => p.house === houseNum).map(p => p.name);
+  const result = lord ? [lord, ...occupants.filter(p => p !== lord)] : occupants;
+  return result;
+}
+
 const DOMAIN_LABELS: Record<Domain, string> = {
   global: "Global", h1: "Identidad", h2: "Recursos", h4: "Hogar",
   h5: "Creatividad", h6: "Trabajo/Salud", h7: "Relaciones", h9: "Expansión", h10: "Carrera",
@@ -115,16 +147,24 @@ export function RelocationTab() {
     if (!domainInitRef.current) {
       domainInitRef.current = true;
     } else if (hfDomain !== "global") {
+      const house_num = DOMAIN_HOUSE_NUM[hfDomain];
+      const significators = abuData
+        ? deriveSignificators(
+            house_num,
+            (abuData as any).chart.planets,
+            (abuData as any).chart.houses.houses
+          )
+        : [];
       setPendingLillyEvent({
         type: "domain_select",
         payload: {
           domain: DOMAIN_LABELS[hfDomain],
-          house_num: DOMAIN_HOUSE_NUM[hfDomain],
+          house_num,
           subject_name: subjectName,
-          significators: [],
-          hf_current: data.natal_hf,
-          hf_max: data.max_hf,
-          best_city: data.rankings[0]?.city ?? "—",
+          significators,
+          hf_current: null,
+          hf_max: null,
+          best_city: null,
           lang,
         },
       });
@@ -200,6 +240,29 @@ export function RelocationTab() {
       setDomainRanking(null);
       return;
     }
+
+    const house_num = LIFE_DOMAIN_HOUSE[lifeDomain] ?? 0;
+    const significators = abuData
+      ? deriveSignificators(
+          house_num,
+          (abuData as any).chart.planets,
+          (abuData as any).chart.houses.houses
+        )
+      : [];
+    setPendingLillyEvent({
+      type: "sr_domain_select",
+      payload: {
+        domain: LIFE_DOMAIN_LABEL[lifeDomain] ?? lifeDomain,
+        house_num,
+        subject_name: subjectName,
+        significators,
+        hf_current: null,
+        hf_max: null,
+        best_city: null,
+        sr_year: srYear,
+        lang,
+      },
+    });
 
     const cities = data.rankings.slice(0, 20).map((r) => ({
       name: r.city,

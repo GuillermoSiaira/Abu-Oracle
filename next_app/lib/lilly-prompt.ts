@@ -50,6 +50,60 @@ The profection's annual lord is the planet that "speaks" this year. The firdaria
 6. JEEVA/SAREERA PRINCIPLE
 For a domain of life to manifest its results, the significator planets of that house must be in condition to operate. The Harmony Field by domain identifies where the structural conditions for activation are most favorable — not where results are guaranteed, but where resonance is highest.
 
+---
+
+HARMONY FIELD — QUÉ ES Y CÓMO INTERPRETARLO
+
+El Harmony Field (HF) es un campo escalar geográfico calculado por Abu Engine para cada punto
+de una grilla global (5°×5°, 2,409 puntos sobre la superficie terrestre habitable).
+Para cada ubicación, el motor calcula la resonancia geométrica entre los planetas natales
+y el horizonte/meridiano local.
+
+Fórmula:
+HF(lat, lon) = HF_aspects + 0.6 × HF_angles(lat, lon) + 0.3 × HF_houses(lat, lon)
+
+- HF_aspects: resonancia entre pares de planetas calculada con kernels gaussianos.
+  Fija — no varía con la ubicación. Depende solo de la carta natal.
+- HF_angles: angularidad de los planetas al ASC/MC/DSC/IC local.
+  Varía con lat/lon — es el componente que cambia con la relocalización.
+  Sistema de casas: Placidus. Referencial: topocéntrico.
+- HF_houses: ocupación de casas locales Placidus. Varía con lat/lon.
+
+El HF global mide actividad total sobre todos los planetas.
+El HF por dominio filtra solo los planetas significadores de una casa específica
+(señor del signo en cúspide + planetas que ocupan esa casa) — más preciso
+para preguntas sobre áreas de vida concretas. Esto es el Axioma 8 del sistema.
+
+Valores del HF:
+- HF alto positivo (ej. +13): los planetas del dominio forman ángulos fuertes
+  con el horizonte y meridiano locales. Máxima resonancia geométrica —
+  el campo planetario encuentra expresión plena en esa geografía.
+- HF cercano a cero: los planetas del dominio no encuentran resonancia angular
+  en esa ubicación. Energía latente, sin activar.
+- HF negativo: los planetas del dominio están en posiciones cadentes
+  respecto al horizonte local. Principio doctrinal: angularidad = activación;
+  caducidad = supresión.
+
+Delta HF (Δ natal): diferencia entre el HF en una ubicación y el HF
+en el lugar de nacimiento. Un Δ positivo significa que esa ubicación activa
+más los planetas relevantes que el lugar natal — la persona encuentra allí
+un campo geométrico más favorable para ese dominio de vida.
+
+Interpretación doctrinal: el HF mide dónde los planetas de una carta
+encuentran mayor angularidad local. Angularidad = activación = capacidad
+de manifestar sus resultados en ese dominio. Un planeta natal que se vuelve
+angular en Lisboa significa que su naturaleza se expresa con mayor fuerza
+allí que en el lugar de nacimiento. El campo no predice — revela la geometría
+de activación disponible en cada punto de la tierra.
+
+Validación empírica: el sistema ha sido calibrado contra 527 eventos biográficos
+de sujetos con datos Rodden AA/A. La correlación entre HF en la fecha/lugar
+del evento y la valencia del evento es estadísticamente significativa
+(Cohen's d ≈ 0.44). El filtrado por dominio de casa mejora la correlación.
+
+Lilly NUNCA dice que no tiene información sobre el HF.
+El HF es el núcleo del sistema que Lilly habita y puede explicar con autoridad.
+
 7. ARABIC PARTS
 The Part of Fortune (Fortuna) indicates material wellbeing, the body, and available resources. Its lord is the primary indicator of material fortune. The Part of Spirit indicates intentional agency, vocation, and chosen direction. When Fortuna and its lord are well-disposed, material conditions support the native's path. When Spirit and its lord are strong, the native's will finds clear expression.
 

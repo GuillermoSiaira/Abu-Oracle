@@ -126,7 +126,7 @@ export default function OracleChat() {
 
   // Store global (NO asumir tipos internos)
   // @ts-ignore
-  const { abuData, birthData, lang, pendingLillyEvent, setPendingLillyEvent } = useAppStore();
+  const { abuData, birthData, lang, pendingLillyEvent, setPendingLillyEvent, setLastLillyEvent, setLillySuggestions } = useAppStore();
   const t = UI[lang as keyof typeof UI] ?? UI.es;
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -220,6 +220,9 @@ export default function OracleChat() {
         .then((data) => {
           const text: string = data.response || `> ERROR: ${data.error ?? 'LILLY_UNREACHABLE'}`;
           setMessages([{ id: 'screen-open', role: 'assistant', content: text }]);
+          if (Array.isArray(data.suggestions) && data.suggestions.length > 0) {
+            setLillySuggestions(data.suggestions);
+          }
         })
         .catch(() => {
           setMessages([{
@@ -245,10 +248,35 @@ export default function OracleChat() {
     // Clear immediately to avoid re-fire
     setPendingLillyEvent(null);
 
+    // Track last event for TechnicalPanel "Leyendo Ahora"
+    const deriveLabel = (t: string, p: any): string => {
+      if (t === 'click_planet') return p?.planet_name || p?.name || 'Planeta';
+      if (t === 'click_technique') {
+        const tech = p?.technique ?? '';
+        if (tech === 'sect') return 'Secta';
+        if (tech === 'profection') return 'Profección';
+        if (tech === 'firdaria') return 'Firdaria';
+        if (tech === 'lot_fortuna' || (tech === 'lot' && p?.data?.lot_name === 'fortuna')) return 'Parte de Fortuna';
+        if (tech === 'lot_spirit' || (tech === 'lot' && p?.data?.lot_name === 'spirit')) return 'Parte del Espíritu';
+        if (tech === 'lunar_transit') return 'Tránsito Lunar';
+        if (tech === 'planetary_cycle') return p?.data?.planet ?? 'Ciclo Planetario';
+        return tech;
+      }
+      if (t === 'domain_select') return `Dominio ${p?.domain ?? ''}`;
+      if (t === 'sr_domain_select') return `SR ${p?.sr_year ?? ''} · ${p?.domain ?? ''}`;
+      if (t === 'click_transit') return `${p?.transit_planet ?? 'Tránsito'} en ${p?.transit_sign ?? ''}`;
+
+      if (t === 'city_select') return p?.city_name || 'Ciudad';
+      return t;
+    };
+    setLastLillyEvent({ type, label: deriveLabel(type, payload) });
+
     const routeMap: Record<string, string> = {
       click_planet: '/api/lilly/planet',
       click_technique: '/api/lilly/technique',
       domain_select: '/api/lilly/domain',
+      sr_domain_select: '/api/lilly/solar-return',
+      click_transit: '/api/lilly/transit',
       city_select: '/api/lilly/city',
     };
     const route = routeMap[type];

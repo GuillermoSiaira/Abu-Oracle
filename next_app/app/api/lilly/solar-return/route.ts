@@ -20,11 +20,12 @@ export async function POST(req: Request) {
       hf_current,
       hf_max,
       best_city,
+      sr_year,
       lang,
     } = body;
 
     const lines = [
-      `El usuario activó el dominio ${domain?.toUpperCase() ?? '—'} — Casa ${house_num ?? '—'}.`,
+      `El usuario activó el dominio ${domain?.toUpperCase() ?? '—'} — Casa ${house_num ?? '—'} en el contexto del Retorno Solar ${sr_year ?? '—'}.`,
       `Sujeto: ${subject_name ?? 'Anónimo'}`,
       Array.isArray(significators) && significators.length
         ? `Significadores de la casa: ${significators.join(', ')}`
@@ -53,7 +54,7 @@ export async function POST(req: Request) {
     const text = response.content[0].type === 'text' ? response.content[0].text : '';
     return NextResponse.json({ response: text });
   } catch (err: any) {
-    console.error('[lilly/domain]', err);
+    console.error('[lilly/solar-return]', err);
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
 }
