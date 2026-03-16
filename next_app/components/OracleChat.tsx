@@ -151,7 +151,8 @@ export default function OracleChat() {
     }
     prevAbuRef.current = abuData;
 
-    if (!initialized.current && abuData && birthData) {
+    const isComplete = (d: any) => Array.isArray(d?.chart?.planets) && d.chart.planets.length > 0;
+    if (!initialized.current && isComplete(abuData) && birthData) {
       initialized.current = true;
 
       // --- Build minimal context from abuData ---
