@@ -1,7 +1,7 @@
 # ARCHITECTURE.md — Abu Oracle: Contrato entre capas
 > Documento de sincronización entre Abu Engine (hilo técnico) y Lilly Agent (hilo de agente).
 > Leer junto a CLAUDE.md al inicio de cualquier sesión que toque la integración Abu↔Lilly.
-> Versión: 0.1 · Marzo 2026
+> Versión: 0.2 · Marzo 2026
 > Estado: Activo — actualizar ante cualquier cambio de contrato entre capas.
 
 ---
@@ -13,9 +13,9 @@ Usuario
   ↓ interacción (click, select, hover)
 Event System (TypeScript · FE)
   ↓ LillyEvent tipado
-Context Builder (TypeScript · FE · lógica determinista)
-  ↓ prompt estructurado con AbuContext
-Lilly Conductor (LLM · Claude Sonnet 4.6 o GPT-4o · TBD)
+Route Handler ad-hoc (TypeScript · Next.js API Routes)  ← Context Builder centralizado pendiente (Fase 9)
+  ↓ contextBlock estructurado + LILLY_SYSTEM_PROMPT
+Lilly Conductor (Claude Sonnet 4.6 · confirmado en producción)
   ↓ texto en lenguaje natural
 Oracle Interface (columna derecha del FE)
   ↓ visible al usuario
@@ -104,7 +104,7 @@ interface AbuContext {
     exact_date:      string
   }>
 
-  // Significadores por casa (house_significators — ya implementado)
+  // Significadores por casa (house_significators — implementado)
   house_significators: Record<number, string[]>
   // Ejemplo: { 10: ['Saturn', 'Mars'], 7: ['Venus'], 1: ['Saturn'] }
 }
@@ -120,8 +120,6 @@ interface AbuContext {
 Cuando el evento es `domain_select`, el Context Builder necesita el HF
 del dominio seleccionado en la ubicación actual del usuario.
 
-**Campo adicional en AbuContext para eventos de dominio:**
-
 ```typescript
 interface DomainContext {
   domain:           string       // 'career' | 'love' | 'health' | ...
@@ -136,14 +134,46 @@ interface DomainContext {
 }
 ```
 
-**Decisión pendiente — coordenada actual del usuario:**
-Abu necesita saber dónde está el usuario ahora para calcular `hf_domain_current`.
-Opciones:
-- A: usar `birth_lat/birth_lon` como proxy (lugar de nacimiento = lugar actual)
-- B: el FE pide geolocalización del browser (`navigator.geolocation`)
-- C: el usuario ingresa su ciudad actual en el formulario (ya existe el campo)
+### Estado actual de disponibilidad de datos (post Fase 8.11)
 
-**→ Decisión: Opción C** — el campo "Ciudad de residencia actual" del Home
+| Campo | Disponible en domain_select | Observación |
+|---|---|---|
+| `significators` | ✅ | Derivados client-side con `deriveSignificators()` |
+| `hf_domain_current` | ❌ | Fetch del campo de dominio llega después del event |
+| `hf_domain_max` | ❌ | Ídem |
+| `best_city` | ❌ | `data.rankings[0]` es global, no por dominio |
+
+**Decisión vigente**: campos no disponibles se omiten del contextBlock (no se envían como `null` ni `"—"`). Lilly interpreta mejor la ausencia que un placeholder engañoso.
+
+### `deriveSignificators()` — implementación client-side
+
+```typescript
+function deriveSignificators(
+  houseNum: number,
+  planets: Array<{ name: string; house: number }>,
+  houseCusps: Array<{ house: number; start: number }>
+): string[] {
+  const SIGN_LORDS: Record<string, string> = {
+    Aries: 'Mars', Taurus: 'Venus', Gemini: 'Mercury', Cancer: 'Moon',
+    Leo: 'Sun', Virgo: 'Mercury', Libra: 'Venus', Scorpio: 'Mars',
+    Sagittarius: 'Jupiter', Capricorn: 'Saturn', Aquarius: 'Saturn',
+    Pisces: 'Jupiter'
+  };
+  const SIGNS = [
+    'Aries','Taurus','Gemini','Cancer','Leo','Virgo',
+    'Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'
+  ];
+  const cusp = houseCusps.find(h => h.house === houseNum);
+  const cuspSign = cusp ? SIGNS[Math.floor(cusp.start / 30) % 12] : null;
+  const lord = cuspSign ? SIGN_LORDS[cuspSign] : null;
+  const occupants = planets.filter(p => p.house === houseNum).map(p => p.name);
+  const result = lord ? [lord, ...occupants.filter(p => p !== lord)] : occupants;
+  return result;
+}
+```
+
+### Coordenada actual del usuario
+**Decisión: Opción C** — el campo "Ciudad de residencia actual" del Home
 ya existe y tiene lat/lon. Ese valor se pasa como `current_lat/current_lon`
 en todos los requests que necesiten la ubicación actual.
 Abu Engine lo acepta como parámetro opcional; si no viene, usa birth_lat/birth_lon.
@@ -158,9 +188,9 @@ type LillyEventType =
   | 'click_planet'
   | 'click_aspect'
   | 'click_house'
-  | 'click_transit'
+  | 'click_transit'      // ✅ implementado Fase 8.11
   | 'date_change'
-  | 'domain_select'
+  | 'domain_select'      // ✅ implementado Fase 8.10
   | 'city_hover'
   | 'city_select'
 
@@ -185,101 +215,110 @@ interface LillyPrefs {
 ### 3.1 trigger_data por event_type
 
 ```typescript
-// click_planet
+// click_planet (pendiente)
 { planet_name: string, lon: number, sign: string, house: number }
 
-// click_aspect
+// click_aspect (pendiente)
 { planet_a: string, planet_b: string, type: string, orb: number }
 
-// click_house
+// click_house (pendiente)
 { house_num: number, cusp_sign: string, house_lord: string }
 
-// click_transit
-{ transit_planet: string, natal_planet: string, type: string, orb: number, exact_date: string }
+// click_transit ✅ implementado
+{
+  transit_planet: string
+  transit_sign:   string
+  transit_deg:    number
+  aspects: Array<{ natal_planet: string, aspect: string, orb: number, applying: boolean }>
+  transit_date:   string
+  subject_name:   string
+  lang:           string
+}
 
-// date_change
+// date_change (pendiente)
 { new_date: string, active_transits: Transit[] }
 
-// domain_select
-{ domain: string, house_num: number }
+// domain_select ✅ implementado
+{
+  domain:       string
+  house_num:    number
+  subject_name: string
+  significators: string[]
+  hf_current:   null          // no disponible en este momento del flujo
+  hf_max:       null          // ídem
+  best_city:    null          // ídem
+  lang:         string
+  sr_year?:     number        // solo para Solar Return
+}
 
-// city_hover / city_select
+// city_hover / city_select (pendiente)
 { city_name: string, country: string, lat: number, lon: number, hf_score: number }
 ```
 
 ---
 
-## 4. El Context Builder — bloques de prompt
+## 4. Routes de Lilly implementadas (Context Builder ad-hoc)
 
-El Context Builder es lógica determinista. Recibe un `LillyEvent`
-y produce un string de contexto estructurado para el prompt de Lilly.
+> El Context Builder centralizado (ARCHITECTURE.md §4 original) está pendiente para Fase 9.
+> Actualmente cada route construye su propio contextBlock.
+> **Regla de contextBlock**: omitir líneas con valores null — no usar "—" ni placeholders.
 
-**Regla fundamental**: el Context Builder **nunca interpreta**.
-Solo estructura hechos del AbuContext en lenguaje natural técnico.
-La interpretación es responsabilidad exclusiva de Lilly.
+| Route | Event | Estado | max_tokens |
+|---|---|---|---|
+| `/api/lilly/screen-open` | `screen_open` | ✅ Fase 8.10 | 512 |
+| `/api/lilly/technique` | `click_technique` | ✅ Fase 8.10 | 512 |
+| `/api/lilly/domain` | `domain_select` (natal) | ✅ Fase 8.11 | 1024 |
+| `/api/lilly/solar-return` | `domain_select` (SR) | ✅ Fase 8.11 | 1024 |
+| `/api/lilly/transit` | `click_transit` | ✅ Fase 8.11 | 1024 |
+| `/api/lilly/planet` | `click_planet` | ✅ Fase 8.6 | 512 |
+| `/api/lilly/city` | `city_select` | ✅ Fase 8.7 | 768 |
+| `/api/lilly/chat` | input libre usuario | ✅ existente | 1024 |
 
-### Plantillas por event_type
+### Plantilla contextBlock — click_transit
 
-**click_planet (ejemplo: Saturno, Einstein)**
 ```
-El usuario ha seleccionado SATURNO en su carta natal.
-Posición: Escorpio 5°14', Casa 10 (Carrera · Reputación pública)
-Dignidad: Peregrine en Escorpio (score: 0)
-Regente de: ASC (Acuario) · Casa 10 (por co-rectorado)
-Aspectos desde Saturno: cuadratura Marte (orb 2°3', aplicante), trígono Luna (orb 4°1', separante)
-HF contribution — tension: 0.42 | harmony: 0.18
-Firdaria actual: período mayor Saturno · sub-período Venus
-```
-
-**domain_select (ejemplo: Casa 7, HF Map)**
-```
-El usuario activó el dominio CASA 7 — Relaciones · Vínculos · Socios.
-Significadores: Venus (señor de cúspide Libra), Júpiter (ocupante)
-HF h7 en ubicación actual (Buenos Aires): 0.61
-HF h7 máximo en grilla: 0.89 — Lisboa, Portugal (+45.2° lat, -9.1° lon)
-Delta desde natal: +0.28
-Top 3 ciudades para este dominio: Lisboa, Barcelona, Roma
+El usuario seleccionó SATURNO en tránsito — actualmente en Aries 3.3°.
+Aspectos activos de este tránsito:
+- Trígono a Mercurio natal (orb 2.11°, aplicante)
+Fecha de tránsito: 16/03/2026
+Sujeto: Guillermo Siaira
+Idioma de respuesta: es
 ```
 
-**city_select**
+### Plantilla contextBlock — domain_select
+
 ```
-El usuario ha seleccionado LISBOA para análisis de relocalización.
-Coordenadas: 38.72°N, 9.14°W
-HF global en Lisboa: +8.3 (delta natal: +2.1)
-HF h7 (Relaciones) en Lisboa: 0.89 — máximo del corpus
-HF h10 (Carrera) en Lisboa: 0.54
-ASC local en Lisboa: Sagitario 12° (vs Acuario natal)
-MC local en Lisboa: Virgo 8°
-Regente del ASC local: Júpiter (en domicilio en Sagitario) — activo angular
+El usuario activó el dominio CARRERA — Casa 10.
+Sujeto: Guillermo Siaira
+Significadores de la casa: Mars, Neptune
+Idioma de respuesta: es
+```
+
+### Plantilla contextBlock — domain_select Solar Return
+
+```
+El usuario activó el dominio CARRERA — Casa 10 en el contexto del Retorno Solar 2026.
+Sujeto: Guillermo Siaira
+Significadores de la casa: Mars, Neptune
+Idioma de respuesta: es
 ```
 
 ---
 
-## 5. El system prompt de Lilly — esqueleto
+## 5. El system prompt de Lilly
 
-*(Pendiente de desarrollo completo en hilo Lilly — este es el contrato mínimo)*
+Implementado en `next_app/lib/lilly-prompt.ts` como `LILLY_SYSTEM_PROMPT`.
 
-```
-Eres Lilly, el agente de interpretación astrológica de Abu Oracle.
-Tu voz está inspirada en William Lilly (Christian Astrology, 1647)
-pero adaptada al siglo XXI — clara, precisa, sin oscurantismo.
+Secciones activas:
+- Identidad y voz (William Lilly · siglo XXI)
+- Restricciones absolutas (no predicciones como certezas, no diagnósticos)
+- Marco doctrinal (Abu Mashar, helenístico, persa medieval)
+- **JEEVA/SAREERA PRINCIPLE** (Jyotish · Bhagat)
+- **HARMONY FIELD — QUÉ ES Y CÓMO INTERPRETARLO** ✅ agregado Fase 8.11
 
-Recibirás un bloque de contexto estructurado (generado por el Context Builder)
-y las preferencias del usuario. Tu tarea es interpretar, no describir —
-el Context Builder ya describió los hechos.
-
-Restricciones absolutas:
-- No predecir eventos como certezas: "esto ocurrirá" → prohibido
-- No diagnósticos de salud bajo ningún framing
-- No afirmaciones de certeza absoluta — siempre hermenéutica, nunca oráculo
-- Las citas de Christian Astrology son bienvenidas cuando son directamente relevantes
-
-Marco doctrinal:
-- Prioridad de señor de casa sobre planetas en casa (Abu Mashar)
-- Angularidad como condición de activación (helenístico)
-- Dignidades esenciales como calidad de expresión (persa medieval)
-- HF como campo de resonancia, no de predicción (Axiomática §6-§8)
-```
+El HF está definido en el system prompt con fórmula, valores, Delta HF,
+interpretación doctrinal y referencia a validación empírica (527 eventos, Cohen's d≈0.44).
+Lilly no dice que no tiene información sobre el HF.
 
 ---
 
@@ -300,19 +339,21 @@ antes de llegar al usuario. Voz unificada de Lilly hacia afuera.
 
 ---
 
-## 7. Decisiones pendientes (bloquean implementación)
+## 7. Decisiones — estado actualizado
 
-| # | Decisión | Responsable | Impacto |
+| # | Decisión | Estado | Resolución |
 |---|---|---|---|
-| 1 | Modelo LLM del Conductor: Claude Sonnet 4.6 vs GPT-4o | Benchmark (5 casos) | Arquitectura de llamadas API |
-| 2 | Chunking de Christian Astrology para RAG | Hilo Lilly | Context Builder sabe qué recuperar |
-| 3 | Event System FE — emisores por pantalla | Hilo Lilly + FE | Sin esto Lilly no recibe eventos |
-| 4 | Context Builder — implementación completa | Hilo Lilly + FE | Sin esto el prompt es manual |
-| 5 | Caché de AbuContext por sesión | Abu Engine | Evita llamadas repetidas al backend |
+| 1 | Modelo LLM del Conductor | ✅ Resuelto | Claude Sonnet 4.6 — en producción |
+| 2 | Chunking Christian Astrology para RAG | ⏳ Pendiente | Fase 9+ |
+| 3 | Event System FE — emisores por pantalla | ✅ Parcial | `click_transit`, `domain_select`, `screen_open`, `technique` implementados |
+| 4 | Context Builder — implementación completa | ⏳ Pendiente Fase 9 | Routes ad-hoc como solución provisional |
+| 5 | Caché de AbuContext por sesión | ⏳ Pendiente | Sin implementar |
+| 6 | `click_planet` handler + route | ✅ Resuelto | Fase 8.6 — `natal-chart-tab.tsx` + `/api/lilly/planet` |
+| 7 | `city_select` handler + route | ✅ Resuelto | Fase 8.7 — `relocation-tab.tsx` + `/api/lilly/city` |
 
 ---
 
-## 8. Lo que ya está listo en Abu Engine (disponible para Lilly hoy)
+## 8. Lo que ya está listo en Abu Engine
 
 | Capacidad | Endpoint / Módulo | Estado |
 |---|---|---|
@@ -327,14 +368,30 @@ antes de llegar al usuario. Voz unificada de Lilly hacia afuera.
 
 ---
 
-## 9. Historial de versiones
+## 9. Fixes técnicos aplicados — registro
 
-| Versión | Fecha | Cambios |
-|---|---|---|
-| v0.1 | 2026-03-13 | Documento inicial. Sincronización Abu Engine ↔ Lilly Agent. AbuContext schema, LillyEvent contrato, Context Builder plantillas, decisiones pendientes. |
+| Fix | Archivo | Fase | Descripción |
+|---|---|---|---|
+| Infinite loop tránsitos | `transits-tab.tsx` | 8.11 | `useState` para estabilizar `effectiveTransitDate` |
+| HF en system prompt | `lilly-prompt.ts` | 8.11 | Sección HARMONY FIELD completa |
+| Significadores dominio | caller de `lilly/domain` | 8.11 | `deriveSignificators()` client-side |
+| contextBlock limpio | `lilly/domain/route.ts` | 8.11 | Omitir líneas null, no usar "—" |
+| SR integrado con Lilly | `relocation-tab.tsx` | 8.11 | `LifeDomainSelector` dispara evento Lilly |
+| SR route | `lilly/solar-return/route.ts` | 8.11 | Nueva route con `sr_year` en contextBlock |
+| click_transit | `transits-tab.tsx` + `transit/route.ts` | 8.11 | Handler + route completos |
+| max_tokens transit | `transit/route.ts` | 8.11 | 512 → 1024 para grupos multi-aspecto |
 
 ---
 
-*Abu Oracle Project — ARCHITECTURE.md v0.1*
+## 10. Historial de versiones
+
+| Versión | Fecha | Cambios |
+|---|---|---|
+| v0.1 | 2026-03-13 | Documento inicial. AbuContext schema, LillyEvent contrato, Context Builder plantillas, decisiones pendientes. |
+| v0.2 | 2026-03-16 | Routes ad-hoc implementadas. Event System parcial. `deriveSignificators()`. Fix infinite loop tránsitos. HF en system prompt. SR integrado. Decisiones 1 y 3 resueltas. Tabla de fixes técnicos. |
+
+---
+
+*Abu Oracle Project — ARCHITECTURE.md v0.2*
 *Mantener actualizado ante cualquier cambio de contrato entre capas.*
 *Ambos hilos (Abu Engine y Lilly) deben leer este archivo al inicio de sesiones de integración.*
