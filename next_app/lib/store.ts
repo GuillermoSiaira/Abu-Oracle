@@ -48,6 +48,8 @@
     lang: "es" | "en" | "pt" | "fr"
 
     userName: string
+    isDemo: boolean
+    pendingLillyEvent: Record<string, any> | null
 
     onboardingStage: OnboardingStage
     onboardingData: OnboardingData
@@ -62,6 +64,8 @@
     setLang: (lang: "es" | "en" | "pt" | "fr") => void
     addChatMessage: (msg: ChatMessage) => void
     setUserName: (name: string) => void
+    setIsDemo: (value: boolean) => void
+    setPendingLillyEvent: (event: Record<string, any> | null) => void
     clearAll: () => void
 
     setOnboardingStage: (stage: OnboardingStage) => void
@@ -164,6 +168,8 @@
       lang: "es",
 
       userName: loadUserName(),
+      isDemo: false,
+      pendingLillyEvent: null,
 
       // ---- Estado de onboarding ----
       onboardingStage: "idle",
@@ -212,6 +218,10 @@
         set({ userName: name })
       },
 
+      setIsDemo: (value) => set({ isDemo: value }),
+
+      setPendingLillyEvent: (event) => set({ pendingLillyEvent: event }),
+
       // ---------------------------------------------------
       // ONBOARDING MUTATORS
       // ---------------------------------------------------
@@ -248,6 +258,7 @@
           isLoading: false,
           error: null,
           includeTransits: true,
+          isDemo: false,
           onboardingStage: "idle",
           onboardingData: {},
           // userName se preserva

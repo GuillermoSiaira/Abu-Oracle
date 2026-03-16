@@ -321,7 +321,7 @@ export function ZodiacWheel({
 
           const next = houseCusps[h.number % 12]?.cusp ?? h.cusp + 30;
           const mid = h.cusp + ((next - h.cusp + 360) % 360) / 2;
-          const numPos = polarToCartesian(mid, (houseRadius + signRadius) / 2);
+          const numPos = polarToCartesian(mid, innerRadius + 20);
 
           return (
             <g key={`h-${h.number}`}>

@@ -7,6 +7,17 @@ from datetime import datetime, timedelta
 from typing import List, Dict, Any
 from core.chart import EphemerisSingleton
 
+# Module-level timescale cache — avoids repeated disk reads (each call to
+# load.timescale() reads leap-second data, adding ~200–500 ms per call).
+_ts_cache = None
+
+def _get_timescale():
+    global _ts_cache
+    if _ts_cache is None:
+        from skyfield.api import load
+        _ts_cache = load.timescale()
+    return _ts_cache
+
 def forecast_for_locations(date_utc, lat, lon):
     # ...existing code...
     natal_positions = {"sun": 103.2, "moon": 45.8}
@@ -26,10 +37,10 @@ def get_planet_positions(date_utc, lat, lon):
     """
     Devuelve las posiciones eclípticas de los planetas para una fecha y ubicación.
     """
-    from skyfield.api import load, Topos
+    from skyfield.api import Topos
     # Use shared ephemeris loader that ensures local file and downloads if missing
     planets = EphemerisSingleton()
-    ts = load.timescale()
+    ts = _get_timescale()  # cached — avoids repeated disk reads
     t = ts.from_datetime(date_utc)
     earth = planets['earth']
     observer = earth + Topos(latitude_degrees=lat, longitude_degrees=lon)

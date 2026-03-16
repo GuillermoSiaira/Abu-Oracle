@@ -36,6 +36,35 @@ export const UI: Record<Lang, {
   tpSectMaster: string;
   tpDiurnal: string;
   tpNocturnal: string;
+  // Persian Techniques tab
+  persianSect: string;
+  persianSectDiurnal: string;
+  persianSectNocturnal: string;
+  persianSectDetailDiurnal: string;
+  persianSectDetailNocturnal: string;
+  persianProfection: string;
+  persianHouseActivated: string;
+  persianHouseLabel: string;
+  persianCuspSign: string;
+  persianAnnualLord: string;
+  persianNoData: string;
+  persianFirdaria: string;
+  persianLastPeriod: string;
+  persianOutOfCycle: string;
+  persianMajorPeriod: string;
+  persianSubPeriod: string;
+  persianStart: string;
+  persianEnd: string;
+  persianLunarTransits: string;
+  persianMoonPosition: string;
+  persianNoLunar: string;
+  persianCycles: string;
+  persianNoEvents: string;
+  // Arabic Parts / Lots
+  persianLotsTitle: string;
+  persianLotFortuna: string;
+  persianLotSpirit: string;
+  persianLotLord: string;
   // Relocation shared
   relTitle: string;
   relSubtitle: string;
@@ -78,12 +107,16 @@ export const UI: Record<Lang, {
   lillyWelcome: string;
   lillyCtaData: string;
   lillyCtaDemo: string;
+  // Demo page
+  demoPageTitle: string;
+  demoPageSubtitle: string;
+  demoLoading: string;
 }> = {
   es: {
     tabChart: "Carta Natal",
     tabPersian: "Técnicas Persas",
     tabTransits: "Tránsitos",
-    tabRelocation: "Mi Relocalización",
+    tabRelocation: "Mapa HF",
     relTitle: "Relocalización HF",
     relSubtitle: "Campo de Armonía geográfica — Demo con 10 sujetos notables",
     natal: "HF Natal",
@@ -120,7 +153,10 @@ export const UI: Record<Lang, {
     homeSubtitle: "Motor de inteligencia astrológica computacional",
     lillyWelcome: "Soy Lilly. Leo las configuraciones del cielo como geometría,\nno como destino. Cada carta es un campo de fuerzas —\nalgunos planetas activan, otros resisten.\nIngresá tus datos natales y comenzamos.",
     lillyCtaData: "Ingresar mis datos",
-    lillyCtaDemo: "Explorar demo",
+    lillyCtaDemo: "Ver el motor en acción",
+    demoPageTitle: "Cartas de referencia",
+    demoPageSubtitle: "10 sujetos con datos verificados (Rodden AA/A/B). Carta calculada on-demand.",
+    demoLoading: "Calculando carta…",
     tpSysArch: "Arquitectura del Sistema",
     tpCoreKernel: "Kernel",
     tpEphemeris: "Efemérides",
@@ -143,12 +179,39 @@ export const UI: Record<Lang, {
     tpSectMaster: "MAESTRO DE SECTA",
     tpDiurnal: "DIURNO",
     tpNocturnal: "NOCTURNO",
+    persianSect: "Secta",
+    persianSectDiurnal: "Carta diurna",
+    persianSectNocturnal: "Carta nocturna",
+    persianSectDetailDiurnal: "El Sol está sobre el horizonte. Júpiter y el Sol actúan como benéficos principales; Saturno como maléfico moderado.",
+    persianSectDetailNocturnal: "El Sol está bajo el horizonte. Venus y la Luna actúan como benéficos principales; Marte como maléfico moderado.",
+    persianProfection: "Profección anual",
+    persianHouseActivated: "Casa activada",
+    persianHouseLabel: "Casa",
+    persianCuspSign: "Signo de la cúspide",
+    persianAnnualLord: "Señor del año",
+    persianNoData: "Sin datos.",
+    persianFirdaria: "Firdaria",
+    persianLastPeriod: "último período registrado",
+    persianOutOfCycle: "Fuera del ciclo de 75 años.",
+    persianMajorPeriod: "Período mayor",
+    persianSubPeriod: "Sub-período",
+    persianStart: "Inicio",
+    persianEnd: "Fin",
+    persianLunarTransits: "Tránsitos lunares",
+    persianMoonPosition: "Posición lunar",
+    persianNoLunar: "Sin datos lunares.",
+    persianCycles: "Ciclos planetarios",
+    persianNoEvents: "Sin eventos.",
+    persianLotsTitle: "Partes Arábicas",
+    persianLotFortuna: "Parte de Fortuna",
+    persianLotSpirit: "Parte del Espíritu",
+    persianLotLord: "Señor",
   },
   en: {
     tabChart: "Birth Chart",
     tabPersian: "Persian Techniques",
     tabTransits: "Transits",
-    tabRelocation: "My Relocation",
+    tabRelocation: "HF Map",
     relTitle: "HF Relocation",
     relSubtitle: "Geographic Harmony Field — Demo with 10 notable subjects",
     natal: "Natal HF",
@@ -185,7 +248,10 @@ export const UI: Record<Lang, {
     homeSubtitle: "Computational astrological intelligence engine",
     lillyWelcome: "I am Lilly. I read celestial configurations as geometry,\nnot as fate. Each chart is a field of forces —\nsome planets activate, others resist.\nEnter your birth data and we begin.",
     lillyCtaData: "Enter my data",
-    lillyCtaDemo: "Explore demo",
+    lillyCtaDemo: "See the engine in action",
+    demoPageTitle: "Reference charts",
+    demoPageSubtitle: "10 subjects with verified data (Rodden AA/A/B). Chart computed on-demand.",
+    demoLoading: "Computing chart…",
     tpSysArch: "System Architecture",
     tpCoreKernel: "Kernel",
     tpEphemeris: "Ephemeris",
@@ -208,12 +274,39 @@ export const UI: Record<Lang, {
     tpSectMaster: "SECT MASTER",
     tpDiurnal: "DIURNAL",
     tpNocturnal: "NOCTURNAL",
+    persianSect: "Sect",
+    persianSectDiurnal: "Diurnal chart",
+    persianSectNocturnal: "Nocturnal chart",
+    persianSectDetailDiurnal: "The Sun is above the horizon. Jupiter and the Sun act as primary benefics; Saturn as moderate malefic.",
+    persianSectDetailNocturnal: "The Sun is below the horizon. Venus and the Moon act as primary benefics; Mars as moderate malefic.",
+    persianProfection: "Annual profection",
+    persianHouseActivated: "Activated house",
+    persianHouseLabel: "House",
+    persianCuspSign: "Cusp sign",
+    persianAnnualLord: "Annual lord",
+    persianNoData: "No data.",
+    persianFirdaria: "Firdaria",
+    persianLastPeriod: "last recorded period",
+    persianOutOfCycle: "Outside the 75-year cycle.",
+    persianMajorPeriod: "Major period",
+    persianSubPeriod: "Sub-period",
+    persianStart: "Start",
+    persianEnd: "End",
+    persianLunarTransits: "Lunar transits",
+    persianMoonPosition: "Moon position",
+    persianNoLunar: "No lunar data.",
+    persianCycles: "Planetary cycles",
+    persianNoEvents: "No events.",
+    persianLotsTitle: "Arabic Parts",
+    persianLotFortuna: "Part of Fortune",
+    persianLotSpirit: "Part of Spirit",
+    persianLotLord: "Lord",
   },
   pt: {
     tabChart: "Carta Natal",
     tabPersian: "Técnicas Persas",
     tabTransits: "Trânsitos",
-    tabRelocation: "Minha Relocalização",
+    tabRelocation: "Mapa HF",
     relTitle: "Relocalização HF",
     relSubtitle: "Campo de Harmonia geográfica — Demo com 10 sujeitos notáveis",
     natal: "HF Natal",
@@ -250,7 +343,10 @@ export const UI: Record<Lang, {
     homeSubtitle: "Motor de inteligência astrológica computacional",
     lillyWelcome: "Sou Lilly. Leio as configurações celestes como geometria,\nnão como destino. Cada carta é um campo de forças —\nalguns planetas ativam, outros resistem.\nInsira seus dados natais e começamos.",
     lillyCtaData: "Inserir meus dados",
-    lillyCtaDemo: "Explorar demo",
+    lillyCtaDemo: "Ver o motor em ação",
+    demoPageTitle: "Cartas de referência",
+    demoPageSubtitle: "10 sujeitos com dados verificados (Rodden AA/A/B). Carta calculada sob demanda.",
+    demoLoading: "Calculando carta…",
     tpSysArch: "Arquitetura do Sistema",
     tpCoreKernel: "Kernel",
     tpEphemeris: "Efemérides",
@@ -273,12 +369,39 @@ export const UI: Record<Lang, {
     tpSectMaster: "MESTRE DE SEITA",
     tpDiurnal: "DIURNO",
     tpNocturnal: "NOTURNO",
+    persianSect: "Seita",
+    persianSectDiurnal: "Carta diurna",
+    persianSectNocturnal: "Carta noturna",
+    persianSectDetailDiurnal: "O Sol está acima do horizonte. Júpiter e o Sol atuam como benéficos principais; Saturno como maléfico moderado.",
+    persianSectDetailNocturnal: "O Sol está abaixo do horizonte. Vênus e a Lua atuam como benéficos principais; Marte como maléfico moderado.",
+    persianProfection: "Profeção anual",
+    persianHouseActivated: "Casa ativada",
+    persianHouseLabel: "Casa",
+    persianCuspSign: "Signo da cúspide",
+    persianAnnualLord: "Senhor do ano",
+    persianNoData: "Sem dados.",
+    persianFirdaria: "Firdaria",
+    persianLastPeriod: "último período registrado",
+    persianOutOfCycle: "Fora do ciclo de 75 anos.",
+    persianMajorPeriod: "Período maior",
+    persianSubPeriod: "Sub-período",
+    persianStart: "Início",
+    persianEnd: "Fim",
+    persianLunarTransits: "Trânsitos lunares",
+    persianMoonPosition: "Posição lunar",
+    persianNoLunar: "Sem dados lunares.",
+    persianCycles: "Ciclos planetários",
+    persianNoEvents: "Sem eventos.",
+    persianLotsTitle: "Partes Arábicas",
+    persianLotFortuna: "Parte da Fortuna",
+    persianLotSpirit: "Parte do Espírito",
+    persianLotLord: "Senhor",
   },
   fr: {
     tabChart: "Thème Natal",
     tabPersian: "Techniques Persanes",
     tabTransits: "Transits",
-    tabRelocation: "Ma Relocalisation",
+    tabRelocation: "Carte HF",
     relTitle: "Relocalisation HF",
     relSubtitle: "Champ d'Harmonie géographique — Démo avec 10 sujets notables",
     natal: "HF Natal",
@@ -315,7 +438,10 @@ export const UI: Record<Lang, {
     homeSubtitle: "Moteur d'intelligence astrologique computationnelle",
     lillyWelcome: "Je suis Lilly. Je lis les configurations célestes comme géométrie,\nnon comme destin. Chaque thème est un champ de forces —\ncertaines planètes activent, d'autres résistent.\nEntrez vos données natales et nous commençons.",
     lillyCtaData: "Entrer mes données",
-    lillyCtaDemo: "Explorer la démo",
+    lillyCtaDemo: "Voir le moteur en action",
+    demoPageTitle: "Thèmes de référence",
+    demoPageSubtitle: "10 sujets avec données vérifiées (Rodden AA/A/B). Thème calculé à la demande.",
+    demoLoading: "Calcul du thème…",
     tpSysArch: "Architecture du Système",
     tpCoreKernel: "Noyau",
     tpEphemeris: "Éphémérides",
@@ -338,5 +464,96 @@ export const UI: Record<Lang, {
     tpSectMaster: "MAÎTRE DE SECTE",
     tpDiurnal: "DIURNE",
     tpNocturnal: "NOCTURNE",
+    persianSect: "Secte",
+    persianSectDiurnal: "Thème diurne",
+    persianSectNocturnal: "Thème nocturne",
+    persianSectDetailDiurnal: "Le Soleil est au-dessus de l'horizon. Jupiter et le Soleil agissent comme bénéfiques principaux ; Saturne comme maléfique modéré.",
+    persianSectDetailNocturnal: "Le Soleil est sous l'horizon. Vénus et la Lune agissent comme bénéfiques principaux ; Mars comme maléfique modéré.",
+    persianProfection: "Profection annuelle",
+    persianHouseActivated: "Maison activée",
+    persianHouseLabel: "Maison",
+    persianCuspSign: "Signe de la cuspide",
+    persianAnnualLord: "Seigneur annuel",
+    persianNoData: "Pas de données.",
+    persianFirdaria: "Firdaria",
+    persianLastPeriod: "dernière période enregistrée",
+    persianOutOfCycle: "Hors du cycle de 75 ans.",
+    persianMajorPeriod: "Période majeure",
+    persianSubPeriod: "Sous-période",
+    persianStart: "Début",
+    persianEnd: "Fin",
+    persianLunarTransits: "Transits lunaires",
+    persianMoonPosition: "Position lunaire",
+    persianNoLunar: "Pas de données lunaires.",
+    persianCycles: "Cycles planétaires",
+    persianNoEvents: "Aucun événement.",
+    persianLotsTitle: "Parties Arabes",
+    persianLotFortuna: "Partie de Fortune",
+    persianLotSpirit: "Partie de l'Esprit",
+    persianLotLord: "Seigneur",
+  },
+};
+
+// Celebrity descriptions for the /demo page — hardcoded, not in UI type
+export const DEMO_DESCRIPTIONS: Record<string, Record<Lang, string>> = {
+  einstein: {
+    es: "Físico teórico. Relatividad especial y general.",
+    en: "Theoretical physicist. Special and general relativity.",
+    pt: "Físico teórico. Relatividade especial e geral.",
+    fr: "Physicien théoricien. Relativités spéciale et générale.",
+  },
+  borges: {
+    es: "Escritor argentino. Laberintos, espejos, infinitos.",
+    en: "Argentine writer. Labyrinths, mirrors, infinities.",
+    pt: "Escritor argentino. Labirintos, espelhos, infinitos.",
+    fr: "Écrivain argentin. Labyrinthes, miroirs, infinis.",
+  },
+  frida: {
+    es: "Pintora mexicana. Arte autobiográfico e identidad.",
+    en: "Mexican painter. Autobiographical art and identity.",
+    pt: "Pintora mexicana. Arte autobiográfica e identidade.",
+    fr: "Peintre mexicaine. Art autobiographique et identité.",
+  },
+  picasso: {
+    es: "Pintor español. Co-fundador del cubismo.",
+    en: "Spanish painter. Co-founder of Cubism.",
+    pt: "Pintor espanhol. Co-fundador do Cubismo.",
+    fr: "Peintre espagnol. Co-fondateur du Cubisme.",
+  },
+  vangogh: {
+    es: "Pintor neerlandés. Postimpresionismo y expresión emocional.",
+    en: "Dutch painter. Post-impressionism and emotional expression.",
+    pt: "Pintor neerlandês. Pós-impressionismo e expressão emocional.",
+    fr: "Peintre néerlandais. Post-impressionnisme et expression émotionnelle.",
+  },
+  freud: {
+    es: "Médico austríaco. Fundador del psicoanálisis.",
+    en: "Austrian physician. Founder of psychoanalysis.",
+    pt: "Médico austríaco. Fundador da psicanálise.",
+    fr: "Médecin autrichien. Fondateur de la psychanalyse.",
+  },
+  jung: {
+    es: "Psiquiatra suizo. Psicología analítica e inconsciente colectivo.",
+    en: "Swiss psychiatrist. Analytical psychology and collective unconscious.",
+    pt: "Psiquiatra suíço. Psicologia analítica e inconsciente coletivo.",
+    fr: "Psychiatre suisse. Psychologie analytique et inconscient collectif.",
+  },
+  gandhi: {
+    es: "Líder indio. Independencia y resistencia no violenta.",
+    en: "Indian leader. Independence and nonviolent resistance.",
+    pt: "Líder indiano. Independência e resistência não violenta.",
+    fr: "Leader indien. Indépendance et résistance non violente.",
+  },
+  tesla: {
+    es: "Inventor serbio-americano. Corriente alterna y electromagnetismo.",
+    en: "Serbian-American inventor. Alternating current and electromagnetism.",
+    pt: "Inventor sérvio-americano. Corrente alternada e eletromagnetismo.",
+    fr: "Inventeur serbo-américain. Courant alternatif et électromagnétisme.",
+  },
+  bowie: {
+    es: "Músico británico. Arte, alter egos y transformación.",
+    en: "British musician. Art, alter egos and transformation.",
+    pt: "Músico britânico. Arte, alter egos e transformação.",
+    fr: "Musicien britannique. Art, alter egos et transformation.",
   },
 };

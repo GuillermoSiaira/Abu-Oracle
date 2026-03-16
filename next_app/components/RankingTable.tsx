@@ -25,10 +25,12 @@ export default function RankingTable({
   data,
   natalHf,
   lang = "es",
+  onCityClick,
 }: {
   data: RankingEntry[] | null;
   natalHf?: number;
   lang?: Lang;
+  onCityClick?: (row: RankingEntry) => void;
 }) {
   const t = UI[lang];
 
@@ -65,9 +67,10 @@ export default function RankingTable({
             return (
               <tr
                 key={i}
-                className={`border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors ${
+                onClick={() => onCityClick?.(row)}
+                className={`border-b border-slate-800/50 transition-colors ${
                   isTop3 ? "bg-amber-900/10" : ""
-                }`}
+                } ${onCityClick ? "cursor-pointer hover:bg-amber-500/10 hover:border-amber-500/20" : "hover:bg-slate-800/30"}`}
               >
                 <td className="py-2 px-3 text-slate-500 font-mono">
                   {i < 3 ? (

@@ -2118,12 +2118,21 @@ def analyze(payload: AnalyzeRequest = Body(
             asc_lon = 0.0
         is_diurnal = is_diurnal_chart(sun_lon, asc_lon)
         current_f = get_current_fardar(birth_dt, is_diurnal, current_dt)
+        # Fallback for historical subjects outside the 75-year fardar cycle
+        if isinstance(current_f, dict) and current_f.get("major") == "N/A":
+            from datetime import timedelta
+            fallback_dt = birth_dt + timedelta(days=74 * 365.25)
+            current_f_fb = get_current_fardar(birth_dt, is_diurnal, fallback_dt)
+            if isinstance(current_f_fb, dict) and current_f_fb.get("major") != "N/A":
+                current_f = current_f_fb
+                current_f["historical_fallback"] = True
         if isinstance(current_f, dict):
             firdaria_current = {
                 "major": current_f.get("major"),
                 "sub": current_f.get("sub"),
                 "start": current_f.get("start"),
                 "end": current_f.get("end"),
+                "historical_fallback": current_f.get("historical_fallback", False),
             }
         sect_label = "diurnal" if is_diurnal else "nocturnal"
     except Exception:
@@ -2207,6 +2216,25 @@ def analyze(payload: AnalyzeRequest = Body(
             return {"houses": [], "asc": asc_value, "mc": mc_value}
     houses_out = _houses_contract(cusps, asc_lon, mc_lon)
 
+    # 6b) Lots (Partes Arábicas)
+    lots_block = None
+    try:
+        from core.lots import calculate_all_lots
+        sun_lon_lots = planets_dict.get("Sun", 0.0)
+        moon_lon_lots = planets_dict.get("Moon", 0.0)
+        venus_lon_lots = planets_dict.get("Venus", 0.0)
+        mercury_lon_lots = planets_dict.get("Mercury", 0.0)
+        asc_for_lots = asc_lon if asc_lon is not None else 0.0
+        planets_for_lots = {
+            "Sun": sun_lon_lots,
+            "Moon": moon_lon_lots,
+            "Venus": venus_lon_lots,
+            "Mercury": mercury_lon_lots,
+        }
+        lots_block = calculate_all_lots(planets_for_lots, asc_for_lots, cusps)
+    except Exception:
+        lots_block = None
+
     # 7) Life cycles (optional block)
     life_cycles_block = None
     t0_cycles = time.perf_counter()
@@ -2261,6 +2289,7 @@ def analyze(payload: AnalyzeRequest = Body(
             "profection": {"house": profection_house_num},
             "lunar_transit": lunar_transit,
             "solar_return": solar_return_block,
+            "lots": lots_block,
         },
         "life_cycles": life_cycles_block,
         "forecast": forecast_block,

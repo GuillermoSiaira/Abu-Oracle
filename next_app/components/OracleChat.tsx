@@ -126,38 +126,161 @@ export default function OracleChat() {
 
   // Store global (NO asumir tipos internos)
   // @ts-ignore
-  const { abuData, birthData, lang } = useAppStore();
+  const { abuData, birthData, lang, pendingLillyEvent, setPendingLillyEvent } = useAppStore();
   const t = UI[lang as keyof typeof UI] ?? UI.es;
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   /* -----------------------------------------------------
-     SYSTEM MESSAGE AUTOMÁTICO
+     SCREEN_OPEN — LILLY INITIAL ORIENTATION
      -----------------------------------------------------
-     Se inyecta una sola vez cuando hay datos calculados.
-     Evita UI vacía y comunica estado técnico al evaluador.
+     Fires once when abuData + birthData are available.
+     Calls /api/lilly/screen-open with minimal AbuContext
+     and injects the LLM response with typewriter effect.
   ----------------------------------------------------- */
   useEffect(() => {
     if (!initialized.current && abuData && birthData) {
       initialized.current = true;
 
-      setMessages([
-        {
-          id: 'sys-init',
-          role: 'assistant',
-          content:
-`> SYSTEM_READY
-> ABU ENGINE: CONNECTED
-> DATA CONTEXT: TEMPORAL + GEOSPATIAL ANCHOR LOADED
+      // --- Build minimal context from abuData ---
+      const name =
+        (birthData as any)?.userName ||
+        (abuData as any)?.person?.name ||
+        'Anónimo';
 
-Lilly is online.
-You may query chart significance, planetary geometry,
-or timing vectors derived from the current computation.`
-        }
-      ]);
+      const sect = (abuData as any)?.derived?.sect ?? null;
+      const sectMaster = sect === 'diurnal' ? 'Jupiter' : 'Venus';
+
+      const SIGNS = [
+        'Aries','Taurus','Gemini','Cancer','Leo','Virgo',
+        'Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces',
+      ];
+      const RULERSHIPS: Record<string, string> = {
+        Aries: 'Mars', Taurus: 'Venus', Gemini: 'Mercury', Cancer: 'Moon',
+        Leo: 'Sun', Virgo: 'Mercury', Libra: 'Venus', Scorpio: 'Mars',
+        Sagittarius: 'Jupiter', Capricorn: 'Saturn', Aquarius: 'Saturn', Pisces: 'Jupiter',
+      };
+
+      const houses = (abuData as any)?.chart?.houses;
+      const ascLon: number | null = houses?.asc ?? null;
+      const mcLon: number | null = houses?.mc ?? null;
+      const ascSign = ascLon != null ? SIGNS[Math.floor(ascLon / 30) % 12] : null;
+      const mcSign = mcLon != null ? SIGNS[Math.floor(mcLon / 30) % 12] : null;
+      const ascRuler = ascSign ? (RULERSHIPS[ascSign] ?? null) : null;
+      const mcRuler = mcSign ? (RULERSHIPS[mcSign] ?? null) : null;
+
+      const planets: any[] = (abuData as any)?.chart?.planets ?? [];
+
+      const dignityKind = (d: any): string | null => {
+        if (!d) return null;
+        if (d.domicile || d.kind === 'domicile') return 'Domicile';
+        if (d.exaltation || d.kind === 'exaltation') return 'Exaltation';
+        return null;
+      };
+      const planetDignity = (pName: string): string => {
+        const p = planets.find((pl: any) => pl.name === pName);
+        if (!p?.dignity) return 'Peregrine';
+        const d = p.dignity;
+        if (d.domicile || d.kind === 'domicile') return 'Domicile';
+        if (d.exaltation || d.kind === 'exaltation') return 'Exaltation';
+        if (d.detriment || d.kind === 'detriment') return 'Detriment';
+        if (d.fall || d.kind === 'fall') return 'Fall';
+        return 'Peregrine';
+      };
+
+      const strongDignities = planets
+        .filter((p: any) => dignityKind(p.dignity) !== null)
+        .slice(0, 2)
+        .map((p: any) => ({ planet: p.name, dignity: dignityKind(p.dignity)! }));
+
+      const firdaria = (abuData as any)?.derived?.firdaria?.current ?? null;
+
+      // Show loading indicator immediately
+      setIsLoading(true);
+
+      fetch('/api/lilly/screen-open', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          sect,
+          sect_master: sectMaster,
+          asc_ruler: ascRuler,
+          asc_ruler_dignity: ascRuler ? planetDignity(ascRuler) : null,
+          mc_ruler: mcRuler,
+          mc_ruler_dignity: mcRuler ? planetDignity(mcRuler) : null,
+          strong_dignities: strongDignities,
+          firdaria_major: firdaria?.major ?? null,
+          firdaria_minor: firdaria?.sub ?? null,
+          lang,
+        }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          const text: string = data.response || `> ERROR: ${data.error ?? 'LILLY_UNREACHABLE'}`;
+          setMessages([{ id: 'screen-open', role: 'assistant', content: text }]);
+        })
+        .catch(() => {
+          setMessages([{
+            id: 'screen-open',
+            role: 'assistant',
+            content: '> LILLY_AI: Sin conexión.\n> Configura ANTHROPIC_API_KEY para activar la interpretación.',
+          }]);
+        })
+        .finally(() => setIsLoading(false));
     }
-  }, [abuData, birthData]);
+  }, [abuData, birthData, lang]);
+
+  /* -----------------------------------------------------
+     LILLY EVENT — REACTIVE (click_planet, etc.)
+     -----------------------------------------------------
+     Fires whenever natal-chart-tab (or any component) sets
+     pendingLillyEvent in the store.
+  ----------------------------------------------------- */
+  useEffect(() => {
+    if (!pendingLillyEvent) return;
+
+    const { type, payload } = pendingLillyEvent as { type: string; payload: any };
+    // Clear immediately to avoid re-fire
+    setPendingLillyEvent(null);
+
+    const routeMap: Record<string, string> = {
+      click_planet: '/api/lilly/planet',
+      click_technique: '/api/lilly/technique',
+      domain_select: '/api/lilly/domain',
+      city_select: '/api/lilly/city',
+    };
+    const route = routeMap[type];
+    if (!route) return;
+
+    setIsLoading(true);
+    fetch(route, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        const text: string = data.response || `> ERROR: ${data.error ?? 'LILLY_UNREACHABLE'}`;
+        setMessages((prev) => [
+          ...prev,
+          { id: `${type}-${Date.now()}`, role: 'assistant', content: text },
+        ]);
+      })
+      .catch(() => {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `${type}-err-${Date.now()}`,
+            role: 'assistant',
+            content: '> LILLY_AI: Sin conexión.',
+          },
+        ]);
+      })
+      .finally(() => setIsLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingLillyEvent]);
 
   // Auto-scroll
   useEffect(() => {

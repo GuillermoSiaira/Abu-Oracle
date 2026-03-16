@@ -165,6 +165,15 @@ export interface AbuAnalyzeResponse {
     }
 
     solar_return?: any
+
+    lots?: Array<{
+      name: string
+      longitude: number
+      sign: string
+      degree: number
+      house?: number
+      lord: string
+    }>
   }
 
   life_cycles: any

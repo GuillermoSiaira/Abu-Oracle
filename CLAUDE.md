@@ -175,15 +175,221 @@ Plan completo de la sesión en: `SESION_FE_PARIDAD_USUARIO.md`
 
 ---
 
-### Fase 9 — Lilly Event System `[PENDIENTE]`
+### Fase 8.5 — Flujo demo + Lilly screen_open ✅ `[COMPLETA 2026-03-16]`
 
-Implementación del contrato Abu↔Lilly definido en `ARCHITECTURE.md`.
+**Tarea 8.5.1** ✅ — CTA "Ver el motor en acción" → `/demo`
+- `lib/i18n.ts`: `lillyCtaDemo` actualizado en 4 idiomas + strings `demoPageTitle/Subtitle/Loading` + export `DEMO_DESCRIPTIONS`
+- `app/page.tsx`: href `/relocation` → `/demo`
 
-**Tarea 9.1** — Event System FE: emisores `LillyEvent` por pantalla (TypeScript)
+**Tarea 8.5.2** ✅ — Página `/demo`: selector de celebridad
+- `app/demo/page.tsx` — grid de 10 cards (todos los sujetos del demo pack)
+- Cada card: nombre en serif, años de vida, ciudad natal, descripción i18n, badge Rodden rating
+- Al click: `runAbuAnalyze` → `setBirthData` + `setAbuData` → `/chart` — mismo flujo que BirthDataPanel
+- `lib/store.ts`: campo `isDemo: boolean` + `setIsDemo()` — no afecta renderización
+- Sujetos: einstein, freud, jung, tesla, gandhi, frida, picasso, vangogh, borges, bowie
+
+**Tarea 8.5.3** ✅ — Lilly screen_open (orientación inicial al cargar carta)
+- `app/api/lilly/screen-open/route.ts` — POST route que llama a OpenAI (`LILLY_MODEL`, default `gpt-4o-mini`)
+- System prompt fiel a `ARCHITECTURE.md §5`; context block: nombre, secta, maestro de secta, regentes ASC/MC + dignidades, firdaria, lang
+- `components/OracleChat.tsx`: `useEffect` reemplazado — extrae contexto de `abuData`, llama al route, inyecta respuesta con typewriter; si falla → mensaje de "sin conexión" sin romper la UI
+- `OPENAI_API_KEY` ya inyectada por `docker-compose.yml`; para dev local agregar en `next_app/.env.local`
+
+**Archivos modificados en Fase 8.5:**
+- `next_app/app/page.tsx`
+- `next_app/app/demo/page.tsx` — nuevo
+- `next_app/app/api/lilly/screen-open/route.ts` — nuevo
+- `next_app/lib/i18n.ts`
+- `next_app/lib/store.ts`
+- `next_app/components/OracleChat.tsx`
+
+---
+
+### Fase 8.6 — Fixes UI + click_planet ✅ `[COMPLETA 2026-03-16]`
+
+Sesión de corrección y mejoras sobre el flujo demo. Lilly ahora responde, los nombres son correctos
+y las tarjetas de posiciones planetarias son clickeables y disparan interpretación en tiempo real.
+
+**Fix 1** ✅ — LILLY_UNREACHABLE resuelto
+- Causa raíz: `OPENAI_API_KEY=` vacío en `next_app/.env.local` (Next.js no carga el `.env` raíz)
+- Fix: clave copiada a `next_app/.env.local` — Lilly responde inmediatamente
+
+**Fix 2** ✅ — Nombre en header de `/chart`
+- `app/chart/page.tsx`: `?.name` → `?.userName || abuData.person?.name`
+- `birthData.userName` es el campo correcto (establecido por demo y por el form del usuario)
+
+**Fix 3** ✅ — Firdaria para sujetos históricos
+- `abu_engine/main.py`: cuando `get_current_fardar` devuelve N/A (ciclo de 75 años superado), hace fallback con `birth_date + 74 años` para obtener el último período registrado
+- Response incluye `historical_fallback: true` — la UI muestra badge "último período registrado"
+- Tesla (1856), Freud (1856), Van Gogh (1853) ahora muestran su último período en lugar de N/A
+
+**Fix 4** ✅ — Rueda zodiacal: anillos separados
+- `natal-chart-tab.tsx`: el `ZodiacWheel` en el tab Carta Natal ya no recibe `transitPlanets`
+- El anillo exterior de tránsitos solo aparece en el tab Tránsitos (que gestiona su propio feed)
+
+**Fix 5** ✅ — Técnicas Persas completas
+- `persian-techniques-tab.tsx` reescrito con diseño dark consistente
+- **Sect**: label + descripción doctrinal (qué planeta benéfico/maléfico actúa en esta carta)
+- **Profección**: casa + signo + **señor del año** (dato clave, en amber) derivado del signo de la cúspide
+- **Firdaria**: mayor + sub + fechas formateadas + badge histórico cuando aplica
+- **Ciclos/Luna**: misma info, layout limpio
+
+**Fix 6** ✅ — Rediseño tarjetas de posiciones planetarias
+- `natal-chart-tab.tsx`: nuevo `PlanetCard` con layout en 3 líneas:
+  - Fila 1: Símbolo + Nombre | badge Dignidad + score
+  - Fila 2: Grado°Min' Signo · Casa N | [℞] si retrógrado
+  - Separador
+  - Fila 3: aspecto más exacto (calculado client-side de longitudes natales), 5 aspectos mayores, orbes ≤ 8°
+- Quita el bloque "Tránsito" de las tarjetas natales
+- Cursor pointer, hover borde ámbar
+
+**Fix 7** ✅ — click_planet (primer evento reactivo de Lilly)
+- `lib/store.ts`: campo `pendingLillyEvent: Record<string,any> | null` + `setPendingLillyEvent()`
+- `app/api/lilly/planet/route.ts` — nueva route POST: arma context block (posición, dignidad, aspecto, retrogradación) → OpenAI → respuesta Lilly
+- `components/OracleChat.tsx`: `useEffect` que escucha `pendingLillyEvent`, llama `/api/lilly/planet`, inyecta respuesta con typewriter al array de mensajes
+- `natal-chart-tab.tsx`: click en tarjeta → `setPendingLillyEvent({ type: 'click_planet', payload: {...} })`
+- Patrón extensible: cualquier componente puede disparar un evento Lilly via store sin acoplarse a OracleChat
+
+**Archivos modificados en Fase 8.6:**
+- `next_app/.env.local` — OPENAI_API_KEY
+- `next_app/app/chart/page.tsx`
+- `next_app/app/api/lilly/planet/route.ts` — nuevo
+- `next_app/lib/store.ts` — pendingLillyEvent
+- `next_app/components/natal-chart-tab.tsx` — reescrito
+- `next_app/components/persian-techniques-tab.tsx` — reescrito
+- `next_app/components/OracleChat.tsx` — useEffect click_planet
+- `abu_engine/main.py` — firdaria fallback histórico
+
+---
+
+### Fase 8.7 — Iteración 4: rueda + técnicas persas + transits + relocalización ✅ `[COMPLETA 2026-03-16]`
+
+**Fix 1** ✅ — ZodiacWheel: separación de radios
+- `numPos` de casa movido de `(houseRadius+signRadius)/2=200` a `innerRadius+20=160`
+- Planetas quedan en 215 (signRadius+35), números de casa en 160 — sin superposición
+
+**Fix 2a** ✅ — Persian Techniques: i18n completa (4 idiomas)
+- 23 keys nuevas en `lib/i18n.ts`: persianSect, persianProfection, persianFirdaria, persianCycles, etc.
+- `persian-techniques-tab.tsx` totalmente conectado a `t.*`
+
+**Fix 2b** ✅ — Persian Techniques: reactividad Lilly
+- Route `POST /api/lilly/technique` — interpreta sect, profección y firdaria con Claude Sonnet 4
+- Secciones convertidas a `<button>` con hover borde ámbar (igual que PlanetCard)
+- OracleChat.tsx refactorizado: routing table `type → route` en lugar de `if/else`
+
+**Fix 3** ✅ — Forecast timeout: causa raíz identificada y corregida
+- `get_planet_positions` llamaba `load.timescale()` en cada iteración del loop (~52 veces en 7d step)
+- `load.timescale()` lee datos de disco (leap seconds) — 200-500ms por llamada → 10-25s total
+- Fix: `_ts_cache` a nivel de módulo en `forecast.py` — primera llamada carga, resto usa cache
+
+**Fix 4** ✅ — My Relocation: reactividad Lilly completa
+- Route `POST /api/lilly/domain` — interpreta dominio seleccionado
+- Route `POST /api/lilly/city` — interpreta ciudad seleccionada (max 4-5 líneas, más rico)
+- `RankingTable.tsx`: prop `onCityClick` + hover ámbar cuando tiene handler
+- `relocation-tab.tsx`: `domainInitRef` para detectar cambios de dominio (skip first render), dispatch `domain_select`; `onCityClick` en RankingTable dispatch `city_select` con ASC/MC locales calculados
+
+**Migración Anthropic API** ✅ — Todas las routes Lilly usan `@anthropic-ai/sdk`
+- `screen-open`, `planet`, `technique`, `domain`, `city` → `claude-sonnet-4-6` (corregido en Fase 8.9)
+- `ANTHROPIC_API_KEY` en `.env.local` (existía) y agregada en `docker-compose.yml`
+- `openai` package queda como fallback para `lilly_swarm` chat (/api/chat proxy)
+
+**Archivos modificados en Fase 8.7:**
+- `next_app/components/zodiac-wheel.tsx` — radio numPos
+- `next_app/lib/i18n.ts` — 23 keys persian* en 4 idiomas
+- `next_app/components/persian-techniques-tab.tsx` — i18n + click handlers
+- `next_app/components/OracleChat.tsx` — routing table de eventos Lilly
+- `next_app/components/RankingTable.tsx` — onCityClick prop + hover ámbar
+- `next_app/components/relocation-tab.tsx` — domain_select + city_select events
+- `next_app/app/api/lilly/screen-open/route.ts` — migrado a Anthropic
+- `next_app/app/api/lilly/planet/route.ts` — migrado a Anthropic
+- `next_app/app/api/lilly/technique/route.ts` — nuevo, Anthropic
+- `next_app/app/api/lilly/domain/route.ts` — nuevo, Anthropic
+- `next_app/app/api/lilly/city/route.ts` — nuevo, Anthropic
+- `abu_engine/core/forecast.py` — _ts_cache timescale singleton
+- `docker-compose.yml` — ANTHROPIC_API_KEY
+
+---
+
+### Fase 8.8 — Partes Arábicas (Lotes) ✅ `[COMPLETA 2026-03-16]`
+
+Diagnóstico previo: Abu Engine ya calculaba lotes en `GET /api/astro/chart/extended` (`extended.lots`)
+pero el endpoint `/analyze` — fuente de `abuData` — no los incluía. Tampoco existía el campo `lord`.
+
+**Tarea 8.8.1** ✅ — Backend: `lord` + lotes en `/analyze`
+- `abu_engine/core/lots.py`: dict `SIGN_LORDS` con regencias tradicionales (Aries→Mars … Piscis→Júpiter)
+- `calculate_all_lots()` ahora devuelve `lord` en cada lote: `{name, longitude, sign, degree, house, lord}`
+- `abu_engine/main.py`: paso 6b en `/analyze` — calcula Fortuna/Espíritu/Eros/Necesidad con Sun/Moon/Venus/Mercury + ASC + cusps y los agrega como `derived.lots`
+
+**Tarea 8.8.2** ✅ — Tipo `derived` actualizado
+- `next_app/lib/types.ts`: campo `lots?` en `AbuAnalyzeResponse.derived` con tipo completo
+
+**Tarea 8.8.3** ✅ — UI: sección "Partes Arábicas" en Técnicas Persas
+- `components/persian-techniques-tab.tsx`: sección entre Firdaria y Tránsitos Lunares
+- Muestra Parte de Fortuna y Parte del Espíritu (tarjetas clickeables, hover ámbar)
+- Formato: `Signo Grado° · Casa N` + señor en amber
+- Click → `click_technique` con `{ technique: 'lot', data: { lot_name, lon, sign, degree, house, lord, lord_dignity } }`
+
+**Tarea 8.8.4** ✅ — Route Lilly: interpretación de lotes
+- `app/api/lilly/technique/route.ts`: caso `lot` — context block con nombre del lote, posición, señor y dignidad → Lilly responde en 3-4 líneas
+
+**Tarea 8.8.5** ✅ — i18n: 4 keys nuevas en 4 idiomas
+- `persianLotsTitle`, `persianLotFortuna`, `persianLotSpirit`, `persianLotLord`
+
+**Evento Lilly activo**: `click_technique` con `technique: 'lot'` — sigue el mismo patrón que sect/profección/firdaria.
+
+**Pendiente**: `docker-compose build abu_engine` para que el endpoint `/analyze` incluya `derived.lots`.
+
+**Archivos modificados en Fase 8.8:**
+- `abu_engine/core/lots.py` — SIGN_LORDS + campo lord
+- `abu_engine/main.py` — paso 6b lots en /analyze
+- `next_app/lib/types.ts` — lots en tipo derived
+- `next_app/lib/i18n.ts` — 4 keys persianLots* en 4 idiomas
+- `next_app/components/persian-techniques-tab.tsx` — sección Partes Arábicas
+- `next_app/app/api/lilly/technique/route.ts` — caso lot
+
+---
+
+### Fase 8.9 — Hotfix: model ID + tab rename + diagnóstico API ✅ `[COMPLETA 2026-03-16]`
+
+**Fix 1** ✅ — Model ID corregido en todas las routes Lilly
+- Root cause de LILLY_UNREACHABLE: `claude-sonnet-4-20250514` ya no es válido en `@anthropic-ai/sdk ^0.78.0`
+- Fix: `claude-sonnet-4-20250514` → `claude-sonnet-4-6` en 5 routes (`screen-open`, `planet`, `technique`, `domain`, `city`)
+
+**Fix 2** ✅ — OracleChat: error reporting mejorado
+- `data.response || '> ERROR: LILLY_UNREACHABLE'` → `data.response || \`> ERROR: ${data.error ?? 'LILLY_UNREACHABLE'}\``
+- Ahora muestra el mensaje exacto del SDK en lugar del genérico
+
+**Fix 3** ✅ — Tab "Mapa HF" en i18n (4 idiomas)
+- `tabRelocation`: "Mi Relocalización" → "Mapa HF" (ES, PT) / "HF Map" (EN) / "Carte HF" (FR)
+
+**Pendiente post-Fase 8.9:**
+- `lib/lilly-prompt.ts` — system prompt v1.0 compartido (ver prompt en historial de chat con Guillermo)
+- Transits y Mapa HF no calculan en flujo demo (condición `!!birthData` debe ser `!!abuData`)
+- `docker-compose build abu_engine` — activa `derived.lots` en `/analyze`
+
+**Archivos modificados en Fase 8.9:**
+- `next_app/app/api/lilly/screen-open/route.ts` — model ID
+- `next_app/app/api/lilly/planet/route.ts` — model ID
+- `next_app/app/api/lilly/technique/route.ts` — model ID
+- `next_app/app/api/lilly/domain/route.ts` — model ID
+- `next_app/app/api/lilly/city/route.ts` — model ID
+- `next_app/components/OracleChat.tsx` — error reporting
+- `next_app/lib/i18n.ts` — tabRelocation en 4 idiomas
+
+---
+
+### Fase 9 — Lilly Event System `[PARCIAL]`
+
+click_planet implementado en Fase 8.6 como route independiente.
+Lo que resta es el sistema reactivo completo per ARCHITECTURE.md.
+
+**Tarea 9.1** — Event System FE: emisores `LillyEvent` tipados para todas las pantallas
+- `click_planet` ✅ funcional (Fase 8.6) — implementación directa, no via Context Builder
+- `domain_select`, `click_house`, `click_transit`, `city_select` — pendientes
 **Tarea 9.2** — Context Builder: traducción evento → prompt estructurado (determinista, sin LLM)
-**Tarea 9.3** — System prompt de Lilly: personalidad, voz, restricciones, citas de Christian Astrology
+- Centraliza la construcción de context blocks (hoy cada route lo hace ad-hoc)
+**Tarea 9.3** — System prompt completo: citas de Christian Astrology, casos edge, tono refinado
 **Tarea 9.4** — RAG pipeline: chunking de Christian Astrology, recuperación por trigger
-**Tarea 9.5** — Benchmark de modelo: Claude Sonnet 4.6 vs GPT-4o en 5 casos representativos
+**Tarea 9.5** — Benchmark de modelo: GPT-4o-mini vs GPT-4o vs Claude Sonnet 4.6 en 5 casos representativos
 
 **Prerequisito**: leer `ARCHITECTURE.md` completo antes de tocar cualquier tarea de esta fase.
 El contrato LillyEvent, AbuContext schema y las plantillas del Context Builder están definidos ahí.
@@ -212,30 +418,40 @@ Investigar causa raíz en el backend y optimizar el cálculo, no solo el timeout
 
 | Slug | ID | Rodden |
 |---|---|---|
-| frida | 35255 / 370945 | AA |
 | einstein | 308660 | AA |
 | freud | 337730 | AA |
+| jung | 366580 | A |
 | tesla | 357700 | B |
 | gandhi | 61360 | A |
-| mlk | 238010 | A |
-| borges | — | AA |
-| picasso | — | AA |
-| vangogh | — | AA |
-| jung | — | A |
+| frida | 35255 | AA |
+| picasso | 76835 | AA |
+| vangogh | 317785 | AA |
+| borges | 12145 | AA |
+| bowie | 232650 | A |
 
 ## Frontend
 
 - URL local dev: `http://localhost:3001` (Docker ocupa :3000)
 - Rutas activas:
-  - `next_app/app/page.tsx` — Home vacío: título `ABU ORACLE` (DM_Serif_Display vía `--font-serif`), subtítulo i18n (`t.homeSubtitle`), CTAs rediseñados, form on-demand
+  - `next_app/app/page.tsx` — Home: título `ABU ORACLE`, CTAs "Ingresar mis datos" (form on-demand) + "Ver el motor en acción" → `/demo`
+  - `next_app/app/demo/page.tsx` — Selector de celebridad: grid 10 cards, llama `/analyze` on-demand → `/chart`
   - `next_app/app/chart/` — Carta natal (requiere `abuData`)
   - `next_app/app/relocation/RelocationClient.tsx` — Mapa relocalización (única consumer del mapa)
   - `next_app/app/relocation-map/` — ELIMINADA
 - Componentes UI clave:
   - `next_app/components/Navigation.tsx` — Top bar global con selector de idioma conectado a `setLang` del store (visible en todas las páginas)
   - `next_app/components/TechnicalPanel.tsx` — Dignidades/Controladores/Cómputo solo cuando `!!abuData && hasChart`
-  - `next_app/components/OracleChat.tsx` — Sys-init requiere `abuData && birthData`; bloque `SYSTEM_READY / CONNECTED / AWAITING INPUT` cuando `messages.length === 0`
+  - `next_app/components/OracleChat.tsx` — Cuando `abuData && birthData`: llama `/api/lilly/screen-open` → typewriter. Escucha `pendingLillyEvent` del store → llama la route correspondiente (`/api/lilly/planet`, etc.) e inyecta respuesta. Sin datos: bloque `SYSTEM_READY / AWAITING INPUT`
+  - `next_app/components/natal-chart-tab.tsx` — Rueda zodiacal (sin tránsitos) + tarjetas planetarias clickeables. Click → `setPendingLillyEvent` → Lilly responde
+  - `next_app/components/persian-techniques-tab.tsx` — Sect + Profección (con señor del año) + Firdaria (con fallback histórico) + Ciclos
   - `next_app/components/HFRelocationMap.tsx` — Mapa MapLibre GL heatmap
+- API routes internas (Next.js):
+  - `next_app/app/api/chat/route.ts` — proxy a lilly_swarm para chat conversacional
+  - `next_app/app/api/lilly/screen-open/route.ts` — llama Anthropic (`claude-sonnet-4-6`) con contexto mínimo AbuContext (screen_open)
+  - `next_app/app/api/lilly/planet/route.ts` — click_planet: context block planeta → Anthropic → interpretación
+  - `next_app/app/api/lilly/technique/route.ts` — click_technique: sect/profección/firdaria/lot → Anthropic → interpretación
+  - `next_app/app/api/lilly/domain/route.ts` — domain_select: dominio HF → Anthropic → interpretación
+  - `next_app/app/api/lilly/city/route.ts` — city_select: ciudad relocalización → Anthropic → interpretación (max_tokens=768)
 - GeoJSON públicos: `next_app/public/geojson/` — formato legacy `subject_*_hf.geojson` + dominios `*_domains.geojson`
 - Rankings públicos: `next_app/public/rankings/`
 
@@ -244,7 +460,9 @@ Investigar causa raíz en el backend y optimizar el cálculo, no solo el timeout
 ## Cómo trabajar con este repo
 
 Cuando Claude Code retome una sesión, leer este archivo primero y preguntar por la fase activa.
-La próxima tarea es siempre la primera sin tilde `✅` en el plan de desarrollo — actualmente **Fase 9 (Lilly Event System)** o **Fase 10 (optimización tránsitos)**.
+La próxima tarea es siempre la primera sin tilde `✅` en el plan de desarrollo — actualmente **Fase 9 (Lilly Event System completo)** o **Fase 10 (optimización tránsitos)**.
+
+**Estado Lilly al 2026-03-16 (Fase 8.9)**: screen_open ✅, click_planet ✅, click_technique (sect/profección/firdaria/lot) ✅, domain_select ✅, city_select ✅. Todas las routes usan `claude-sonnet-4-6` via `@anthropic-ai/sdk`. System prompt v1.0 **pendiente** — crear `lib/lilly-prompt.ts` e importar en las 5 routes. Pendiente también: click_house, click_transit, Context Builder centralizado (Fase 9).
 
 Para tareas que toquen la integración con Lilly (Fase 9 en adelante), leer `ARCHITECTURE.md` antes de escribir código.
 

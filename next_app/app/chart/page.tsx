@@ -34,13 +34,13 @@ export default function ChartPage() {
       <header className="shrink-0 px-6 py-4 border-b border-slate-800 bg-[#080808] flex justify-between items-end">
         <div>
           <h1 className="text-2xl font-semibold text-slate-100 tracking-tight mb-1">
-            {(birthData as any)?.name || "Anonymous Subject"}
+            {(birthData as any)?.userName || abuData.person?.name || "Anonymous Subject"}
           </h1>
 
           <div className="flex items-center gap-4 text-xs text-slate-400 font-mono">
             <span className="flex items-center gap-1">
               <Calendar className="w-3 h-3" />
-              {birthData?.birthDate || abuData.birth?.date || "—"}
+              {birthData?.birthDate || (abuData as any).birth?.date || "—"}
             </span>
 
             <span className="flex items-center gap-1">

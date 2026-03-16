@@ -125,6 +125,13 @@ def longitude_to_sign_degree(longitude: float) -> tuple:
     return signs[sign_index], degree
 
 
+SIGN_LORDS = {
+    "Aries": "Mars", "Taurus": "Venus", "Gemini": "Mercury", "Cancer": "Moon",
+    "Leo": "Sun", "Virgo": "Mercury", "Libra": "Venus", "Scorpio": "Mars",
+    "Sagittarius": "Jupiter", "Capricorn": "Saturn", "Aquarius": "Saturn", "Pisces": "Jupiter",
+}
+
+
 def calculate_all_lots(
     planets: Dict[str, float],
     asc_long: float,
@@ -186,12 +193,13 @@ def calculate_all_lots(
             "name": lot["name"],
             "longitude": lot["longitude"],
             "sign": sign,
-            "degree": round(degree, 1)
+            "degree": round(degree, 1),
+            "lord": SIGN_LORDS.get(sign, "Unknown"),
         }
-        
+
         if cusps:
             lot_data["house"] = get_planet_house(lot["longitude"], cusps)
-        
+
         result.append(lot_data)
     
     return result

@@ -62,7 +62,7 @@ export default function Home() {
             → {t.lillyCtaData}
           </button>
           <Link
-            href="/relocation"
+            href="/demo"
             className="text-xs font-mono text-slate-500 hover:text-slate-300 border border-slate-700/40 hover:border-slate-600/60 rounded-sm px-5 py-2 transition-all w-fit"
           >
             → {t.lillyCtaDemo}

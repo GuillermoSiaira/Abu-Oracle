@@ -16,25 +16,162 @@ function getSignFromLongitude(long: number): string {
   return signs[index];
 }
 
+function formatDegMin(longitude: number): string {
+  const degInSign = ((longitude % 360) + 360) % 360 % 30;
+  const deg = Math.floor(degInSign);
+  const min = Math.round((degInSign - deg) * 60);
+  return `${deg}°${String(min).padStart(2, "0")}'`;
+}
+
 // ------------------------------------
-// Component
+// Dignity helpers
+// ------------------------------------
+type DignityInfo = { label: string; color: string; score: number };
+
+function getDignityInfo(dignity: any): DignityInfo {
+  if (!dignity) return { label: "Peregrine", color: "text-slate-500", score: 0 };
+  if (dignity.domicile  || dignity.kind === "domicile")  return { label: "Domicile",  color: "text-amber-400",  score: dignity.score ?? 5  };
+  if (dignity.exaltation|| dignity.kind === "exaltation")return { label: "Exaltation",color: "text-yellow-300", score: dignity.score ?? 4  };
+  if (dignity.detriment || dignity.kind === "detriment") return { label: "Detriment", color: "text-red-400",    score: dignity.score ?? -5 };
+  if (dignity.fall      || dignity.kind === "fall")      return { label: "Fall",       color: "text-orange-400",score: dignity.score ?? -4 };
+  return { label: "Peregrine", color: "text-slate-500", score: dignity.score ?? 0 };
+}
+
+function dignityBadgeClass(d: DignityInfo): string {
+  if (d.label === "Domicile" || d.label === "Exaltation")
+    return "border-amber-800/40 bg-amber-900/20 text-amber-400";
+  if (d.label === "Detriment" || d.label === "Fall")
+    return "border-red-800/30 bg-red-900/10 text-red-400";
+  return "border-slate-700/40 bg-slate-800/20 text-slate-500";
+}
+
+// ------------------------------------
+// Aspect computation (natal aspects)
+// ------------------------------------
+const NATAL_ASPECTS = [
+  { type: "conjunction",  angle: 0,   orb: 8,  symbol: "☌" },
+  { type: "sextile",      angle: 60,  orb: 6,  symbol: "⚹" },
+  { type: "square",       angle: 90,  orb: 8,  symbol: "□" },
+  { type: "trine",        angle: 120, orb: 8,  symbol: "△" },
+  { type: "opposition",   angle: 180, orb: 8,  symbol: "☍" },
+];
+
+function computeClosestAspect(
+  planets: any[],
+  targetName: string
+): { type: string; planet: string; orb: number; symbol: string } | null {
+  const target = planets.find((p) => p.name === targetName);
+  if (!target) return null;
+
+  let closest: { type: string; planet: string; orb: number; symbol: string } | null = null;
+  let minOrb = Infinity;
+
+  for (const other of planets) {
+    if (other.name === targetName) continue;
+    const diff = Math.abs(
+      ((Math.abs(target.longitude - other.longitude) % 360) + 360) % 360
+    );
+    const normalised = diff > 180 ? 360 - diff : diff;
+
+    for (const asp of NATAL_ASPECTS) {
+      const orb = Math.abs(normalised - asp.angle);
+      if (orb <= asp.orb && orb < minOrb) {
+        minOrb = orb;
+        closest = { type: asp.type, planet: other.name, orb, symbol: asp.symbol };
+      }
+    }
+  }
+  return closest;
+}
+
+const PLANET_SYMBOLS: Record<string, string> = {
+  Sun: "☉", Moon: "☽", Mercury: "☿", Venus: "♀",
+  Mars: "♂", Jupiter: "♃", Saturn: "♄",
+  Uranus: "♅", Neptune: "♆", Pluto: "♇",
+};
+
+// ------------------------------------
+// Planet Card
+// ------------------------------------
+interface PlanetCardProps {
+  planet: any;
+  allPlanets: any[];
+  onClick: (p: any) => void;
+}
+
+function PlanetCard({ planet, allPlanets, onClick }: PlanetCardProps) {
+  const sym = PLANET_SYMBOLS[planet.name] ?? planet.name[0];
+  const d = getDignityInfo(planet.dignity);
+  const aspect = computeClosestAspect(allPlanets, planet.name);
+  const degMin = formatDegMin(planet.longitude);
+  const isRetrograde = planet.retrograde === true;
+  const scoreStr = d.score > 0 ? `+${d.score}` : d.score < 0 ? `${d.score}` : "";
+
+  return (
+    <button
+      onClick={() => onClick(planet)}
+      className="w-full text-left p-3 rounded-sm border border-slate-800 bg-[#080808] hover:border-amber-500/30 hover:bg-amber-500/5 cursor-pointer transition-colors group"
+    >
+      {/* Row 1 — Symbol + Name | Dignity badge */}
+      <div className="flex items-center justify-between mb-1">
+        <span className="flex items-center gap-1.5 text-slate-200 text-sm font-medium">
+          <span className="text-base">{sym}</span>
+          {planet.name}
+        </span>
+        <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${dignityBadgeClass(d)}`}>
+          {d.label}{scoreStr ? ` ${scoreStr}` : ""}
+        </span>
+      </div>
+
+      {/* Row 2 — Degree + Sign · Casa | [R] */}
+      <div className="flex items-center justify-between text-[11px] text-slate-400 font-mono">
+        <span>
+          {degMin} {planet.sign} · Casa {planet.house ?? "—"}
+        </span>
+        {isRetrograde && (
+          <span className="text-amber-500/70 text-[10px]">℞</span>
+        )}
+      </div>
+
+      {/* Divider */}
+      <div className="my-2 border-t border-slate-800/80" />
+
+      {/* Row 3 — Closest aspect */}
+      <div className="text-[10px] text-slate-500 font-mono">
+        {aspect ? (
+          <span>
+            <span className="text-slate-400">{aspect.symbol} {aspect.type}</span>
+            {" con "}
+            <span className="text-slate-300">{aspect.planet}</span>
+            {" "}
+            <span className="text-slate-600">(orb {aspect.orb.toFixed(1)}°)</span>
+          </span>
+        ) : (
+          <span className="text-slate-700">sin aspecto mayor</span>
+        )}
+      </div>
+    </button>
+  );
+}
+
+// ------------------------------------
+// Main component
 // ------------------------------------
 export function NatalChartTab() {
   const abuData = useAppStore((s) => s.abuData);
   const isLoading = useAppStore((s) => s.isLoading);
+  const setPendingLillyEvent = useAppStore((s) => s.setPendingLillyEvent);
+  const birthData = useAppStore((s) => s.birthData);
+  const lang = useAppStore((s) => s.lang);
 
-  const [orientation, setOrientation] = useState<"aries" | "ascendant">(
-    "ascendant"
-  );
+  const [orientation, setOrientation] = useState<"aries" | "ascendant">("ascendant");
 
-  if (isLoading) return <div>Cargando carta…</div>;
-  if (!abuData) return <div>No hay análisis disponible.</div>;
+  if (isLoading) return <div className="p-6 text-slate-500 text-sm">Cargando carta…</div>;
+  if (!abuData) return <div className="p-6 text-slate-500 text-sm">No hay análisis disponible.</div>;
 
-  const { chart, transits } = abuData;
+  const { chart } = abuData;
 
-  // ------------------------------------
-  // ADAPTER → Casas
-  // ------------------------------------
+  // Houses
   const adaptedHouses = chart.houses.houses.map((h: any) => ({
     number: h.house,
     cusp: h.start,
@@ -47,10 +184,11 @@ export function NatalChartTab() {
     mc: chart.houses.mc,
   };
 
-  // ------------------------------------
-  // ADAPTER → Planetas natales
-  // ------------------------------------
-  const natalPlanets = chart.planets.map((p: any) => ({
+  // Natal planets (raw — keep dignity + retrograde for cards)
+  const rawPlanets: any[] = chart.planets ?? [];
+
+  // Adapted planets for ZodiacWheel (no transit ring in natal tab)
+  const natalPlanets = rawPlanets.map((p: any) => ({
     name: p.name,
     longitude: p.longitude,
     sign: p.sign,
@@ -59,103 +197,78 @@ export function NatalChartTab() {
     house: p.house,
   }));
 
-  // ------------------------------------
-  // ADAPTER → Planetas en tránsito ✅ NUEVO
-  // ------------------------------------
-  const transitPlanets =
-    transits?.planets?.map((p: any) => ({
-      name: p.name,
-      longitude: p.longitude,
-      sign: p.sign,
-      degree: p.degree_in_sign,
-      formatted: p.formatted,
-    })) ?? [];
+  // Click handler — sends event to Lilly via store
+  function handlePlanetClick(p: any) {
+    const d = getDignityInfo(p.dignity);
+    const subjectName =
+      (birthData as any)?.userName ||
+      abuData?.person?.name ||
+      "Anónimo";
 
-  // ------------------------------------
-  // RENDER
-  // ------------------------------------
+    const aspect = computeClosestAspect(rawPlanets, p.name);
+
+    setPendingLillyEvent({
+      type: "click_planet",
+      payload: {
+        planet_name: p.name,
+        lon: p.longitude,
+        sign: p.sign,
+        house: p.house,
+        dignity: d.label,
+        dignity_score: d.score,
+        retrograde: p.retrograde === true,
+        subject_name: subjectName,
+        closest_aspect: aspect,
+        lang,
+      },
+    });
+  }
+
   return (
-    <div className="space-y-10">
-      <h2 className="text-xl font-semibold">Carta Natal</h2>
+    <div className="space-y-8 p-4">
 
-      {/* Selector de orientación */}
-      <div className="flex gap-4 items-center">
-        <button
-          className={`px-3 py-1 rounded-md border ${
-            orientation === "aries"
-              ? "bg-primary text-primary-foreground"
-              : "bg-muted"
-          }`}
-          onClick={() => setOrientation("aries")}
-        >
-          Aries arriba
-        </button>
-
-        <button
-          className={`px-3 py-1 rounded-md border ${
-            orientation === "ascendant"
-              ? "bg-primary text-primary-foreground"
-              : "bg-muted"
-          }`}
-          onClick={() => setOrientation("ascendant")}
-        >
-          Ascendente arriba
-        </button>
+      {/* Orientation selector */}
+      <div className="flex gap-2 items-center">
+        {(["aries", "ascendant"] as const).map((o) => (
+          <button
+            key={o}
+            className={`px-3 py-1 rounded text-xs border transition-colors ${
+              orientation === o
+                ? "bg-amber-500/10 border-amber-500/40 text-amber-400"
+                : "bg-slate-900/50 border-slate-800 text-slate-500 hover:border-slate-600"
+            }`}
+            onClick={() => setOrientation(o)}
+          >
+            {o === "aries" ? "Aries arriba" : "Ascendente arriba"}
+          </button>
+        ))}
       </div>
 
-      {/* Rueda zodiacal */}
+      {/* Zodiac wheel — natal only, no transit ring */}
       <ZodiacWheel
         planets={natalPlanets}
-        transitPlanets={transitPlanets}  
         houses={houseData}
         orientation={orientation}
       />
 
-      {/* Panel → Posiciones planetarias */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Posiciones planetarias</h3>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {natalPlanets.map((p) => {
-            // Find corresponding transit planet
-            const tp = transitPlanets?.find((tp) => tp.name === p.name);
-            // Calculate delta (ensuring positive angle difference)
-            const delta = tp ? ((tp.longitude - p.longitude + 360) % 360) : null;
-
-            return (
-              <div
-                key={p.name}
-                className="p-3 rounded-md border bg-card/50 backdrop-blur-sm"
-              >
-                <p className="font-semibold">{p.name}</p>
-                <p className="text-sm opacity-80">{p.formatted}</p>
-                <p className="text-sm opacity-80">Signo: {p.sign}</p>
-                <p className="text-sm opacity-80">Casa: {p.house}</p>
-
-                {tp && (
-                  <div className="mt-2 pt-2 border-t border-slate-700/50">
-                    <p className="text-xs text-slate-400">Tránsito</p>
-                    <p className="text-sm">{tp.formatted}</p>
-                    <p className="text-xs text-amber-400">
-                      Δ {delta?.toFixed(1)}°
-                    </p>
-                  </div>
-                )}
-              </div>
-            );
-          })}
+      {/* Planet cards */}
+      <div>
+        <h3 className="text-xs font-mono uppercase tracking-widest text-slate-600 mb-3">
+          Posiciones planetarias
+          <span className="ml-2 text-slate-700 normal-case">— click para interpretar</span>
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+          {rawPlanets.map((p: any) => (
+            <PlanetCard
+              key={p.name}
+              planet={p}
+              allPlanets={rawPlanets}
+              onClick={handlePlanetClick}
+            />
+          ))}
         </div>
       </div>
 
-      {/* Debug */}
-      <details className="mt-4">
-        <summary className="cursor-pointer text-sm opacity-70">
-          Ver JSON completo (debug)
-        </summary>
-        <pre className="bg-black/20 p-3 rounded text-xs mt-2 overflow-auto max-h-96">
-          {JSON.stringify(abuData, null, 2)}
-        </pre>
-      </details>
     </div>
   );
 }

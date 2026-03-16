@@ -57,9 +57,22 @@ type DomainRankResult = {
   errors: string[];
 };
 
+const DOMAIN_HOUSE_NUM: Record<Domain, number> = {
+  global: 0, h1: 1, h2: 2, h4: 4, h5: 5, h6: 6, h7: 7, h9: 9, h10: 10,
+};
+
+const DOMAIN_LABELS: Record<Domain, string> = {
+  global: "Global", h1: "Identidad", h2: "Recursos", h4: "Hogar",
+  h5: "Creatividad", h6: "Trabajo/Salud", h7: "Relaciones", h9: "Expansión", h10: "Carrera",
+};
+
 export function RelocationTab() {
-  const { birthData, lang } = useAppStore();
+  const { birthData, lang, abuData, setPendingLillyEvent } = useAppStore();
   const t = UI[lang];
+  const subjectName =
+    (birthData as any)?.userName ||
+    (abuData as any)?.person?.name ||
+    "Anónimo";
   const [data, setData] = useState<RelocationResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -79,6 +92,7 @@ export function RelocationTab() {
   // HF domain field for natal mode
   const [hfDomain, setHfDomain] = useState<Domain>("global");
   const [domainFieldLoading, setDomainFieldLoading] = useState(false);
+  const domainInitRef = useRef(false);
 
   // Solar Return relocation field
   const [srGeojsonUrl, setSrGeojsonUrl] = useState<string | null>(null);
@@ -96,6 +110,26 @@ export function RelocationTab() {
   // Fetch domain HF field when hfDomain changes (natal mode)
   useEffect(() => {
     if (!data || !birthData) return;
+
+    // Fire domain_select Lilly event on user-initiated domain changes (skip first render)
+    if (!domainInitRef.current) {
+      domainInitRef.current = true;
+    } else if (hfDomain !== "global") {
+      setPendingLillyEvent({
+        type: "domain_select",
+        payload: {
+          domain: DOMAIN_LABELS[hfDomain],
+          house_num: DOMAIN_HOUSE_NUM[hfDomain],
+          subject_name: subjectName,
+          significators: [],
+          hf_current: data.natal_hf,
+          hf_max: data.max_hf,
+          best_city: data.rankings[0]?.city ?? "—",
+          lang,
+        },
+      });
+    }
+
     if (hfDomain === "global") {
       // Restore the original global geojson blob URL
       const geoBlob = new Blob([JSON.stringify(data.geojson)], { type: "application/json" });
@@ -375,8 +409,36 @@ export function RelocationTab() {
 
           {/* Ranking table */}
           <div className="rounded-lg border border-slate-700 p-3">
-            <h3 className="text-sm font-medium text-slate-300 mb-2">{t.top20}</h3>
-            <RankingTable data={data!.rankings} natalHf={data!.natal_hf} lang={lang} />
+            <h3 className="text-sm font-medium text-slate-300 mb-2">
+              {t.top20}
+              <span className="ml-2 text-[10px] text-slate-600 font-mono normal-case">— click para interpretar</span>
+            </h3>
+            <RankingTable
+              data={data!.rankings}
+              natalHf={data!.natal_hf}
+              lang={lang}
+              onCityClick={(row) => {
+                const SIGNS = ["Aries","Taurus","Gemini","Cancer","Leo","Virgo","Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces"];
+                const ascLocal = row.asc_lon != null ? SIGNS[Math.floor(((row.asc_lon % 360) + 360) % 360 / 30)] : undefined;
+                const mcLocal = row.mc_lon != null ? SIGNS[Math.floor(((row.mc_lon % 360) + 360) % 360 / 30)] : undefined;
+                setPendingLillyEvent({
+                  type: "city_select",
+                  payload: {
+                    city_name: row.city,
+                    country: row.country,
+                    lat: row.city_lat,
+                    lon: row.city_lon,
+                    hf_score: row.hf_total_v3,
+                    delta_natal: row.hf_total_v3 - data!.natal_hf,
+                    domain: DOMAIN_LABELS[hfDomain],
+                    subject_name: subjectName,
+                    asc_local: ascLocal,
+                    mc_local: mcLocal,
+                    lang,
+                  },
+                });
+              }}
+            />
           </div>
         </>
       )}
