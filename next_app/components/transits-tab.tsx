@@ -53,6 +53,7 @@ interface GroupedTransit {
 
 export function TransitsTab() {
   const birthData = useAppStore((s) => s.birthData);
+  const abuData = useAppStore((s) => s.abuData);
   const transitDate = useAppStore((s) => s.transitDate);
   const setTransitDate = useAppStore((s) => s.setTransitDate);
   const [data, setData] = useState<TransitAspect[] | null>(null);
@@ -109,7 +110,7 @@ export function TransitsTab() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [birthData?.birthDate, birthData?.lat, birthData?.lon, effectiveTransitDate]);
 
-  if (!birthData) {
+  if (!abuData) {
     return (
       <div className="p-8 text-center text-sm text-slate-500">
         Ingresá tus datos natales para ver los tránsitos activos.

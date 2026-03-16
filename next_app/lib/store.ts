@@ -91,6 +91,7 @@
         abuData?: AbuAnalyzeResponse | null
         lillyData?: LillyResponse | null
         chatHistory?: ChatMessage[]
+        birthData?: BirthData | null
       }
 
       const chatHistory: ChatMessage[] = Array.isArray(parsed.chatHistory)
@@ -104,6 +105,7 @@
         abuData: parsed.abuData ?? null,
         lillyData: parsed.lillyData ?? null,
         chatHistory,
+        birthData: parsed.birthData ?? null,
       }
     } catch (e) {
       console.error("[Store] Error leyendo localStorage:", e)
@@ -138,6 +140,7 @@
       abuData: state.abuData,
       lillyData: state.lillyData,
       chatHistory: state.chatHistory,
+      birthData: state.birthData,
     }
 
     try {
@@ -156,7 +159,7 @@
 
     return {
       // ---- Estado base ----
-      birthData: null,
+      birthData: (persisted as any).birthData ?? null,
       abuData: (persisted as any).abuData ?? null,
       lillyData: (persisted as any).lillyData ?? null,
       chatHistory: (persisted as any).chatHistory ?? [],
@@ -179,7 +182,12 @@
       // MUTADORES PRINCIPALES
       // ---------------------------------------------------
 
-      setBirthData: (data) => set({ birthData: data }),
+      setBirthData: (data) =>
+        set((state) => {
+          const next: AppState = { ...state, birthData: data }
+          persistSelected(next)
+          return { birthData: data }
+        }),
 
       setAbuData: (data) =>
         set((state) => {

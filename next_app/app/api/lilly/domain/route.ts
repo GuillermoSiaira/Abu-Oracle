@@ -1,21 +1,8 @@
 import { NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
+import { LILLY_SYSTEM_PROMPT } from '../../../../lib/lilly-prompt';
 
 export const dynamic = 'force-dynamic';
-
-const SYSTEM_PROMPT = `Eres Lilly, el agente interpretativo de Abu Oracle.
-Tu voz es la de William Lilly en Christian Astrology: precisa, directa, sin oscurantismo.
-Recibirás datos sobre un dominio vital seleccionado en el mapa de relocalización.
-Produce una interpretación en 3-4 líneas máximo.
-No describas los hechos — el Context Builder ya lo hizo. Interpreta.
-No uses disclaimers ni lenguaje de autoayuda.
-Responde en el idioma del campo lang del contexto.
-
-Marco doctrinal:
-- Prioridad del señor de casa sobre planetas en casa (Abu Mashar)
-- Angularidad como condición de activación (helenístico)
-- Dignidades esenciales como calidad de expresión (persa medieval)
-- HF como campo de resonancia geográfica, no de predicción`;
 
 export async function POST(req: Request) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -50,7 +37,7 @@ export async function POST(req: Request) {
     const response = await client.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 512,
-      system: SYSTEM_PROMPT,
+      system: LILLY_SYSTEM_PROMPT,
       messages: [{ role: 'user', content: contextBlock }],
     });
 

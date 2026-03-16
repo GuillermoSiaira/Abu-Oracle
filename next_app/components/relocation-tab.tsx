@@ -270,7 +270,7 @@ export function RelocationTab() {
     }
   };
 
-  if (!birthData) {
+  if (!abuData) {
     return (
       <div className="text-center py-12 space-y-3">
         <Globe className="w-10 h-10 text-amber-400/50 mx-auto" />
