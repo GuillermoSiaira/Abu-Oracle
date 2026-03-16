@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useAppStore } from "@/lib/store";
 import { UI } from "@/lib/i18n";
 import { ABU_BASE_URL } from "@/services/abu";
@@ -127,7 +127,11 @@ export function RelocationTab() {
   const domainInitRef = useRef(false);
 
   // Map click → nearest city → city_select a Lilly
-  async function handleMapClick({ lat, lon, hfScore, deltaScore }: { lat: number; lon: number; hfScore: number; deltaScore: number }) {
+  // useCallback estabiliza la referencia — evita re-renders en cadena y doble registro de handlers
+  const isProcessingClick = useRef(false);
+  const handleMapClick = useCallback(async ({ lat, lon, hfScore, deltaScore }: { lat: number; lon: number; hfScore: number; deltaScore: number }) => {
+    if (isProcessingClick.current) return;
+    isProcessingClick.current = true;
     try {
       const res = await fetch(`/api/cities/nearest?lat=${lat}&lon=${lon}`);
       if (!res.ok) return;
@@ -150,8 +154,11 @@ export function RelocationTab() {
       });
     } catch (e) {
       console.error('[MapClick]', e);
+    } finally {
+      // Cooldown de 1s para prevenir doble-fire (StrictMode dev / handlers acumulados)
+      setTimeout(() => { isProcessingClick.current = false; }, 1000);
     }
-  }
+  }, [hfDomain, subjectName, lang, setPendingLillyEvent]);
 
   // Solar Return relocation field
   const [srGeojsonUrl, setSrGeojsonUrl] = useState<string | null>(null);
