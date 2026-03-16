@@ -382,6 +382,12 @@ pero el endpoint `/analyze` — fuente de `abuData` — no los incluía. Tampoco
 **Tarea CC.1** ✅ — Proporciones de layout
 - `DashboardLayout.tsx`: columna izquierda `280px → 180px`, columna derecha `350/400px → 380px` (fijo, sin breakpoint xl)
 
+**Tarea CC.5** ✅ — Oracle Interface ancho ajustable (2026-03-16, commit `5098091`)
+- Ancho default `440px` (era `380px`), rango `300–700px`, persiste en `localStorage('oracleWidth')`
+- Divisor arrastrable (`w-1`, `cursor-col-resize`, hover `amber-400/30`, active `amber-400/50`) entre `<main>` y `<aside>` Oracle
+- `widthRef` sincroniza el ancho durante el drag — evita closure stale en `mouseup` al escribir `localStorage`
+- Handlers `mousemove`/`mouseup` en `useEffect(deps=[])` — montados una vez, leen refs no state
+
 **Tarea CC.2** ✅ — Panel izquierdo: de datos estáticos a guía activa
 - `TechnicalPanel.tsx` reescrito: cuando hay carta cargada muestra 3 secciones:
   - **LEYENDO AHORA** — refleja `lastLillyEvent.label` del store (actualizado en cada evento)
