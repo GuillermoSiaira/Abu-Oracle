@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 interface Planet {
   name: string;
@@ -9,6 +9,16 @@ interface Planet {
   degree?: number;
   formatted?: string;
   house?: number;
+  dignity?: string;
+  retrograde?: boolean;
+}
+
+export interface PlanetPosition extends Planet {
+  x: number;
+  y: number;
+  symbol: string;
+  color: string;
+  deg: number;
 }
 
 interface House {
@@ -36,6 +46,7 @@ interface ZodiacWheelProps {
   moonSign?: string;
   ascendantSign?: string;
   orientation?: "aries" | "ascendant";
+  onPlanetClick?: (planet: PlanetPosition) => void;
 }
 
 const ZODIAC_SIGNS = [
@@ -88,7 +99,9 @@ export function ZodiacWheel({
   moonSign,
   ascendantSign,
   orientation = "aries",
+  onPlanetClick,
 }: ZodiacWheelProps) {
+  const [hoveredPlanet, setHoveredPlanet] = useState<PlanetPosition | null>(null);
   // -------------------------
   // CONSTS DE DIBUJO
   // -------------------------
@@ -129,13 +142,15 @@ export function ZodiacWheel({
     () =>
       planets.map((planet) => {
         const pos = polarToCartesian(planet.longitude, signRadius + 35);
+        const degInSign = ((planet.longitude % 360) + 360) % 360 % 30;
         return {
           ...planet,
           x: pos.x,
           y: pos.y,
           symbol: PLANET_SYMBOLS[planet.name] || planet.name.charAt(0),
           color: PLANET_COLORS[planet.name] || "#FFD700",
-        };
+          deg: Math.floor(degInSign),
+        } as PlanetPosition;
       }),
     [planets, rotationOffset]
   );
@@ -453,14 +468,20 @@ export function ZodiacWheel({
 
         {/* PLANETS */}
         {planetPositions.map((p) => (
-          <g key={p.name}>
+          <g
+            key={p.name}
+            onClick={() => onPlanetClick?.(p)}
+            onMouseEnter={() => setHoveredPlanet(p)}
+            onMouseLeave={() => setHoveredPlanet(null)}
+            style={{ cursor: onPlanetClick ? 'pointer' : 'default' }}
+          >
             <circle
               cx={p.x}
               cy={p.y}
               r="24"
               fill="#1a1a2e"
-              stroke={p.color}
-              strokeWidth="3"
+              stroke={hoveredPlanet?.name === p.name ? '#fbbf24' : p.color}
+              strokeWidth={hoveredPlanet?.name === p.name ? 4 : 3}
               filter="url(#strongGlow)"
             />
             <text
@@ -479,7 +500,12 @@ export function ZodiacWheel({
 
         {/* TRANSIT PLANETS - OUTER RING */}
         {transitPlanetPositions.map((p) => (
-          <g key={`transit-${p.name}`}>
+          <g
+            key={`transit-${p.name}`}
+            onMouseEnter={() => setHoveredPlanet(p as PlanetPosition)}
+            onMouseLeave={() => setHoveredPlanet(null)}
+            style={{ cursor: 'default' }}
+          >
             <circle
               cx={p.x}
               cy={p.y}
@@ -513,6 +539,38 @@ export function ZodiacWheel({
           fill="#D4AF37"
           filter="url(#glow)"
         />
+
+        {/* TOOLTIP */}
+        {hoveredPlanet && (
+          <foreignObject
+            x={Math.min(Math.max(hoveredPlanet.x - 80, 0), 440)}
+            y={Math.min(hoveredPlanet.y + 30, 520)}
+            width="160"
+            height="80"
+            style={{ pointerEvents: 'none', overflow: 'visible' }}
+          >
+            <div style={{
+              background: 'rgba(10,10,20,0.95)',
+              border: '1px solid rgba(251,191,36,0.4)',
+              borderRadius: '6px',
+              padding: '6px 10px',
+              color: '#f5f5f5',
+              fontSize: '12px',
+              lineHeight: '1.5',
+              fontFamily: 'monospace',
+            }}>
+              <div style={{ color: hoveredPlanet.color, fontWeight: 'bold', fontSize: '13px' }}>
+                {hoveredPlanet.symbol} {hoveredPlanet.name}
+              </div>
+              <div>{hoveredPlanet.sign} {hoveredPlanet.deg}° · Casa {hoveredPlanet.house ?? '—'}</div>
+              {hoveredPlanet.dignity && (
+                <div style={{ color: '#9ca3af', fontSize: '11px' }}>
+                  {hoveredPlanet.dignity}{hoveredPlanet.retrograde ? ' · ℞' : ''}
+                </div>
+              )}
+            </div>
+          </foreignObject>
+        )}
       </svg>
     </div>
   );

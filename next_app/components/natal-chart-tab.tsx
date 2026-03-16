@@ -195,6 +195,8 @@ export function NatalChartTab() {
     degree: p.degree_in_sign,
     formatted: p.formatted,
     house: p.house,
+    dignity: getDignityInfo(p.dignity).label,
+    retrograde: p.retrograde === true,
   }));
 
   // Click handler — sends event to Lilly via store
@@ -249,6 +251,10 @@ export function NatalChartTab() {
         planets={natalPlanets}
         houses={houseData}
         orientation={orientation}
+        onPlanetClick={(p) => handlePlanetClick({
+          ...rawPlanets.find((r: any) => r.name === p.name),
+          longitude: p.longitude,
+        })}
       />
 
       {/* Planet cards */}
