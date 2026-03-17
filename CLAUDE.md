@@ -554,3 +554,22 @@ Tres bugs corregidos en `next_app/components/OracleChat.tsx`. Commits: `854b83e`
 Para tareas que toquen la integración con Lilly (Fase 9 en adelante), leer `ARCHITECTURE.md` antes de escribir código.
 
 Al completar una tarea, marcarla con `✅` en este archivo y hacer commit.
+
+## Fase 10 — Multi-usuario (EN PROGRESO)
+
+Ver `MULTIUSER_ARCHITECTURE.md` para arquitectura completa.
+
+Stack: Firebase Auth + Firestore + Resend + Lemon Squeezy webhook
+Proyecto GCP: `abu-oracle`
+
+### Estado
+- [ ] Firebase Auth habilitado
+- [ ] Firestore habilitado  
+- [ ] auth middleware en abu-engine
+- [ ] Login/Register en Next.js
+- [ ] AuthGuard en /chart
+- [ ] Webhook de pago Lemon Squeezy
+- [ ] Email bienvenida con Resend
+- [ ] Deploy final GCP
+- [ ] Testing end-to-end
+- [ ] LANZAMIENTO
