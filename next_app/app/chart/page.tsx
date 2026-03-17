@@ -5,6 +5,22 @@ import { useAppStore } from "@/lib/store";
 import { ChartTabs } from "@/components/chart-tabs";
 import { Calendar, MapPin, Sun, Moon } from "lucide-react";
 
+function formatLocalDate(utcStr: string, utcOffset?: number): string {
+  if (!utcStr) return "—";
+  const utcMs = new Date(utcStr).getTime();
+  if (isNaN(utcMs)) return utcStr;
+  const offsetMs = (utcOffset ?? 0) * 3600000;
+  const local = new Date(utcMs + offsetMs);
+  const yyyy = local.getUTCFullYear();
+  const mm = String(local.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(local.getUTCDate()).padStart(2, "0");
+  const hh = String(local.getUTCHours()).padStart(2, "0");
+  const min = String(local.getUTCMinutes()).padStart(2, "0");
+  const sign = utcOffset == null ? "" : utcOffset >= 0 ? `+${utcOffset}` : `${utcOffset}`;
+  const suffix = utcOffset != null ? ` (UTC${sign})` : "";
+  return `${yyyy}-${mm}-${dd} · ${hh}:${min}${suffix}`;
+}
+
 export default function ChartPage() {
   const birthData = useAppStore((s) => s.birthData);
   const abuData = useAppStore((s) => s.abuData);
@@ -40,7 +56,10 @@ export default function ChartPage() {
           <div className="flex items-center gap-4 text-xs text-slate-400 font-mono">
             <span className="flex items-center gap-1">
               <Calendar className="w-3 h-3" />
-              {birthData?.birthDate || (abuData as any).birth?.date || "—"}
+              {formatLocalDate(
+                birthData?.birthDate || (abuData as any).birth?.date || "",
+                (birthData as any)?.utcOffset
+              )}
             </span>
 
             <span className="flex items-center gap-1">

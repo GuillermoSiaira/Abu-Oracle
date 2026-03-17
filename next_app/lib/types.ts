@@ -221,6 +221,7 @@ export interface ChatMessage {
 
 export interface BirthData {
   birthDate: string
+  utcOffset?: number
   lat: number
   lon: number
   city?: string | null

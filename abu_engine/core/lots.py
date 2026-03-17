@@ -19,11 +19,10 @@ def is_diurnal(sun_longitude: float, asc_longitude: float) -> bool:
         bool: True si es diurna, False si es nocturna
     """
     # Calcular la posición relativa del Sol respecto al ASC
-    # Si el Sol está en casas 7-12 (bajo el horizonte) es nocturna
+    # Diurna: Sol en casas 7-12 (180°-360° desde ASC) = sobre el horizonte
+    # Nocturna: Sol en casas 1-6 (0°-180° desde ASC) = bajo el horizonte
     sun_from_asc = (sun_longitude - asc_longitude) % 360
-    
-    # Diurna: Sol en casas 1-6 (0° a 180° desde ASC)
-    return sun_from_asc < 180
+    return sun_from_asc > 180
 
 
 def calculate_lot_of_fortune(

@@ -117,10 +117,9 @@ export function ZodiacWheel({
   // -------------------------
   const rotationOffset = useMemo(() => {
     if (orientation === "ascendant" && houses?.asc != null) {
-      // UI: AC arriba (ecliptic 0°=Aries at 9PM, so we rotate to put ASC at 12PM/north)
-      // SVG north is at 270° math angle, so offset = (270 - asc + 360) % 360
-      // Simplified: (90 - asc + 360) % 360 or equivalently 450 - asc mod 360
-      return (450 - houses.asc) % 360;
+      // CCW rendering: x = -sin(normalized), y = -cos(normalized)
+      // ASC must land at normalized=90 (left/9-o'clock). normalized = asc - offset = 90 → offset = asc - 90
+      return (houses.asc - 90 + 360) % 360;
     }
     return 0; // Aries arriba
   }, [orientation, houses?.asc]);
@@ -130,7 +129,7 @@ export function ZodiacWheel({
     const adjusted = normalized * (Math.PI / 180);
 
     return {
-      x: centerX + radius * Math.sin(adjusted),
+      x: centerX - radius * Math.sin(adjusted),
       y: centerY - radius * Math.cos(adjusted),
     };
   };

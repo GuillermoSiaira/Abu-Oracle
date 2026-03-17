@@ -37,10 +37,11 @@ NOCTURNAL_SEQUENCE = [
 def is_diurnal_chart(sun_longitude: float, asc_longitude: float) -> bool:
     """
     Determina si la carta es diurna o nocturna.
-    Diurna: Sol sobre el horizonte.
+    Diurna: Sol sobre el horizonte (casas 7-12, 180°-360° desde ASC).
+    Nocturna: Sol bajo el horizonte (casas 1-6, 0°-180° desde ASC).
     """
     sun_from_asc = (sun_longitude - asc_longitude) % 360
-    return sun_from_asc < 180
+    return sun_from_asc > 180
 
 
 def _normalize_dt(dt: datetime) -> datetime:

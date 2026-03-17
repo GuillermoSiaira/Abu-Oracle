@@ -80,6 +80,7 @@ export default function BirthDataPanel() {
 
     const birthDataPayload = {
       birthDate: isoDate,
+      utcOffset,
       lat: birthLatNum,
       lon: birthLonNum,
       city: birthCity || null,
