@@ -127,8 +127,19 @@ def forecast_life_cycles(birth_dt: str) -> Dict[str, List[Dict[str, Any]]]:
                         "approx": check_date.strftime("%Y-%m-%d")
                     })
         
-        return {"events": events}
-        
+        # Deduplicar: para cada (planet, cycle, year) quedarse con un solo evento
+        seen = {}
+        for event in events:
+            year = event['approx'][:4]
+            key = (event['planet'], event['cycle'], year)
+            if key not in seen:
+                seen[key] = event
+
+        deduped = list(seen.values())
+        deduped.sort(key=lambda x: x['approx'])
+
+        return {"events": deduped}
+
     except Exception as e:
         raise RuntimeError("cycle calculation error") from e
 
