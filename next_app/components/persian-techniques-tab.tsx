@@ -194,189 +194,165 @@ export function PersianTechniquesTab() {
   const cycles = Array.isArray(life_cycles?.events) ? life_cycles!.events : [];
 
   return (
-    <div className="space-y-5 p-4">
+    <div className="p-4 space-y-3">
 
-      {/* ---------- SECT ---------- */}
-      <button onClick={handleSectClick} className={CLICKABLE_CLASS}>
-        <h2 className="text-xs font-mono uppercase tracking-widest text-slate-500 mb-3">{t.persianSect}</h2>
-        <p className="text-slate-200 font-medium mb-1">{sectLabel}</p>
-        {sectDetail && <p className="text-slate-400 text-sm leading-relaxed">{sectDetail}</p>}
-      </button>
+      {/* BLOQUE SUPERIOR — Sect / Profección / Firdaria */}
+      <div className="grid grid-cols-3 divide-x divide-amber-400/20 border border-amber-400/20 rounded-lg">
 
-      {/* ---------- PROFECCIÓN ---------- */}
-      <button onClick={handleProfectionClick} className={CLICKABLE_CLASS}>
-        <h2 className="text-xs font-mono uppercase tracking-widest text-slate-500 mb-3">{t.persianProfection}</h2>
-        {!profectionHouse ? (
-          <p className="text-slate-500 text-sm">{t.persianNoData}</p>
-        ) : (
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between items-center">
-              <span className="text-slate-400">{t.persianHouseActivated}</span>
-              <span className="text-slate-200 font-mono font-semibold">{t.persianHouseLabel} {profectionHouse}</span>
-            </div>
-            {profectionSign && (
-              <div className="flex justify-between items-center">
-                <span className="text-slate-400">{t.persianCuspSign}</span>
-                <span className="text-slate-200 font-mono">{profectionSign}</span>
-              </div>
-            )}
-            {profectionLord && (
-              <div className="flex justify-between items-center border-t border-slate-800/60 pt-2 mt-2">
-                <span className="text-slate-400">{t.persianAnnualLord}</span>
-                <span className="text-amber-400 font-semibold font-mono">{profectionLord}</span>
-              </div>
-            )}
+        {/* Sect */}
+        <button onClick={handleSectClick} className="px-4 py-3 text-left hover:bg-amber-500/5 transition-colors">
+          <div className="text-[10px] text-amber-400/50 uppercase tracking-widest mb-1">{t.persianSect}</div>
+          <div className="text-sm font-medium text-white">
+            {sect === "diurnal" ? "☀ " + (t.persianSectDiurnal ?? "Diurna") : "☽ " + (t.persianSectNocturnal ?? "Nocturna")}
           </div>
-        )}
-      </button>
-
-      {/* ---------- FIRDARIA ---------- */}
-      <button onClick={handleFirdariaClick} className={CLICKABLE_CLASS}>
-        <h2 className="text-xs font-mono uppercase tracking-widest text-slate-500 mb-3">
-          {t.persianFirdaria}
-          {isHistorical && (
-            <span className="ml-2 normal-case text-[9px] text-slate-600 border border-slate-800 px-1.5 rounded">
-              {t.persianLastPeriod}
-            </span>
-          )}
-        </h2>
-        {!firdariaValid ? (
-          <p className="text-slate-500 text-sm">{t.persianOutOfCycle}</p>
-        ) : (
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between items-center">
-              <span className="text-slate-400">{t.persianMajorPeriod}</span>
-              <span className="text-amber-400 font-semibold font-mono">{firdaria.major}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-slate-400">{t.persianSubPeriod}</span>
-              <span className="text-slate-200 font-mono">{firdaria.sub ?? "—"}</span>
-            </div>
-            <div className="flex justify-between items-center border-t border-slate-800/60 pt-2 mt-2">
-              <span className="text-slate-400">{t.persianStart}</span>
-              <span className="text-slate-300 font-mono text-xs">{formatDate(firdaria.start)}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-slate-400">{t.persianEnd}</span>
-              <span className="text-slate-300 font-mono text-xs">{formatDate(firdaria.end)}</span>
-            </div>
+          <div className="text-[11px] text-gray-400 mt-0.5">
+            {sect === "diurnal" ? "Benéfico: Júpiter" : "Benéfico: Venus"}
           </div>
-        )}
-      </button>
+        </button>
 
-      {/* ---------- PARTES ARÁBICAS ---------- */}
-      {(lotFortuna || lotSpirit) && (
-        <section className="p-4 border border-slate-800 rounded-lg bg-[#080808] space-y-2">
-          <h2 className="text-xs font-mono uppercase tracking-widest text-slate-500 mb-3">{t.persianLotsTitle}</h2>
-          {lotFortuna && (
-            <button onClick={() => handleLotClick(lotFortuna)} className="w-full text-left p-3 border border-slate-800 rounded-lg hover:border-amber-500/30 hover:bg-amber-500/5 cursor-pointer transition-colors">
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-slate-300 font-medium">{t.persianLotFortuna}</span>
-                <span className="text-slate-200 font-mono">{lotFortuna.sign} {Math.floor(lotFortuna.degree)}°{lotFortuna.house ? ` · Casa ${lotFortuna.house}` : ""}</span>
-              </div>
-              <div className="flex justify-between items-center text-xs mt-1">
-                <span className="text-slate-500">{t.persianLotLord}</span>
-                <span className="text-amber-400 font-mono">{lotFortuna.lord}</span>
-              </div>
-            </button>
-          )}
-          {lotSpirit && (
-            <button onClick={() => handleLotClick(lotSpirit)} className="w-full text-left p-3 border border-slate-800 rounded-lg hover:border-amber-500/30 hover:bg-amber-500/5 cursor-pointer transition-colors">
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-slate-300 font-medium">{t.persianLotSpirit}</span>
-                <span className="text-slate-200 font-mono">{lotSpirit.sign} {Math.floor(lotSpirit.degree)}°{lotSpirit.house ? ` · Casa ${lotSpirit.house}` : ""}</span>
-              </div>
-              <div className="flex justify-between items-center text-xs mt-1">
-                <span className="text-slate-500">{t.persianLotLord}</span>
-                <span className="text-amber-400 font-mono">{lotSpirit.lord}</span>
-              </div>
-            </button>
-          )}
-        </section>
-      )}
+        {/* Profección */}
+        <button onClick={handleProfectionClick} className="px-4 py-3 text-left hover:bg-amber-500/5 transition-colors">
+          <div className="text-[10px] text-amber-400/50 uppercase tracking-widest mb-1">{t.persianProfection}</div>
+          <div className="text-sm font-medium text-white">
+            {t.persianHouseLabel} {profectionHouse ?? "—"} · {profectionSign ?? "—"}
+          </div>
+          <div className="text-[11px] mt-0.5">
+            <span className="text-gray-400">{t.persianAnnualLord}: </span>
+            <span className="text-amber-400">{profectionLord ?? "—"}</span>
+          </div>
+        </button>
 
-      {/* ---------- LUNAR TRANSITS ---------- */}
-      <button
-        onClick={() => {
-          if (!lunar) return;
-          setPendingLillyEvent({
-            type: "click_technique",
-            payload: {
-              technique: "lunar_transit",
-              data: {
-                moon_position: lunar.moon_position,
-                moon_sign: lunar.moon_position != null ? getSignFromLongitude(lunar.moon_position) : null,
-                aspects: lunarAspects,
-              },
-              subject_name: subjectName,
-              lang,
-            },
-          });
-        }}
-        className={CLICKABLE_CLASS}
-      >
-        <h2 className="text-xs font-mono uppercase tracking-widest text-slate-500 mb-3">{t.persianLunarTransits}</h2>
-        {!lunar ? (
-          <p className="text-slate-500 text-sm">{t.persianNoLunar}</p>
-        ) : (
-          <div className="space-y-3">
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-slate-400">{t.persianMoonPosition}</span>
-              <span className="text-slate-200 font-mono">{moonPos}</span>
-            </div>
-            {lunarAspects.length > 0 && (
-              <div className="space-y-1.5 mt-2 border-t border-slate-800/60 pt-2">
-                {lunarAspects.map((a: any, i: number) => (
-                  <div key={i} className="flex justify-between text-xs font-mono text-slate-400">
-                    <span>{a.type} con {a.planet}</span>
-                    <span className="text-slate-600">orb {a.orb.toFixed(2)}°</span>
-                  </div>
-                ))}
-              </div>
+        {/* Firdaria */}
+        <button onClick={handleFirdariaClick} className="px-4 py-3 text-left hover:bg-amber-500/5 transition-colors">
+          <div className="text-[10px] text-amber-400/50 uppercase tracking-widest mb-1">
+            {t.persianFirdaria}
+            {isHistorical && (
+              <span className="ml-1 normal-case text-[8px] text-slate-600 border border-slate-800 px-1 rounded">hist</span>
             )}
           </div>
-        )}
-      </button>
+          {firdariaValid ? (
+            <>
+              <div className="text-sm font-medium text-white">
+                <span className="text-amber-400">{firdaria.major}</span>
+                <span className="text-gray-500 mx-1">/</span>
+                <span className="text-amber-300/70">{firdaria.sub ?? "—"}</span>
+              </div>
+              <div className="text-[11px] text-gray-400 mt-0.5">
+                {firdaria.start?.slice(0, 10)} → {firdaria.end?.slice(0, 10)}
+              </div>
+            </>
+          ) : (
+            <div className="text-[11px] text-gray-500">{t.persianOutOfCycle}</div>
+          )}
+        </button>
 
-      {/* ---------- LIFE CYCLES ---------- */}
-      <section className="p-4 border border-slate-800 rounded-lg bg-[#080808]">
-        <h2 className="text-xs font-mono uppercase tracking-widest text-slate-500 mb-3">{t.persianCycles}</h2>
-        {cycles.length === 0 ? (
-          <p className="text-slate-500 text-sm">{t.persianNoEvents}</p>
-        ) : (
-          <div className="space-y-1.5">
-            {cycles.slice(0, 12).map((ev: any, idx: number) => (
-              <button
-                key={idx}
-                onClick={() => setPendingLillyEvent({
-                  type: "click_technique",
-                  payload: {
-                    technique: "planetary_cycle",
-                    data: {
-                      cycle: ev.cycle,
-                      planet: ev.planet,
-                      aspect_type: ev.cycle,
-                      angle: ev.angle,
-                      exact_date: ev.approx,
-                    },
-                    subject_name: subjectName,
-                    lang,
-                  },
-                })}
-                className="w-full flex justify-between items-start text-xs p-1.5 rounded hover:border-amber-500/30 hover:bg-amber-500/5 border border-transparent cursor-pointer transition-colors"
-              >
-                <div>
-                  <span className="text-slate-300 font-medium">{ev.cycle}</span>
-                  <span className="text-slate-500 ml-2">{ev.planet} · {ev.angle}°</span>
-                </div>
-                <span className="text-slate-600 font-mono shrink-0 ml-3">
-                  {new Date(ev.approx).toLocaleDateString("es-ES", { dateStyle: "medium" })}
+      </div>
+
+      {/* BLOQUE MEDIO — Partes Arábicas / Tránsitos Lunares */}
+      <div className="grid grid-cols-2 gap-3">
+
+        {/* Partes Arábicas */}
+        <div className="border border-amber-400/20 rounded-lg p-3">
+          <div className="text-[10px] text-amber-400/50 uppercase tracking-widest mb-2">{t.persianLotsTitle}</div>
+          {[lotFortuna, lotSpirit].filter(Boolean).map((part: any) => (
+            <button
+              key={part.name}
+              onClick={() => handleLotClick(part)}
+              className="w-full text-left p-2 rounded hover:bg-amber-500/5 border border-transparent hover:border-amber-500/20 transition-colors mb-1 last:mb-0"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-white">
+                  {part.name === "Fortuna" ? t.persianLotFortuna : t.persianLotSpirit}
                 </span>
-              </button>
-            ))}
-          </div>
+                <span className="text-[11px] text-amber-400">{part.lord}</span>
+              </div>
+              <div className="text-[11px] text-gray-500 mt-0.5">
+                {part.sign} {Math.floor(part.degree)}°{part.house ? ` · ${t.persianHouseLabel} ${part.house}` : ""}
+              </div>
+            </button>
+          ))}
+          {!lotFortuna && !lotSpirit && (
+            <p className="text-[11px] text-gray-500">{t.persianNoData}</p>
+          )}
+        </div>
+
+        {/* Tránsitos Lunares */}
+        <div className="border border-amber-400/20 rounded-lg p-3">
+          <div className="text-[10px] text-amber-400/50 uppercase tracking-widest mb-2">{t.persianLunarTransits}</div>
+          {!lunar ? (
+            <p className="text-[11px] text-gray-500">{t.persianNoLunar}</p>
+          ) : (
+            <>
+              <div className="flex items-center justify-between mb-2 pb-1 border-b border-white/5">
+                <span className="text-[11px] text-gray-400">Luna</span>
+                <span className="text-xs text-white font-mono">{moonPos}</span>
+              </div>
+              {lunarAspects.map((asp: any, i: number) => (
+                <button
+                  key={i}
+                  onClick={() => setPendingLillyEvent({
+                    type: "click_technique",
+                    payload: {
+                      technique: "lunar_transit",
+                      data: {
+                        moon_position: lunar.moon_position,
+                        moon_sign: lunar.moon_position != null ? getSignFromLongitude(lunar.moon_position) : null,
+                        aspects: [asp],
+                      },
+                      subject_name: subjectName,
+                      lang,
+                    },
+                  })}
+                  className="w-full flex items-center justify-between p-1 rounded hover:bg-amber-500/5 border border-transparent hover:border-amber-500/20 transition-colors mb-1 last:mb-0"
+                >
+                  <span className="text-[11px] text-gray-400">{asp.type} {asp.planet}</span>
+                  <span className="text-[11px] text-gray-500 font-mono">{asp.orb?.toFixed(2)}°</span>
+                </button>
+              ))}
+            </>
+          )}
+        </div>
+
+      </div>
+
+      {/* BLOQUE INFERIOR — Ciclos Planetarios */}
+      <div className="border border-amber-400/20 rounded-lg p-3">
+        <div className="text-[10px] text-amber-400/50 uppercase tracking-widest mb-2">{t.persianCycles}</div>
+        {cycles.length === 0 ? (
+          <p className="text-[11px] text-gray-500">{t.persianNoEvents}</p>
+        ) : (
+          cycles.slice(0, 12).map((ev: any, idx: number) => (
+            <button
+              key={idx}
+              onClick={() => setPendingLillyEvent({
+                type: "click_technique",
+                payload: {
+                  technique: "planetary_cycle",
+                  data: {
+                    cycle: ev.cycle,
+                    planet: ev.planet,
+                    aspect_type: ev.cycle,
+                    angle: ev.angle,
+                    exact_date: ev.approx,
+                  },
+                  subject_name: subjectName,
+                  lang,
+                },
+              })}
+              className="w-full flex items-center justify-between py-1.5 border-b border-white/5 last:border-0 hover:bg-amber-500/5 px-1 rounded transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-white">{ev.planet}</span>
+                <span className="text-[11px] text-gray-500">{ev.cycle}</span>
+                <span className="text-[10px] text-gray-600 font-mono">{ev.angle}°</span>
+              </div>
+              <span className="text-[11px] text-gray-400 font-mono">
+                {ev.approx?.slice(0, 10)}
+              </span>
+            </button>
+          ))
         )}
-      </section>
+      </div>
 
     </div>
   );
