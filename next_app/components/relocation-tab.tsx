@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { useAppStore } from "@/lib/store";
 import { UI } from "@/lib/i18n";
 import { ABU_BASE_URL } from "@/services/abu";
+import { getAbuAuthHeaders } from "@/lib/abu-auth";
 import RankingTable from "@/components/RankingTable";
 import { LifeDomainSelector, type LifeDomain } from "@/components/LifeDomainSelector";
 import { DomainSelector, type Domain } from "@/components/DomainSelector";
@@ -222,7 +223,8 @@ export function RelocationTab() {
       step: "2.5",
     });
 
-    fetch(`${ABU_BASE_URL}/api/astro/relocation-field?${params}`)
+    getAbuAuthHeaders()
+      .then((headers) => fetch(`${ABU_BASE_URL}/api/astro/relocation-field?${params}`, { headers }))
       .then((r) => {
         if (!r.ok) throw new Error(`Error ${r.status}`);
         return r.json();
@@ -251,7 +253,8 @@ export function RelocationTab() {
       step: "2.5",
     });
 
-    fetch(`${ABU_BASE_URL}/api/astro/sr-relocation-field?${params}`)
+    getAbuAuthHeaders()
+      .then((headers) => fetch(`${ABU_BASE_URL}/api/astro/sr-relocation-field?${params}`, { headers }))
       .then((r) => {
         if (!r.ok) throw new Error(`Error ${r.status}`);
         return r.json();
@@ -312,11 +315,14 @@ export function RelocationTab() {
     });
 
     setDomainLoading(true);
-    fetch(`${ABU_BASE_URL}/api/astro/domain-ranking?${params}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(cities),
-    })
+    getAbuAuthHeaders({ "Content-Type": "application/json" })
+      .then((headers) =>
+        fetch(`${ABU_BASE_URL}/api/astro/domain-ranking?${params}`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify(cities),
+        })
+      )
       .then((r) => r.json())
       .then((result: DomainRankResult) => setDomainRanking(result))
       .catch(() => setDomainRanking(null))
@@ -342,7 +348,8 @@ export function RelocationTab() {
     });
 
     try {
-      const res = await fetch(`${ABU_BASE_URL}/api/astro/relocation?${params}`);
+      const headers = await getAbuAuthHeaders();
+      const res = await fetch(`${ABU_BASE_URL}/api/astro/relocation?${params}`, { headers });
       if (!res.ok) {
         const detail = await res.text();
         throw new Error(`Error ${res.status}: ${detail}`);

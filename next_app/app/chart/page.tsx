@@ -4,6 +4,7 @@
 import { useAppStore } from "@/lib/store";
 import { ChartTabs } from "@/components/chart-tabs";
 import { Calendar, MapPin, Sun, Moon } from "lucide-react";
+import AuthGuard from "@/components/AuthGuard";
 
 function formatLocalDate(utcStr: string, utcOffset?: number): string {
   if (!utcStr) return "—";
@@ -29,14 +30,16 @@ export default function ChartPage() {
 
   if (!ready) {
     return (
-      <div className="flex items-center justify-center h-full text-slate-500">
-        <div className="text-center space-y-2">
-          <p className="text-lg">No chart data loaded</p>
-          <p className="text-sm opacity-70">
-            Initialize Abu Engine from the start page.
-          </p>
+      <AuthGuard>
+        <div className="flex items-center justify-center h-full text-slate-500">
+          <div className="text-center space-y-2">
+            <p className="text-lg">No chart data loaded</p>
+            <p className="text-sm opacity-70">
+              Initialize Abu Engine from the start page.
+            </p>
+          </div>
         </div>
-      </div>
+      </AuthGuard>
     );
   }
 
@@ -45,7 +48,8 @@ export default function ChartPage() {
   const SectIcon = isDiurnal ? Sun : Moon;
 
   return (
-    <div className="flex flex-col h-full w-full bg-[#050505] overflow-hidden">
+    <AuthGuard>
+      <div className="flex flex-col h-full w-full bg-[#050505] overflow-hidden">
 
       <header className="shrink-0 px-6 py-4 border-b border-slate-800 bg-[#080808] flex justify-between items-end">
         <div>
@@ -88,6 +92,7 @@ export default function ChartPage() {
           <ChartTabs />
         </div>
       </div>
-    </div>
+      </div>
+    </AuthGuard>
   );
 }

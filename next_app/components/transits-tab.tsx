@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAppStore } from "@/lib/store";
+import { getAbuAuthHeaders } from "@/lib/abu-auth";
 
 const ABU_URL = process.env.NEXT_PUBLIC_ABU_URL || "http://localhost:8000";
 
@@ -75,19 +76,22 @@ export function TransitsTab() {
     setLoading(true);
     setError(null);
 
-    fetch(`${ABU_URL}/api/astro/transits/with-natal`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      signal: controller.signal,
-      body: JSON.stringify({
-        birthDate: birthData.birthDate,
-        birthLat: birthData.lat,
-        birthLon: birthData.lon,
-        transitDate: effectiveTransitDate,
-        transitLat: birthData.lat,
-        transitLon: birthData.lon,
-      }),
-    })
+    getAbuAuthHeaders({ "Content-Type": "application/json" })
+      .then((headers) =>
+        fetch(`${ABU_URL}/api/astro/transits/with-natal`, {
+          method: "POST",
+          headers,
+          signal: controller.signal,
+          body: JSON.stringify({
+            birthDate: birthData.birthDate,
+            birthLat: birthData.lat,
+            birthLon: birthData.lon,
+            transitDate: effectiveTransitDate,
+            transitLat: birthData.lat,
+            transitLon: birthData.lon,
+          }),
+        })
+      )
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();

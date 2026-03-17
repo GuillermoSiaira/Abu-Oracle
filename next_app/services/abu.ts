@@ -2,6 +2,7 @@
 // Servicio oficial para conectar el Frontend con Abu Engine
 
 import type { AbuAnalyzeRequest, AbuAnalyzeResponse } from "@/lib/types";
+import { getAbuAuthHeaders } from "@/lib/abu-auth";
 
 export const ABU_BASE_URL =
   process.env.NEXT_PUBLIC_ABU_URL ||
@@ -33,9 +34,10 @@ export async function runAbuAnalyze(
   console.log("[Abu] Payload:", payload);
 
   try {
+    const headers = await getAbuAuthHeaders({ "Content-Type": "application/json" });
     const response = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(payload),
     });
 
@@ -81,7 +83,8 @@ export async function runAbuSolarReturn(params: {
   console.log("[Abu] GET /api/astro/solar-return =>", url.toString());
 
   try {
-    const res = await fetch(url.toString());
+    const headers = await getAbuAuthHeaders();
+    const res = await fetch(url.toString(), { headers });
 
     if (!res.ok) {
       const text = await res.text().catch(() => "");
@@ -115,9 +118,10 @@ export async function runAbuSolarReturnAI(payload: {
   console.log("[Abu] POST /api/ai/solar-return", payload);
 
   try {
+    const headers = await getAbuAuthHeaders({ "Content-Type": "application/json" });
     const res = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(payload),
     });
 
@@ -157,9 +161,10 @@ export async function runAbuOptimizeRS(payload: {
   console.log("[Abu] POST /api/rs/optimize", payload);
 
   try {
+    const headers = await getAbuAuthHeaders({ "Content-Type": "application/json" });
     const res = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(payload),
     });
 

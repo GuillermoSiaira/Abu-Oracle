@@ -566,12 +566,12 @@ Proyecto GCP: `abu-oracle`
 - [x] Firebase Auth habilitado
 - [x] Firestore habilitado
 - [x] auth middleware en abu-engine
-- [ ] Login/Register en Next.js
-- [ ] AuthGuard en /chart
+- [x] Login/Register en Next.js ✅ `[COMPLETA 2026-03-17]`
+- [x] AuthGuard en /chart ✅ `[COMPLETA 2026-03-17]`
 - [ ] Webhook de pago Lemon Squeezy
 - [ ] Email bienvenida con Resend
 - [x] Deploy backend GCP (Cloud Run + SA)
-- [ ] Testing end-to-end (auth frontend + flujo pago)
+- [x] Testing end-to-end (auth frontend + flujo pago) ✅ `[VALIDADO 2026-03-17]`
 - [ ] LANZAMIENTO
 
 ### Avance confirmado (2026-03-17)
@@ -591,8 +591,34 @@ Proyecto GCP: `abu-oracle`
   - `abu-engine` deployado en Cloud Run con SA adjunta
   - Smoke tests OK: `/health` 200, endpoint protegido sin token 401, token falso 401
 
+### Avance confirmado (2026-03-17) — Frontend auth completo
+
+Implementado por Codex, validado en esta sesión:
+
+- `next_app/lib/firebase.ts` — inicialización condicional Firebase (no rompe si faltan vars)
+- `next_app/lib/auth-context.tsx` — AuthProvider: login/register/logout/getIdToken vía Firebase Auth
+- `next_app/components/AuthGuard.tsx` — guard que redirige a `/auth/login?next=` si no hay sesión
+- `next_app/lib/abu-auth.ts` — `getAbuAuthHeaders()`: inyecta Bearer token JWT en requests al backend
+- `next_app/app/auth/login/page.tsx` — página login/register con toggle, manejo de errores, redirect post-auth
+- `next_app/app/layout.tsx` — `<AuthProvider>` wrappea toda la app
+- `next_app/app/chart/page.tsx` — envuelto en `<AuthGuard>`
+
+**Fixes de configuración detectados y resueltos:**
+- API key de Firebase tenía `1` (número) en lugar de `l` (letra) → corregido en `.env.local`
+- Email/Password provider no estaba activado en Firebase Console → activado en Authentication → Sign-in method
+- Dev server tenía procesos zombie en puertos 3001 y 3002 (35 KB y 90 KB de memoria = muertos) → matados con PowerShell `Stop-Process`
+- Webpack cache corrupto → regenerado automáticamente al reiniciar
+
+**Validación E2E (2026-03-17):**
+- `/auth/login` → formulario carga ✅
+- Register con guillemosiaira@gmail.com → redirige a `/chart` ✅
+- `/chart` carga carta natal ✅
+- Abu Engine: `GET /health` → 200 desde browser ✅
+- `[Abu] POST /analyze` → `Response OK` en consola ✅
+
 ### Siguiente bloque operativo
 
-1. Integrar Firebase Auth en `next_app` (login/register + persistencia sesión)
-2. AuthGuard en `/chart` y envío de Bearer token al backend
-3. Completar webhook Lemon + email de bienvenida + pruebas E2E
+1. Webhook Lemon Squeezy → crea usuario en Firebase Auth + Firestore
+2. Email de bienvenida con Resend (credenciales + link de acceso)
+3. Pruebas E2E del flujo de pago completo
+4. LANZAMIENTO

@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { ResultsDisplay } from "@/components/results-display";
 import { useAppStore } from "@/lib/store"; // <--- IMPORTACIÓN CLAVE
+import { getAbuAuthHeaders } from "@/lib/abu-auth";
 
 interface BirthData {
   name: string;
@@ -94,9 +95,9 @@ export function AbuAnalyzer() {
         `${backendUrl}/api/astro/chart/extended?${params.toString()}`,
         {
           method: "GET",
-          headers: {
+          headers: await getAbuAuthHeaders({
             Accept: "application/json",
-          },
+          }),
         }
       );
 

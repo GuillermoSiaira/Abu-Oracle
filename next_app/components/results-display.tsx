@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/simple-badge"
 import { Button } from "@/components/ui/simple-button"
 import { Moon, Star, Sun, Sparkles, Activity, Calendar, Loader2, MessageSquare } from 'lucide-react'
 import { ZodiacWheel } from "@/components/zodiac-wheel"
+import { getAbuAuthHeaders } from "@/lib/abu-auth"
 
 interface ResultsDisplayProps {
   results: any
@@ -381,9 +382,9 @@ export function ResultsDisplay({ results, birthData, wheelOrientation = "aries" 
 
       const response = await fetch(`${backendUrl}/api/ai/interpret`, {
         method: "POST",
-        headers: {
+        headers: await getAbuAuthHeaders({
           "Content-Type": "application/json",
-        },
+        }),
         body: JSON.stringify(payload),
       })
 
