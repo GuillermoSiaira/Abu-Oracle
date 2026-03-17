@@ -63,7 +63,7 @@ export async function POST(req: Request) {
     const client = new Anthropic({ apiKey });
     const response = await client.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 768,
+      max_tokens: 1024,
       system: LILLY_SYSTEM_PROMPT,
       messages: [{ role: 'user', content: contextBlock }],
     });

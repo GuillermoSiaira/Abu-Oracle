@@ -196,7 +196,7 @@ export function PersianTechniquesTab() {
   const futureCycles = allCycles
     .filter((c: any) => c.approx >= today)
     .sort((a: any, b: any) => a.approx.localeCompare(b.approx))
-    .slice(0, 15);
+    .slice(0, 20);
   const pastCycles = allCycles
     .filter((c: any) => c.approx < today)
     .sort((a: any, b: any) => b.approx.localeCompare(a.approx))
