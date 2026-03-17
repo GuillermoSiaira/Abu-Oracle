@@ -191,7 +191,16 @@ export function PersianTechniquesTab() {
   // ---------------------------
   // LIFE CYCLES
   // ---------------------------
-  const cycles = Array.isArray(life_cycles?.events) ? life_cycles!.events : [];
+  const allCycles = Array.isArray(life_cycles?.events) ? life_cycles!.events : [];
+  const today = new Date().toISOString().slice(0, 10);
+  const futureCycles = allCycles
+    .filter((c: any) => c.approx >= today)
+    .sort((a: any, b: any) => a.approx.localeCompare(b.approx))
+    .slice(0, 15);
+  const pastCycles = allCycles
+    .filter((c: any) => c.approx < today)
+    .sort((a: any, b: any) => b.approx.localeCompare(a.approx))
+    .slice(0, 5);
 
   return (
     <div className="p-4 space-y-3">
@@ -318,39 +327,63 @@ export function PersianTechniquesTab() {
       {/* BLOQUE INFERIOR — Ciclos Planetarios */}
       <div className="border border-amber-400/20 rounded-lg p-3">
         <div className="text-[10px] text-amber-400/50 uppercase tracking-widest mb-2">{t.persianCycles}</div>
-        {cycles.length === 0 ? (
+        {allCycles.length === 0 ? (
           <p className="text-[11px] text-gray-500">{t.persianNoEvents}</p>
         ) : (
-          cycles.slice(0, 12).map((ev: any, idx: number) => (
-            <button
-              key={idx}
-              onClick={() => setPendingLillyEvent({
-                type: "click_technique",
-                payload: {
-                  technique: "planetary_cycle",
-                  data: {
-                    cycle: ev.cycle,
-                    planet: ev.planet,
-                    aspect_type: ev.cycle,
-                    angle: ev.angle,
-                    exact_date: ev.approx,
-                  },
-                  subject_name: subjectName,
-                  lang,
-                },
-              })}
-              className="w-full flex items-center justify-between py-1.5 border-b border-white/5 last:border-0 hover:bg-amber-500/5 px-1 rounded transition-colors"
-            >
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-white">{ev.planet}</span>
-                <span className="text-[11px] text-gray-500">{ev.cycle}</span>
-                <span className="text-[10px] text-gray-600 font-mono">{ev.angle}°</span>
-              </div>
-              <span className="text-[11px] text-gray-400 font-mono">
-                {ev.approx?.slice(0, 10)}
-              </span>
-            </button>
-          ))
+          <>
+            {futureCycles.length > 0 && (
+              <>
+                <div className="text-[9px] text-amber-400/40 uppercase tracking-widest mb-1">Próximos</div>
+                {futureCycles.map((ev: any, idx: number) => (
+                  <button
+                    key={`f-${idx}`}
+                    onClick={() => setPendingLillyEvent({
+                      type: "click_technique",
+                      payload: {
+                        technique: "planetary_cycle",
+                        data: { cycle: ev.cycle, planet: ev.planet, aspect_type: ev.cycle, angle: ev.angle, exact_date: ev.approx },
+                        subject_name: subjectName,
+                        lang,
+                      },
+                    })}
+                    className="w-full flex items-center justify-between py-1.5 border-b border-white/5 last:border-0 hover:bg-amber-500/5 px-1 rounded transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-white">{ev.planet}</span>
+                      <span className="text-[11px] text-gray-500">{ev.cycle}</span>
+                    </div>
+                    <span className="text-[11px] text-gray-400 font-mono">{ev.approx}</span>
+                  </button>
+                ))}
+              </>
+            )}
+            {pastCycles.length > 0 && (
+              <>
+                <div className="text-[9px] text-amber-400/40 uppercase tracking-widest mt-3 mb-1">Recientes</div>
+                {pastCycles.map((ev: any, idx: number) => (
+                  <button
+                    key={`p-${idx}`}
+                    onClick={() => setPendingLillyEvent({
+                      type: "click_technique",
+                      payload: {
+                        technique: "planetary_cycle",
+                        data: { cycle: ev.cycle, planet: ev.planet, aspect_type: ev.cycle, angle: ev.angle, exact_date: ev.approx },
+                        subject_name: subjectName,
+                        lang,
+                      },
+                    })}
+                    className="w-full flex items-center justify-between py-1.5 border-b border-white/5 last:border-0 hover:bg-amber-500/5 px-1 rounded transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500">{ev.planet}</span>
+                      <span className="text-[11px] text-gray-600">{ev.cycle}</span>
+                    </div>
+                    <span className="text-[11px] text-gray-600 font-mono">{ev.approx}</span>
+                  </button>
+                ))}
+              </>
+            )}
+          </>
         )}
       </div>
 

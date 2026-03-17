@@ -14,10 +14,11 @@ def get_slow_planet_position(planets, date: datetime) -> Dict[str, float]:
     
     positions = {}
     planet_list = {
-        'Saturn': ('saturn barycenter', [0, 0, 180]),  # Return y Opposition
-        'Uranus': ('uranus barycenter', [180]),  # Opposition
-        'Neptune': ('neptune barycenter', [90]),  # Square
-        'Pluto': ('pluto barycenter', [90]),  # Square
+        'Jupiter': ('jupiter barycenter', [0]),
+        'Saturn':  ('saturn barycenter', [0, 180]),
+        'Uranus':  ('uranus barycenter', [180]),
+        'Neptune': ('neptune barycenter', [90]),
+        'Pluto':   ('pluto barycenter', [90]),
     }
     
     for planet_name, (sky_name, _) in planet_list.items():
@@ -84,10 +85,11 @@ def forecast_life_cycles(birth_dt: str) -> Dict[str, List[Dict[str, Any]]]:
         
         # Planetas y sus aspectos relevantes
         planet_aspects = {
-            'Saturn': [0, 0, 180],  # Return a los 29 y 58, Opposition
-            'Uranus': [180],  # Opposition ~42
-            'Neptune': [90],  # Square ~41
-            'Pluto': [90],  # Square ~37
+            'Jupiter': [0],    # Return ~12 años
+            'Saturn':  [0, 180],  # Return ~29/58, Opposition ~44
+            'Uranus':  [180],  # Opposition ~42
+            'Neptune': [90],   # Square ~41
+            'Pluto':   [90],   # Square ~37
         }
         
         # Obtener posiciones natales
