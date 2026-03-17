@@ -563,13 +563,36 @@ Stack: Firebase Auth + Firestore + Resend + Lemon Squeezy webhook
 Proyecto GCP: `abu-oracle`
 
 ### Estado
-- [ ] Firebase Auth habilitado
-- [ ] Firestore habilitado  
-- [ ] auth middleware en abu-engine
+- [x] Firebase Auth habilitado
+- [x] Firestore habilitado
+- [x] auth middleware en abu-engine
 - [ ] Login/Register en Next.js
 - [ ] AuthGuard en /chart
 - [ ] Webhook de pago Lemon Squeezy
 - [ ] Email bienvenida con Resend
-- [ ] Deploy final GCP
-- [ ] Testing end-to-end
+- [x] Deploy backend GCP (Cloud Run + SA)
+- [ ] Testing end-to-end (auth frontend + flujo pago)
 - [ ] LANZAMIENTO
+
+### Avance confirmado (2026-03-17)
+
+- GCP provisioning completado:
+  - `identitytoolkit.googleapis.com` habilitada
+  - `firestore.googleapis.com` habilitada
+  - Firestore Native creada en `us-central1`
+- Seguridad/IAM:
+  - Service Account `abu-engine-sa@abu-oracle.iam.gserviceaccount.com` creada
+  - Rol `roles/datastore.user` asignado
+- Backend auth desplegado:
+  - Nuevo módulo `abu_engine/core/auth.py` (Firebase JWT verify + quota check Firestore)
+  - `firebase-admin==6.5.0` agregado en `abu_engine/requirements.txt`
+  - 12 endpoints de Abu protegidos con `Depends(verify_token)`
+- Deploy y validación en producción:
+  - `abu-engine` deployado en Cloud Run con SA adjunta
+  - Smoke tests OK: `/health` 200, endpoint protegido sin token 401, token falso 401
+
+### Siguiente bloque operativo
+
+1. Integrar Firebase Auth en `next_app` (login/register + persistencia sesión)
+2. AuthGuard en `/chart` y envío de Bearer token al backend
+3. Completar webhook Lemon + email de bienvenida + pruebas E2E
