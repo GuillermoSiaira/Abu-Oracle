@@ -170,6 +170,11 @@ export async function POST(req: NextRequest) {
       tx.value >= GENESIS_PRICE_USDC
   );
 
+  console.log(`[crypto-webhook] activities: ${activity.length}, valid USDC txs: ${validTxs.length}`);
+  activity.forEach(tx => {
+    console.log(`[crypto-webhook] tx: asset=${tx.asset} value=${tx.value} to=${tx.toAddress}`);
+  });
+
   if (validTxs.length === 0) {
     // Could be an outgoing tx or different token — acknowledge and ignore
     return NextResponse.json({ received: true, processed: 0 });
