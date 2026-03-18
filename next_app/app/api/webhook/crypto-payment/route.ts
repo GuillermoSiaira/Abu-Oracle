@@ -7,8 +7,7 @@ import { adminAuth, adminDb } from "@/lib/firebase-admin";
 // Config
 // ---------------------------------------------------------------------------
 const SAFE_WALLET = "0x95CEaBdf0fE31610b8A0B09DDC0708A7Ed625c82".toLowerCase();
-const GENESIS_PRICE_ETH = parseFloat(process.env.GENESIS_PRICE_ETH ?? "0.01");
-const WEI_PER_ETH = 1e18;
+const GENESIS_PRICE_USDC = parseFloat(process.env.GENESIS_PRICE_USDC ?? "500");
 
 // ---------------------------------------------------------------------------
 // HMAC verification — Alchemy signs with the raw body bytes
@@ -32,10 +31,11 @@ function verifyAlchemySignature(rawBody: string, signature: string, secret: stri
 interface AlchemyActivity {
   fromAddress: string;
   toAddress: string;
-  value: number; // in ETH (already converted by Alchemy)
+  value: number; // token units already converted by Alchemy (e.g. 500 for 500 USDC)
   hash: string;
-  asset: string; // "ETH"
-  category: string; // "external"
+  asset: string; // "USDC", "ETH", etc.
+  category: string; // "token", "external", etc.
+  rawContract?: { address: string }; // ERC-20 contract address (optional, for logs)
 }
 
 interface AlchemyWebhookPayload {
@@ -51,7 +51,25 @@ interface AlchemyWebhookPayload {
 // Firestore — provision a new Genesis user
 // ---------------------------------------------------------------------------
 async function provisionGenesisUser(walletAddress: string, txHash: string) {
-  const email = `${walletAddress.toLowerCase()}@abu-oracle.com`;
+  // Look up real email from pending_payments (registered before payment)
+  let email: string;
+  const snapshot = await adminDb
+    .collection("pending_payments")
+    .where("wallet_address", "==", walletAddress.toLowerCase())
+    .get();
+  const pendingDocs = snapshot.docs.filter((d) => d.data().status === "pending");
+  if (pendingDocs.length > 0) {
+    const doc = pendingDocs.sort((a, b) =>
+      b.data().created_at.localeCompare(a.data().created_at)
+    )[0];
+    email = doc.data().email as string;
+    await doc.ref.update({ status: "matched", matched_at: new Date().toISOString(), tx_hash: txHash });
+    console.log(`[crypto-webhook] Matched wallet ${walletAddress} → email ${email}`);
+  } else {
+    email = `${walletAddress.toLowerCase()}@abu-oracle.com`;
+    console.warn(`[crypto-webhook] No pending_payment found for wallet ${walletAddress} — using fallback email`);
+  }
+
   const password = uuidv4();
 
   // Idempotency: skip if the user already exists
@@ -144,12 +162,12 @@ export async function POST(req: NextRequest) {
 
   const activity: AlchemyActivity[] = payload?.event?.activity ?? [];
 
-  // Filter: incoming ETH transfers to the Safe wallet above the Genesis price
+  // Filter: incoming USDC transfers to the Safe wallet at or above the Genesis price
   const validTxs = activity.filter(
     (tx) =>
+      tx.asset === "USDC" &&
       tx.toAddress?.toLowerCase() === SAFE_WALLET &&
-      tx.asset === "ETH" &&
-      tx.value >= GENESIS_PRICE_ETH
+      tx.value >= GENESIS_PRICE_USDC
   );
 
   if (validTxs.length === 0) {

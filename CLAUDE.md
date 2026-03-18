@@ -697,10 +697,61 @@ export default {
 - `next_app/app/api/webhook/crypto-payment/route.ts`
 - `next_app/lib/firebase-admin.ts`
 
+### Avance confirmado (2026-03-18) — Flujo de pago crypto completo (sesión actual)
+
+**Decisión de arquitectura:** pago en **500 USDC** (Arbitrum One), no ETH. Alchemy reporta ERC-20 con `asset: "USDC"` y `value: 500`.
+
+**Flujo end-to-end:**
+```
+Landing → Step 1 (email) → Step 2 (MetaMask connect) → Step 3 (USDC transfer)
+  → POST /api/collect-email → Firestore pending_payments { email, wallet_address, status: "pending" }
+  → usdc.transfer(SAFE_WALLET, 500_000_000) firmado en MetaMask
+  → tx.wait(1) → Step 4: countdown 3s → redirect app.abu-oracle.com
+
+Alchemy webhook (asíncrono):
+  → query pending_payments by wallet_address → email real → status: "matched"
+  → Firebase Auth user creado → Resend email de bienvenida
+```
+
+**Archivos nuevos/modificados:**
+- `next_app/app/api/collect-email/route.ts` — NUEVO. POST `{ email, wallet_address }` → Firestore `pending_payments`. CORS: `https://abu-oracle.com`. OPTIONS preflight incluido.
+- `next_app/app/api/webhook/crypto-payment/route.ts` — MODIFICADO:
+  - Filtro: `asset === "ETH"` → `asset === "USDC"`, `GENESIS_PRICE_ETH` → `GENESIS_PRICE_USDC`
+  - `provisionGenesisUser`: busca email real en `pending_payments` por `wallet_address` antes de crear usuario Firebase. Fallback a `wallet@abu-oracle.com` si no encuentra.
+- `abu-oracle-landing/index.html` — MODIFICADO:
+  - Sección `#wallet` reemplazada con flujo 4 pasos (email → MetaMask → confirm → confirmado)
+  - ethers.js 5.7.2 via CDN. USDC ERC-20 transfer con `balanceOf` check previo.
+  - Errores inline (sin `alert()`). Countdown 3s → redirect `app.abu-oracle.com`.
+  - Botón "Contact to pay" eliminado (Paddle pendiente).
+  - 100 Genesis slots (era 20).
+
+**Cloud Run env vars (abu-oracle-app, revision 00007-tn2):**
+- `GENESIS_PRICE_USDC=500` agregado
+- `GENESIS_PRICE_ETH` eliminado
+
+**Firestore — nueva colección `pending_payments`:**
+```
+{
+  email: string,
+  wallet_address: string | null,
+  created_at: ISO string,
+  status: "pending" | "matched"
+}
+```
+Index requerido: single-field en `wallet_address` (Firestore lo crea automáticamente).
+
+**Constantes de pago (hardcodeadas en landing):**
+- USDC contract Arbitrum: `0xaf88d065e77c8cC2239327C5EDb3A432268e5831`
+- Safe wallet destino: `0x95CEaBdf0fE31610b8A0B09DDC0708A7Ed625c82`
+- Monto: `500 * 1000000` (6 decimales)
+- chainId Arbitrum One: `42161` (`0xa4b1`)
+
 ### Siguiente bloque operativo
 
-1. Configurar Alchemy Notify webhook apuntando a `https://app.abu-oracle.com/api/webhook/crypto-payment` → probar E2E con envío de `0.001 ETH` a la Safe wallet
-2. Verificar email de bienvenida (Resend → `noreply@abu-oracle.com`)
-3. Cambiar `GENESIS_PRICE_ETH=0.19` en Cloud Run cuando test pase
-4. Webhook Paddle → `next_app/app/api/webhook/payment/route.ts` (cuando aprueben)
-5. LANZAMIENTO
+1. Configurar **Alchemy Notify** webhook:
+   - URL: `https://app.abu-oracle.com/api/webhook/crypto-payment`
+   - Address: `0x95CEaBdf0fE31610b8A0B09DDC0708A7Ed625c82` (Arbitrum One)
+   - Activity type: Token transfers (USDC)
+2. Probar E2E con 500 USDC real → verificar Firestore + email Resend
+3. **Webhook Paddle** → `next_app/app/api/webhook/payment/route.ts` (cuando aprueben cuenta)
+4. LANZAMIENTO
