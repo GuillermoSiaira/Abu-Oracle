@@ -559,7 +559,7 @@ Al completar una tarea, marcarla con `✅` en este archivo y hacer commit.
 
 Ver `MULTIUSER_ARCHITECTURE.md` para arquitectura completa.
 
-Stack: Firebase Auth + Firestore + Resend + Lemon Squeezy webhook
+Stack: Firebase Auth + Firestore + Resend + **Paddle** webhook
 Proyecto GCP: `abu-oracle`
 
 ### Estado
@@ -568,7 +568,9 @@ Proyecto GCP: `abu-oracle`
 - [x] auth middleware en abu-engine
 - [x] Login/Register en Next.js ✅ `[COMPLETA 2026-03-17]`
 - [x] AuthGuard en /chart ✅ `[COMPLETA 2026-03-17]`
-- [ ] Webhook de pago Lemon Squeezy
+- [x] AuthGuard en / (Home) ✅ `[COMPLETA 2026-03-18]`
+- [x] Páginas legales (Privacy + Terms) en landing page ✅ `[COMPLETA 2026-03-18]`
+- [ ] Webhook de pago **Paddle** (ubicación TBD — ver nota abajo)
 - [ ] Email bienvenida con Resend
 - [x] Deploy backend GCP (Cloud Run + SA)
 - [x] Testing end-to-end (auth frontend + flujo pago) ✅ `[VALIDADO 2026-03-17]`
@@ -616,9 +618,61 @@ Implementado por Codex, validado en esta sesión:
 - Abu Engine: `GET /health` → 200 desde browser ✅
 - `[Abu] POST /analyze` → `Response OK` en consola ✅
 
+### Avance confirmado (2026-03-18) — Landing page legal + Paddle
+
+**Distinción de repos (crítica):**
+| Repo | URL pública | Stack | Hosting |
+|---|---|---|---|
+| `Abu-Oracle` | `app.abu-oracle.com` | Next.js + Python | Cloud Run (GCP) + Cloudflare Worker |
+| `abu-oracle-landingpage` | `abu-oracle.com` | HTML estático | Vercel (Hobby) |
+
+**Landing page (`abu-oracle-landingpage`) — cambios:**
+- `privacy.html` → `abu-oracle.com/privacy` — bilingüe ES/EN, toggle en esquina superior derecha
+- `terms-and-conditions.html` → `abu-oracle.com/terms-and-conditions` — idem
+- `index.html` — footer con links a privacy y terms; 20 spots → **100 spots** Genesis
+- `vercel.json` — `cleanUrls: true` para servir sin extensión `.html`
+- Git global configurado `guillermosiaira@gmail.com` / `GuillermoSiaira` — Vercel Hobby bloquea commits de autores no asociados a la cuenta GitHub. **No usar Co-Authored-By en commits de este repo.**
+
+**Webhook de pago — decisión de procesador:**
+- Procesador cambiado de **Lemon Squeezy → Paddle**
+- Lógica escrita: verifica `Paddle-Signature` (HMAC-SHA256 sobre `ts:body`), procesa evento `transaction.completed`, extrae email de `data.customer.email`, crea usuario Firebase Auth + doc Firestore, envía email Resend
+- **Ubicación TBD**: la landing es HTML estático (no puede tener API routes). Opciones: Vercel serverless separado o Next.js app Abu Oracle.
+- Variables requeridas cuando se implemente: `PADDLE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `FIREBASE_SERVICE_ACCOUNT_JSON` (o ADC en Cloud Run)
+
+### Avance confirmado (2026-03-18) — AuthGuard Home + infra Cloudflare Worker
+
+- `next_app/app/page.tsx` — `<AuthGuard>` en ambos returns (Home inicial + showForm). Commit `209da3c`.
+- Deploy Next.js → Cloud Run revision `abu-oracle-app-00002-6n8` ✅
+
+**Infraestructura `app.abu-oracle.com` — Cloudflare Worker como reverse proxy:**
+- Cloud Run no acepta hostname custom sin `gcloud beta run domain-mappings` (requiere dominio verificado en Google).
+- Solución: Worker `abu-oracle-proxy` en Cloudflare que reescribe el hostname a `abu-oracle-app-503488473965.us-central1.run.app`.
+- Custom domain `app.abu-oracle.com` asignado al Worker en Cloudflare Workers & Pages.
+- DNS: el CNAME anterior fue reemplazado por el registro gestionado por el Worker.
+- Validado: `https://app.abu-oracle.com` → redirige a `/auth/login` ✅
+
+**Worker code** (Cloudflare Workers & Pages → `abu-oracle-proxy`):
+```javascript
+export default {
+  async fetch(request) {
+    const url = new URL(request.url);
+    url.hostname = "abu-oracle-app-503488473965.us-central1.run.app";
+    url.protocol = "https:";
+    url.port = "";
+    const newRequest = new Request(url.toString(), {
+      method: request.method,
+      headers: request.headers,
+      body: ["GET", "HEAD"].includes(request.method) ? null : request.body,
+      redirect: "follow",
+    });
+    return fetch(newRequest);
+  },
+};
+```
+
 ### Siguiente bloque operativo
 
-1. Webhook Lemon Squeezy → crea usuario en Firebase Auth + Firestore
+1. Webhook Paddle → `next_app/app/api/webhook/payment/route.ts` (ubicación: Next.js en Cloud Run) → probar con evento de prueba
 2. Email de bienvenida con Resend (credenciales + link de acceso)
 3. Pruebas E2E del flujo de pago completo
 4. LANZAMIENTO
