@@ -670,9 +670,37 @@ export default {
 };
 ```
 
+### Avance confirmado (2026-03-18) — Fixes producción + Webhook crypto
+
+**Fixes producción (todos en Cloud Run):**
+- `abu_engine/core/auth.py`: `_get_firebase_app()` antes de `auth.verify_id_token()` — el SDK no se inicializaba al primer request → 401 en todos los endpoints. Commit `4d05a19`.
+- `next_app/lib/abu-auth.ts`: `await firebaseAuth.authStateReady()` antes de `getIdToken()` — Firebase restora sesión async, `currentUser` era null en el primer render. Commit `58c202b`.
+- `next_app/Dockerfile`: `COPY --from=builder /app/data ./data` en runner stage — `worldcities.csv` no llegaba al container → `/api/cities/nearest` fallaba → HF map click sin respuesta.
+- `next_app/data/external/worldcities.csv`: incluido en build context (no en git — gitignored en raíz).
+
+**Firestore usuario de prueba:**
+- UID `xJhOVmVFRUXoRBRGK6mJWyMeZOu1` (`guillermosiaira@gmail.com`) con `payment_verified: true`, `plan: genesis`, `quota_limit: 99999`.
+- Creado via Firestore REST API con gcloud ADC (quota project: `abu-oracle`).
+
+**Webhook crypto-payment (Alchemy + Arbitrum):**
+- `next_app/app/api/webhook/crypto-payment/route.ts` — verifica `x-alchemy-signature` HMAC-SHA256, filtra transfers ETH a Safe wallet `0x95CEaBdf0fE31610b8A0B09DDC0708A7Ed625c82`, provisiona usuario Genesis en Firebase Auth + Firestore, envía email Resend.
+- `next_app/lib/firebase-admin.ts` — init Firebase Admin SDK con ADC (Cloud Run) o `FIREBASE_SERVICE_ACCOUNT_JSON` (local).
+- Deps nuevas: `firebase-admin ^13.7.0`, `resend ^6.9.4`, `uuid ^13.0.0`.
+- `GENESIS_PRICE_ETH=0.001` en Cloud Run (test) → cambiar a `0.19` para producción.
+- Safe wallet: `0x95CEaBdf0fE31610b8A0B09DDC0708A7Ed625c82` (Arbitrum).
+
+**Cloud Run env vars actualizadas (abu-oracle-app, revision 00005-2cb):**
+- Agregadas: `RESEND_API_KEY`, `ALCHEMY_WEBHOOK_SECRET`, `GENESIS_PRICE_ETH=0.001`, `LILLY_MODEL=gpt-4o-mini`
+- `PADDLE_WEBHOOK_SECRET` vacío — pendiente aprobación Paddle
+
+**Archivos nuevos en esta sesión:**
+- `next_app/app/api/webhook/crypto-payment/route.ts`
+- `next_app/lib/firebase-admin.ts`
+
 ### Siguiente bloque operativo
 
-1. Webhook Paddle → `next_app/app/api/webhook/payment/route.ts` (ubicación: Next.js en Cloud Run) → probar con evento de prueba
-2. Email de bienvenida con Resend (credenciales + link de acceso)
-3. Pruebas E2E del flujo de pago completo
-4. LANZAMIENTO
+1. Configurar Alchemy Notify webhook apuntando a `https://app.abu-oracle.com/api/webhook/crypto-payment` → probar E2E con envío de `0.001 ETH` a la Safe wallet
+2. Verificar email de bienvenida (Resend → `noreply@abu-oracle.com`)
+3. Cambiar `GENESIS_PRICE_ETH=0.19` en Cloud Run cuando test pase
+4. Webhook Paddle → `next_app/app/api/webhook/payment/route.ts` (cuando aprueben)
+5. LANZAMIENTO
