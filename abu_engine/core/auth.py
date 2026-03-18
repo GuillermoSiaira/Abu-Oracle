@@ -95,6 +95,7 @@ async def verify_token(
 
     # 1. Verificar JWT con Firebase Auth
     try:
+        _get_firebase_app()  # Garantiza que el SDK esté inicializado
         decoded = auth.verify_id_token(token)
         uid = decoded["uid"]
     except auth.ExpiredIdTokenError:
