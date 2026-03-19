@@ -4,6 +4,19 @@
 
 ---
 
+## 🚀 LANZAMIENTO PÚBLICO — 19 de marzo de 2026
+
+**Abu Oracle se lanzó públicamente el 19 de marzo de 2026.**
+
+- URL: `https://app.abu-oracle.com`
+- Landing: `https://abu-oracle.com`
+- Modelo de acceso: Genesis Member — 100 slots · 500 USDC · acceso de por vida
+- Pago: USDC en Arbitrum One → Safe wallet `0x95CEaBdf0fE31610b8A0B09DDC0708A7Ed625c82`
+- Stack en producción: Next.js + Python/FastAPI → Cloud Run (GCP) · Firebase Auth · Firestore · Alchemy webhook · Resend
+- Revisión inicial: `abu-oracle-app-00016-xqp`
+
+---
+
 ## Proyecto
 
 **AI Oracle** — motor astrológico computacional con campo escalar geográfico (Harmony Field) e interpretación por agentes LLM (Lilly Swarm). Stack: Python (backend / engine), TypeScript / Next.js (frontend), Docker, GCP.

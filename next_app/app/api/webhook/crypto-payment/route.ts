@@ -113,17 +113,86 @@ async function provisionGenesisUser(walletAddress: string, txHash: string) {
       await resend.emails.send({
         from: "Abu Oracle <noreply@abu-oracle.com>",
         to: email,
-        subject: "Abu Oracle — Acceso Genesis activado ♃ ♄",
-        html: `
-          <p>Bienvenido a <strong>Abu Oracle</strong>.</p>
-          <p>Tu acceso Genesis está activo.</p>
-          <p><strong>Email:</strong> ${email}<br/>
-          <strong>Contraseña temporal:</strong> ${password}</p>
-          <p>Accedé en: <a href="https://app.abu-oracle.com">app.abu-oracle.com</a></p>
-          <p>Cambiá la contraseña en tu primer login.</p>
-          <p>Cupo Genesis: acceso de por vida · todas las features futuras incluidas.</p>
-          <p>— El equipo de Abu Oracle</p>
-        `,
+        subject: "Abu Oracle — Acceso Genesis activado ♃",
+        html: `<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#09090b;font-family:'Georgia',serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#09090b;padding:48px 16px;">
+    <tr><td align="center">
+      <table width="520" cellpadding="0" cellspacing="0" style="background:#111113;border:1px solid #292524;border-radius:12px;overflow:hidden;">
+
+        <!-- Header -->
+        <tr>
+          <td style="background:linear-gradient(135deg,#1c1108 0%,#0f0a04 100%);padding:40px 40px 32px;text-align:center;border-bottom:1px solid #292524;">
+            <div style="font-size:28px;letter-spacing:0.25em;color:#fbbf24;font-weight:normal;margin-bottom:8px;">ABU ORACLE</div>
+            <div style="font-size:12px;letter-spacing:0.3em;color:#78716c;text-transform:uppercase;">Astrological Intelligence Engine</div>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="padding:40px;">
+
+            <p style="margin:0 0 24px;font-size:17px;color:#e7e5e4;line-height:1.6;">
+              Tu acceso <strong style="color:#fbbf24;">Genesis</strong> está activo.
+            </p>
+
+            <p style="margin:0 0 28px;font-size:14px;color:#a8a29e;line-height:1.7;">
+              Sos parte del primer grupo de 100 miembros con acceso de por vida a Abu Oracle — incluyendo todas las features futuras.
+            </p>
+
+            <!-- Credentials box -->
+            <table width="100%" cellpadding="0" cellspacing="0" style="background:#0f0f10;border:1px solid #292524;border-radius:8px;margin-bottom:32px;">
+              <tr>
+                <td style="padding:20px 24px;">
+                  <div style="font-size:10px;letter-spacing:0.2em;color:#78716c;text-transform:uppercase;margin-bottom:16px;">Credenciales de acceso</div>
+                  <div style="margin-bottom:12px;">
+                    <span style="font-size:11px;color:#57534e;display:block;margin-bottom:2px;">Email</span>
+                    <span style="font-size:14px;color:#e7e5e4;font-family:monospace;">${email}</span>
+                  </div>
+                  <div>
+                    <span style="font-size:11px;color:#57534e;display:block;margin-bottom:2px;">Contraseña temporal</span>
+                    <span style="font-size:14px;color:#fbbf24;font-family:monospace;">${password}</span>
+                  </div>
+                </td>
+              </tr>
+            </table>
+
+            <!-- CTA -->
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:32px;">
+              <tr>
+                <td align="center">
+                  <a href="https://app.abu-oracle.com/auth/login"
+                     style="display:inline-block;background:#d97706;color:#fff;text-decoration:none;font-size:14px;font-family:sans-serif;font-weight:600;letter-spacing:0.05em;padding:14px 36px;border-radius:6px;">
+                    Acceder a Abu Oracle →
+                  </a>
+                </td>
+              </tr>
+            </table>
+
+            <p style="margin:0 0 8px;font-size:12px;color:#57534e;line-height:1.6;font-family:sans-serif;">
+              Para cambiar tu contraseña: en la pantalla de login, usá <em>¿Olvidaste tu contraseña?</em>
+            </p>
+
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="padding:24px 40px;border-top:1px solid #1c1917;text-align:center;">
+            <p style="margin:0;font-size:11px;color:#44403c;font-family:sans-serif;line-height:1.6;">
+              Abu Oracle · Genesis Member · Acceso de por vida<br>
+              <a href="https://abu-oracle.com" style="color:#78716c;text-decoration:none;">abu-oracle.com</a>
+            </p>
+          </td>
+        </tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`,
       });
     } catch (emailErr) {
       // Non-fatal — user was already created in Firebase
