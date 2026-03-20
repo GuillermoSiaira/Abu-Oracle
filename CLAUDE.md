@@ -15,6 +15,18 @@
 - Stack en producción: Next.js + Python/FastAPI → Cloud Run (GCP) · Firebase Auth · Firestore · Alchemy webhook · Resend
 - Revisión inicial: `abu-oracle-app-00016-xqp`
 
+### Fixes post-lanzamiento (2026-03-20)
+
+**Fix: Chat conversacional Lilly — LINK_LOST eliminado** (`3999611`)
+- Causa raíz: `/api/chat` hacía proxy a lilly_swarm (`LILLY_ENGINE_URL`) que no está desplegado en Cloud Run → siempre fallaba con `LINK_LOST`.
+- Fix: route reescrita para usar Anthropic SDK (`claude-sonnet-4-6`) directamente, igual que las routes reactivas. Inyecta `LILLY_SYSTEM_PROMPT` completo + bloque compacto con datos de carta (nombre, planetas, sect, profección, firdaria).
+- Revisión: `abu-oracle-app-00017-z26`
+
+**Fix: Lecturas truncadas en chat** (`7f1f6c7`)
+- Causa: `max_tokens: 512` insuficiente para lecturas natales completas.
+- Fix: `max_tokens: 1500` por defecto, configurable via env var `LILLY_CHAT_MAX_TOKENS`.
+- Revisión: `abu-oracle-app-00018-7j2`
+
 ---
 
 ## Proyecto
@@ -759,12 +771,27 @@ Index requerido: single-field en `wallet_address` (Firestore lo crea automática
 - Monto: `500 * 1000000` (6 decimales)
 - chainId Arbitrum One: `42161` (`0xa4b1`)
 
+### Avance confirmado (2026-03-20) — Rediseño landing + Corpus publicado
+
+**Landing page `abu-oracle-landingpage` — commit `3e9f030`:**
+- `index.html` rediseñado completamente: hero nuevo ("Where in the world does your life work better?"), sección How it Works, stats empíricos (5,359 cartas / 527 eventos / r=0.615), sección Corpus con 3 documentos + hashes SHA-256, Pricing $500 USDC.
+- El flujo de pago MetaMask/USDC fue removido del `index.html` (ese código estaba desactualizado). La página ahora dirige a `app.abu-oracle.com` directamente.
+- Nueva carpeta `corpus/` con 5 páginas HTML, diseño dark tipográfico coherente:
+  - `corpus/axiom-es.html` — Axiomática de los Cielos v0.4 (ES) — contenido completo del docx
+  - `corpus/axiom-en.html` — Axiomatics of Heavens v0.4 (EN) — contenido completo del docx
+  - `corpus/canon-es.html` — Cuerpo Canónico de Divulgación v1.0 (ES) — contenido completo del docx
+  - `corpus/canon-en.html` — Canonical Communication Reference (EN) — contenido completo del docx
+  - `corpus/on-the-geometry-of-heaven.html` — placeholder con hash + authorship
+- Fuentes docx en `ai-oracle/docs/concepts/`: `AbuOracle_axiom_{es,en}.docx`, `AbuOracle_canon_{es,en}.docx`
+- URLs activas: `abu-oracle.com/corpus/axiom-es`, `abu-oracle.com/corpus/axiom-en`, `abu-oracle.com/corpus/canon-es`, `abu-oracle.com/corpus/canon-en`, `abu-oracle.com/corpus/on-the-geometry-of-heaven`
+- `vercel.json` ya tenía `cleanUrls: true` — sin cambios
+
+**Notas de estado actual de la landing:**
+- El flujo de pago (MetaMask + USDC) ya NO está en `index.html`. Toda la conversión pasa por `app.abu-oracle.com` (botón "Generate Your Map").
+- El flujo de pago crypto sigue funcionando en `app.abu-oracle.com/api/collect-email` + webhook Alchemy.
+
 ### Siguiente bloque operativo
 
-1. Configurar **Alchemy Notify** webhook:
-   - URL: `https://app.abu-oracle.com/api/webhook/crypto-payment`
-   - Address: `0x95CEaBdf0fE31610b8A0B09DDC0708A7Ed625c82` (Arbitrum One)
-   - Activity type: Token transfers (USDC)
-2. Probar E2E con 500 USDC real → verificar Firestore + email Resend
-3. **Webhook Paddle** → `next_app/app/api/webhook/payment/route.ts` (cuando aprueben cuenta)
-4. LANZAMIENTO
+1. Probar E2E con 500 USDC real → verificar Firestore + email Resend (webhook Alchemy activo)
+2. **Webhook Paddle** → `next_app/app/api/webhook/payment/route.ts` (cuando aprueben cuenta)
+3. LANZAMIENTO
