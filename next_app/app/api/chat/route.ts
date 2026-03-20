@@ -67,7 +67,7 @@ Lang: ${abuData?.lang ?? "es"}
 
     const response = await client.messages.create({
       model: "claude-sonnet-4-6",
-      max_tokens: 1500,
+      max_tokens: parseInt(process.env.LILLY_CHAT_MAX_TOKENS ?? "1500"),
       system: systemPrompt,
       messages: anthropicMessages,
     });
