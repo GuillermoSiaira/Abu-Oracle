@@ -229,12 +229,16 @@ export default function OracleChat() {
           firdaria_major: firdaria?.major ?? null,
           firdaria_minor: firdaria?.sub ?? null,
           lang,
+          natalData: abuData,
         }),
       })
         .then((res) => res.json())
         .then((data) => {
           const text: string = data.response || `> ERROR: ${data.error ?? 'LILLY_UNREACHABLE'}`;
-          setMessages([{ id: 'screen-open', role: 'assistant', content: text }]);
+          setMessages([
+            { id: `screen-open-user-${Date.now()}`, role: 'user', content: '[carta_cargada]', hidden: true },
+            { id: 'screen-open', role: 'assistant', content: text },
+          ]);
           if (Array.isArray(data.suggestions) && data.suggestions.length > 0) {
             setLillySuggestions(data.suggestions);
           }
@@ -301,14 +305,16 @@ export default function OracleChat() {
     fetch(route, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ ...payload, natalData: abuData }),
     })
       .then((res) => res.json())
       .then((data) => {
         const text: string = data.response || `> ERROR: ${data.error ?? 'LILLY_UNREACHABLE'}`;
+        const ts = Date.now();
         setMessages((prev) => [
           ...prev,
-          { id: `${type}-${Date.now()}`, role: 'assistant', content: text },
+          { id: `${type}-user-${ts}`, role: 'user', content: `[${type}]`, hidden: true },
+          { id: `${type}-${ts}`, role: 'assistant', content: text },
         ]);
       })
       .catch(() => {
@@ -430,7 +436,7 @@ export default function OracleChat() {
             <p>&gt; AWAITING INPUT</p>
           </div>
         )}
-        {messages.map((m) => (
+        {messages.filter(m => !m.hidden).map((m) => (
           <div
             key={m.id}
             className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}

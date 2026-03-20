@@ -533,6 +533,43 @@ La próxima tarea es siempre la primera sin tilde `✅` en el plan de desarrollo
 
 **Estado panel guía al 2026-03-16**: TechnicalPanel reescrito — LEYENDO AHORA + SEÑOR DEL AÑO + EXPLORAR operativos. `screen-open` devuelve `{ response, suggestions }`. `store.ts` mantiene `lastLillyEvent` y `lillySuggestions` en memoria (no persisten).
 
+### Context Builder — sesión 2026-03-20
+
+**Base context completo en todas las routes** (`buildBaseContext()` en `lib/lilly-prompt.ts`)
+- `buildBaseContext(abuData)` exportada — produce bloque natal estructurado: sect · todos los planetas (signo/grado/casa/dignidad/score/retrógrado) · ASC/MC con señores y sus dignidades · profección anual (casa/signo/señor derivados de la cúspide) · firdaria con fechas completas
+- Inyectada en las 7 routes Lilly vía `natalData: abuData` en el payload (agregado en `OracleChat.tsx`)
+- `max_tokens` subido a 1024 mínimo en todas las routes (`planet`: 512→1024, `technique`: 512→1024, `city`: 768→1024)
+
+**Fix field names en `/api/chat/route.ts`**
+- `profection?.lord` → derivado correctamente desde la cúspide de la casa activa (el campo no existe en el response del backend)
+- `profection?.house_number` → `profection?.house` (field name correcto)
+
+**Historial unificado Sistema A/B** (`OracleChat.tsx`)
+- Mensajes reactivos (Sistema A) ahora incluyen un `user` sintético con `hidden: true` antes del `assistant`: `{ role: 'user', content: '[click_planet]', hidden: true }`
+- `screen_open` también recibe su sintético: `{ role: 'user', content: '[carta_cargada]', hidden: true }`
+- El `while` de `/api/chat/route.ts` ya no descarta el contexto reactivo previo — el array completo llega al LLM
+- Render filtra `hidden: true` — el usuario no ve los sintéticos
+
+**Fechas del período mayor de Firdaria** (`lib/lilly-prompt.ts`)
+- `_computeFirdariaMajorDates(abuData)` — deriva `major_start` / `major_end` desde la fecha de inicio del subperíodo (backend) restando el offset acumulado de los sub-períodos anteriores
+- No requiere fecha de nacimiento: usa los mismos valores que calculó el backend → sin error acumulado
+- Bloque FIRDARIA ACTIVO ahora incluye: `Mayor: Sun (Peregrine) · inicio: 5 abr 2018 · cierre: 5 abr 2028` + `Menor: Jupiter (Exaltation) · inicio: 22 dic 2024 · cierre: 30 jul 2026`
+- Badge `(período histórico aproximado)` cuando `historical_fallback: true`
+
+**`/api/chat` max_tokens**: 1500 → 2500
+
+**Archivos modificados:**
+- `next_app/lib/lilly-prompt.ts` — `buildBaseContext()` + `_computeFirdariaMajorDates()` + `_formatDateEs()`
+- `next_app/components/OracleChat.tsx` — `natalData` en fetches + user sintéticos hidden (reactivos + screen_open)
+- `next_app/app/api/chat/route.ts` — fix profection lord + max_tokens 2500
+- `next_app/app/api/lilly/planet/route.ts` — buildBaseContext + max_tokens 1024
+- `next_app/app/api/lilly/technique/route.ts` — buildBaseContext + max_tokens 1024
+- `next_app/app/api/lilly/domain/route.ts` — buildBaseContext
+- `next_app/app/api/lilly/solar-return/route.ts` — buildBaseContext
+- `next_app/app/api/lilly/transit/route.ts` — buildBaseContext
+- `next_app/app/api/lilly/city/route.ts` — buildBaseContext + max_tokens 1024
+- `next_app/app/api/lilly/screen-open/route.ts` — buildBaseContext + natalData
+
 ---
 
 ### Features y fixes — sesión post Fase 8.10

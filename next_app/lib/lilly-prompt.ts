@@ -1,3 +1,202 @@
+// ──────────────────────────────────────────────────────────────────────────────
+// buildBaseContext — Contexto natal completo para inyección en todas las routes
+// ──────────────────────────────────────────────────────────────────────────────
+
+const _SIGNS = [
+  "Aries","Taurus","Gemini","Cancer","Leo","Virgo",
+  "Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces",
+];
+const _RULERS: Record<string, string> = {
+  Aries: "Mars", Taurus: "Venus", Gemini: "Mercury", Cancer: "Moon",
+  Leo: "Sun", Virgo: "Mercury", Libra: "Venus", Scorpio: "Mars",
+  Sagittarius: "Jupiter", Capricorn: "Saturn", Aquarius: "Saturn", Pisces: "Jupiter",
+};
+
+function _getSign(lon: number): string {
+  return _SIGNS[Math.floor(((lon % 360) + 360) % 360 / 30)];
+}
+
+function _getDegMin(lon: number): string {
+  const inSign = ((lon % 360) + 360) % 360 % 30;
+  const deg = Math.floor(inSign);
+  const min = Math.round((inSign - deg) * 60);
+  return `${deg}°${String(min).padStart(2, "0")}'`;
+}
+
+function _getDignityLabel(d: any): string {
+  if (!d) return "Peregrine";
+  if (d.domicile  || d.kind === "domicile")  return "Domicile";
+  if (d.exaltation|| d.kind === "exaltation")return "Exaltation";
+  if (d.detriment || d.kind === "detriment") return "Detriment";
+  if (d.fall      || d.kind === "fall")      return "Fall";
+  return "Peregrine";
+}
+
+function _getPlanetDignity(planets: any[], name: string): string {
+  const p = planets.find((pl: any) => pl.name === name);
+  return _getDignityLabel(p?.dignity);
+}
+
+// Firdaria sequences and durations (must match abu_engine/core/fardars.py)
+const _FIRDARIA_DURATIONS: Record<string, number> = {
+  Sun: 10, Moon: 9, Mercury: 13, Venus: 8,
+  Mars: 7, Jupiter: 12, Saturn: 11,
+  "North Node": 3, "South Node": 2,
+};
+const _NOCTURNAL_SEQ = ["Moon","Saturn","Jupiter","Mars","Sun","Venus","Mercury","North Node","South Node"];
+const _DIURNAL_SEQ   = ["Sun","Venus","Mercury","Moon","Saturn","Jupiter","Mars","North Node","South Node"];
+const _FIRDARIA_TOTAL_YEARS = 75;
+
+function _formatDateEs(d: Date | string | null | undefined): string {
+  if (!d) return "—";
+  try {
+    return new Date(d).toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" });
+  } catch {
+    return "—";
+  }
+}
+
+/**
+ * Derives major firdaria period start/end from the sub-period start date.
+ * Works backwards: major_start = sub_start - offset_of_sub_within_major.
+ * Does not require birth date — only the data already in abuData.
+ */
+function _computeFirdariaMajorDates(abuData: any): { majorStart: Date | null; majorEnd: Date | null } {
+  const firdaria = abuData.derived?.firdaria?.current;
+  if (!firdaria?.major || !firdaria?.start || firdaria.major === "N/A") {
+    return { majorStart: null, majorEnd: null };
+  }
+  const isNocturnal = abuData.derived?.sect === "nocturnal";
+  const fullSeq = isNocturnal ? _NOCTURNAL_SEQ : _DIURNAL_SEQ;
+  const majorPlanet = firdaria.major as string;
+  const subPlanet   = firdaria.sub   as string;
+  const majorDuration = _FIRDARIA_DURATIONS[majorPlanet] ?? 0;
+  if (!majorDuration) return { majorStart: null, majorEnd: null };
+
+  // Rotate full sequence to start at major planet — gives sub-period order
+  const majorIdx = fullSeq.indexOf(majorPlanet);
+  if (majorIdx === -1) return { majorStart: null, majorEnd: null };
+  const rotated = [...fullSeq.slice(majorIdx), ...fullSeq.slice(0, majorIdx)];
+
+  // Accumulate offset (in ms) from major start to current sub-period start
+  let offsetMs = 0;
+  for (const planet of rotated) {
+    if (planet === subPlanet) break;
+    const subDays = (_FIRDARIA_DURATIONS[planet] ?? 0) / _FIRDARIA_TOTAL_YEARS * majorDuration * 365.25;
+    offsetMs += subDays * 86400000;
+  }
+
+  const subStart   = new Date(firdaria.start).getTime();
+  const majorStart = new Date(subStart - offsetMs);
+  const majorEnd   = new Date(majorStart.getTime() + majorDuration * 365.25 * 86400000);
+  return { majorStart, majorEnd };
+}
+
+/**
+ * Builds a structured natal context block from abuData.
+ * Used by all Lilly routes to inject full chart context before the event-specific block.
+ */
+export function buildBaseContext(abuData: any): string {
+  if (!abuData) return "";
+
+  const name    = abuData.person?.name || "Anónimo";
+  const sect    = abuData.derived?.sect ?? "unknown";
+  const sectLabel = sect === "diurnal" ? "diurna" : sect === "nocturnal" ? "nocturna" : "desconocida";
+
+  const planets: any[]   = abuData.chart?.planets ?? [];
+  const housesObj        = abuData.chart?.houses;
+  const ascLon: number | null = housesObj?.asc ?? null;
+  const mcLon:  number | null = housesObj?.mc  ?? null;
+  const cusps: any[]     = housesObj?.houses ?? [];
+
+  const lines: string[] = [
+    `CARTA NATAL — ${name} · Carta ${sectLabel}`,
+    "",
+    "PLANETAS",
+  ];
+
+  // All planets
+  for (const p of planets) {
+    const lon    = p.longitude ?? p.lon ?? 0;
+    const sign   = p.sign || _getSign(lon);
+    const degMin = _getDegMin(lon);
+    const house  = p.house != null ? `Casa ${p.house}` : "—";
+    const dig    = _getDignityLabel(p.dignity);
+    const score  = p.dignity_score != null
+      ? ` (${p.dignity_score >= 0 ? "+" : ""}${p.dignity_score})`
+      : "";
+    const retro  = p.retrograde ? " ℞" : "";
+    lines.push(`${p.name} · ${sign} ${degMin} · ${house} · ${dig}${score}${retro}`);
+  }
+
+  // Angles
+  if (ascLon != null || mcLon != null) {
+    lines.push("", "ÁNGULOS");
+    if (ascLon != null) {
+      const ascSign   = _getSign(ascLon);
+      const ascRuler  = _RULERS[ascSign] ?? "—";
+      const ascRPlant = planets.find((p: any) => p.name === ascRuler);
+      const ascRSign  = ascRPlant ? (ascRPlant.sign || _getSign(ascRPlant.longitude ?? 0)) : "—";
+      const ascRDig   = _getDignityLabel(ascRPlant?.dignity);
+      lines.push(`ASC · ${ascSign} ${_getDegMin(ascLon)} · Señor: ${ascRuler} (${ascRSign}, ${ascRDig})`);
+    }
+    if (mcLon != null) {
+      const mcSign   = _getSign(mcLon);
+      const mcRuler  = _RULERS[mcSign] ?? "—";
+      const mcRPlant = planets.find((p: any) => p.name === mcRuler);
+      const mcRSign  = mcRPlant ? (mcRPlant.sign || _getSign(mcRPlant.longitude ?? 0)) : "—";
+      const mcRDig   = _getDignityLabel(mcRPlant?.dignity);
+      lines.push(`MC · ${mcSign} ${_getDegMin(mcLon)} · Señor: ${mcRuler} (${mcRSign}, ${mcRDig})`);
+    }
+  }
+
+  // Annual profection
+  const profHouse: number | null = abuData.derived?.profection?.house ?? null;
+  if (profHouse != null) {
+    const cusp     = cusps.find((h: any) => h.house === profHouse);
+    const profSign = cusp ? _getSign(cusp.start) : null;
+    const profLord = profSign ? (_RULERS[profSign] ?? "—") : "—";
+    const profDig  = _getPlanetDignity(planets, profLord);
+    lines.push("", "PROFECCIÓN ANUAL");
+    lines.push(
+      `Casa activada: ${profHouse}${profSign ? ` (${profSign})` : ""} · Señor del año: ${profLord} · Dignidad: ${profDig}`
+    );
+  }
+
+  // Active firdaria with major period dates derived client-side
+  const firdaria = abuData.derived?.firdaria?.current ?? null;
+  if (firdaria?.major && firdaria.major !== "N/A") {
+    const { majorStart, majorEnd } = _computeFirdariaMajorDates(abuData);
+    const majDig = _getPlanetDignity(planets, firdaria.major);
+    const majorLine = [
+      `Mayor: ${firdaria.major} (${majDig})`,
+      majorStart ? `inicio: ${_formatDateEs(majorStart)}` : null,
+      majorEnd   ? `cierre: ${_formatDateEs(majorEnd)}`   : null,
+    ].filter(Boolean).join(" · ");
+
+    lines.push("", "FIRDARIA ACTIVO");
+    lines.push(majorLine);
+
+    if (firdaria.sub && firdaria.sub !== "N/A") {
+      const minDig = _getPlanetDignity(planets, firdaria.sub);
+      const minorLine = [
+        `Menor: ${firdaria.sub} (${minDig})`,
+        firdaria.start ? `inicio: ${_formatDateEs(firdaria.start)}` : null,
+        firdaria.end   ? `cierre: ${_formatDateEs(firdaria.end)}`   : null,
+      ].filter(Boolean).join(" · ");
+      lines.push(minorLine);
+    }
+
+    if (firdaria.historical_fallback) {
+      lines.push("(período histórico aproximado — último ciclo del nativo registrado)");
+    }
+  }
+
+  return lines.join("\n");
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+
 export const LILLY_SYSTEM_PROMPT = `
 IDENTITY
 

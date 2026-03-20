@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
-import { LILLY_SYSTEM_PROMPT } from '../../../../lib/lilly-prompt';
+import { LILLY_SYSTEM_PROMPT, buildBaseContext } from '../../../../lib/lilly-prompt';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,6 +24,7 @@ export async function POST(req: Request) {
       asc_local,
       mc_local,
       lang,
+      natalData,
     } = body;
 
     const contextLines = [
@@ -37,12 +38,15 @@ export async function POST(req: Request) {
     if (mc_local) contextLines.push(`MC local: ${mc_local}`);
     contextLines.push(`Idioma de respuesta: ${lang ?? 'es'}`);
 
-    const contextBlock = contextLines.join('\n');
+    const baseCtx = buildBaseContext(natalData);
+    const contextBlock = baseCtx
+      ? `${baseCtx}\n\n---\n\n${contextLines.join('\n')}`
+      : contextLines.join('\n');
 
     const client = new Anthropic({ apiKey });
     const response = await client.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 768,
+      max_tokens: 1024,
       system: LILLY_SYSTEM_PROMPT,
       messages: [{ role: 'user', content: contextBlock }],
     });

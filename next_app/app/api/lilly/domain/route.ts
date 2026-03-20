@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
-import { LILLY_SYSTEM_PROMPT } from '../../../../lib/lilly-prompt';
+import { LILLY_SYSTEM_PROMPT, buildBaseContext } from '../../../../lib/lilly-prompt';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,6 +21,7 @@ export async function POST(req: Request) {
       hf_max,
       best_city,
       lang,
+      natalData,
     } = body;
 
     const lines = [
@@ -40,7 +41,10 @@ export async function POST(req: Request) {
         : null,
       `Idioma de respuesta: ${lang ?? 'es'}`,
     ].filter(Boolean);
-    const contextBlock = lines.join('\n');
+    const baseCtx = buildBaseContext(natalData);
+    const contextBlock = baseCtx
+      ? `${baseCtx}\n\n---\n\n${lines.join('\n')}`
+      : lines.join('\n');
 
     const client = new Anthropic({ apiKey });
     const response = await client.messages.create({

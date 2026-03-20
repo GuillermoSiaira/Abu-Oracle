@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
-import { LILLY_SYSTEM_PROMPT } from '../../../../lib/lilly-prompt';
+import { LILLY_SYSTEM_PROMPT, buildBaseContext } from '../../../../lib/lilly-prompt';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,7 +12,7 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    const { technique, data, subject_name, lang } = body;
+    const { technique, data, subject_name, lang, natalData } = body;
 
     let contextBlock = `Sujeto: ${subject_name ?? 'Anónimo'}\nIdioma de respuesta: ${lang ?? 'es'}\n\n`;
 
@@ -63,15 +63,20 @@ export async function POST(req: Request) {
       ].join('\n');
     }
 
+    const baseCtx = buildBaseContext(natalData);
+    const fullContextBlock = baseCtx
+      ? `${baseCtx}\n\n---\n\n${contextBlock}`
+      : contextBlock;
+
     const shortTechniques = ['lunar_transit', 'planetary_cycle'];
-    const maxTokens = shortTechniques.includes(technique) ? 256 : 512;
+    const maxTokens = shortTechniques.includes(technique) ? 512 : 1024;
 
     const client = new Anthropic({ apiKey });
     const response = await client.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: maxTokens,
       system: LILLY_SYSTEM_PROMPT,
-      messages: [{ role: 'user', content: contextBlock }],
+      messages: [{ role: 'user', content: fullContextBlock }],
     });
 
     const text = response.content[0].type === 'text' ? response.content[0].text : '';

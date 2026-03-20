@@ -29,7 +29,27 @@ export async function POST(req: Request) {
       const houses = abuData?.chart?.houses;
       const sect = abuData?.derived?.sect ?? "unknown";
       const firdaria = abuData?.derived?.firdaria?.current;
-      const profection = abuData?.derived?.profection;
+      const profectionHouse: number | null = abuData?.derived?.profection?.house ?? null;
+
+      // Derive profection lord from house cusp → sign → traditional ruler
+      const CHAT_SIGNS = [
+        "Aries","Taurus","Gemini","Cancer","Leo","Virgo",
+        "Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces",
+      ];
+      const CHAT_RULERS: Record<string, string> = {
+        Aries: "Mars", Taurus: "Venus", Gemini: "Mercury", Cancer: "Moon",
+        Leo: "Sun", Virgo: "Mercury", Libra: "Venus", Scorpio: "Mars",
+        Sagittarius: "Jupiter", Capricorn: "Saturn", Aquarius: "Saturn", Pisces: "Jupiter",
+      };
+      let profLord = "?";
+      if (profectionHouse != null) {
+        const cusps: any[] = houses?.houses ?? [];
+        const cusp = cusps.find((h: any) => h.house === profectionHouse);
+        if (cusp) {
+          const signIdx = Math.floor(((cusp.start % 360) + 360) % 360 / 30);
+          profLord = CHAT_RULERS[CHAT_SIGNS[signIdx]] ?? "?";
+        }
+      }
 
       contextBlock = `
 CHART CONTEXT
@@ -38,7 +58,7 @@ Birth: ${meta.date ?? ""} · ${meta.city ?? ""}
 Sect: ${sect}
 Planets: ${planets}
 ASC: ${houses?.asc?.toFixed(1) ?? "?"} | MC: ${houses?.mc?.toFixed(1) ?? "?"}
-Profection lord: ${profection?.lord ?? "?"} (House ${profection?.house_number ?? "?"})
+Profection lord: ${profLord} (House ${profectionHouse ?? "?"})
 Firdaria: ${firdaria?.major ?? "?"} / ${firdaria?.sub ?? "?"}
 Lang: ${abuData?.lang ?? "es"}
 `;
@@ -67,7 +87,7 @@ Lang: ${abuData?.lang ?? "es"}
 
     const response = await client.messages.create({
       model: "claude-sonnet-4-6",
-      max_tokens: parseInt(process.env.LILLY_CHAT_MAX_TOKENS ?? "1500"),
+      max_tokens: parseInt(process.env.LILLY_CHAT_MAX_TOKENS ?? "2500"),
       system: systemPrompt,
       messages: anthropicMessages,
     });

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
-import { LILLY_SYSTEM_PROMPT } from '../../../../lib/lilly-prompt';
+import { LILLY_SYSTEM_PROMPT, buildBaseContext } from '../../../../lib/lilly-prompt';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,6 +30,7 @@ export async function POST(req: Request) {
       transit_date,
       subject_name,
       lang,
+      natalData,
     } = body;
 
     const dateLabel = transit_date
@@ -47,7 +48,7 @@ export async function POST(req: Request) {
         }).join('\n')
       : '- Sin aspectos registrados';
 
-    const contextBlock = [
+    const eventBlock = [
       `El usuario seleccionó ${transit_planet?.toUpperCase() ?? '—'} en tránsito — actualmente en ${transit_sign ?? '—'} ${transit_deg != null ? transit_deg.toFixed(1) + '°' : ''}.`,
       `Aspectos activos de este tránsito:`,
       aspectLines,
@@ -55,6 +56,11 @@ export async function POST(req: Request) {
       `Sujeto: ${subject_name ?? 'Anónimo'}`,
       `Idioma de respuesta: ${lang ?? 'es'}`,
     ].join('\n');
+
+    const baseCtx = buildBaseContext(natalData);
+    const contextBlock = baseCtx
+      ? `${baseCtx}\n\n---\n\n${eventBlock}`
+      : eventBlock;
 
     const client = new Anthropic({ apiKey });
     const response = await client.messages.create({

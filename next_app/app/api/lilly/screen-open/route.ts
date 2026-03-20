@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
-import { LILLY_SYSTEM_PROMPT } from '../../../../lib/lilly-prompt';
+import { LILLY_SYSTEM_PROMPT, buildBaseContext } from '../../../../lib/lilly-prompt';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,9 +27,12 @@ export async function POST(req: Request) {
       firdaria_major,
       firdaria_minor,
       lang,
+      natalData,
     } = body;
 
-    const contextBlock = [
+    const baseCtx = buildBaseContext(natalData);
+
+    const screenOpenBlock = [
       `Sujeto: ${name || 'Anónimo'}`,
       `Secta: ${sect || '—'}`,
       `Maestro de secta: ${sect_master || '—'}`,
@@ -59,6 +62,10 @@ export async function POST(req: Request) {
       `Para click_technique usar: sect, profection, firdaria, lot_fortuna, lot_spirit.`,
       `Para click_planet usar el nombre del planeta en inglés (Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn).`,
     ].join('\n');
+
+    const contextBlock = baseCtx
+      ? `${baseCtx}\n\n---\n\n${screenOpenBlock}`
+      : screenOpenBlock;
 
     const client = new Anthropic({ apiKey });
     const response = await client.messages.create({
