@@ -163,6 +163,32 @@ H10: Cohen's d_global=+0.871 — separación real pero desbalance de valencias l
 
 ---
 
+### Fase 4 — Correlación segmentada por dominio ✅ `[COMPLETA 2026-03-21]`
+
+Script: `scripts/correlate_by_domain.py` — z-score por sujeto, Pearson + Cohen's d + Mann-Whitney U + rank-biserial.
+Reporte: `analysis/domain_correlation_report.md` · `analysis/domain_correlation_results.json`
+
+| Casa | N | delta_corr | delta_rb | Resultado |
+|------|---|------------|----------|-----------|
+| H05 Creatividad | 57 | +0.150 | n/a (N−=1) | ✅ confirmado |
+| H09 Expansión | 66 | +0.017 | +0.107 | señal débil positiva |
+| H10 Carrera | 250 | −0.061 | +0.249 | rank-biserial mejora; Pearson limitado por N−=4 |
+| H07 Relaciones | 93 | +0.017 | +0.214 | neutro — sin mejora ni degradación clara |
+| H01/H02/H06/H08/H12 | <12 | — | — | N insuficiente |
+
+**Diagnóstico H10**: rb_global=−0.315 → rb_domain=−0.066. El filtrado por dominio reduce el error del global en 0.249 puntos. Límite: significadores de H10 incluyen Neptuno y Plutón (planetas lentos — baja varianza temporal). Veredicto: hipótesis parcialmente confirmada y no refutada; el límite es el corpus, no el modelo.
+
+**GS_004 — Guillermo Siaira** (nuevo Gold Standard, `data/biographical_events/GS_004_siaira.json`):
+- 26 eventos con `lat`/`lon` por evento — único corpus con ubicación real en el dataset
+- Balance: 11 negativos / 14 positivos / 1 neutro (mejor balance del corpus)
+- Límite estructural: movilidad geográfica baja (Buenos Aires 1997–2021) → HF natal en ubicación del evento es constante para H10; el test espacial queda vacío por construcción
+
+**Pendiente Fase 5 — HF SR con Firdaria** (no iniciar hasta nueva sesión):
+- Especificación: `compute_relocation_field(reference_date, planet_subset=[firdaria_major, firdaria_minor])`
+- Hipótesis: el campo de relocalización calculado con los planetas del período firdaria activo predice mejor la geografía de eventos del período que el campo global
+
+---
+
 ### Fase 8 — Paridad usuario/demo + Mapa Solar Return ✅ `[COMPLETA 2026-03-15]`
 
 El mapa del usuario en `localhost:3000/chart` → "Mi Relocalización" ahora tiene
