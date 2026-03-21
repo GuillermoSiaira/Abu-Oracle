@@ -959,9 +959,13 @@ def get_solar_return(
     year: int = Query(None, description="Año del Solar Return (opcional, por defecto año actual)")
 ):
     """
-    Calcula la carta de Solar Return (Revolución Solar).
-    
-    El Solar Return ocurre cuando el Sol transita regresa exactamente a su posición natal.
+    Carta de Solar Return (Revolución Solar) — completa para una ciudad.
+
+    DISTINTO de:
+      /api/astro/sr-relocation-field  → grilla global de heatmap (9425 puntos)
+      /api/astro/solar-return-score   → HF escalar por ciudad, filtrado por Firdaria activa
+
+    El Solar Return ocurre cuando el Sol regresa exactamente a su posición natal.
     Este endpoint calcula el momento preciso y genera la carta astral para ese instante.
     
     Ejemplo de request:
@@ -1233,6 +1237,7 @@ def get_sr_relocation_field(
     lon: float = Query(..., description="Longitud natal"),
     year: int = Query(None, description="Año del Retorno Solar (default: año actual)"),
     step: float = Query(2.5, description="Paso del grid en grados (min 2.5)"),
+    domain: str = Query(None, description="Dominio semántico (h1|h2|h4|h5|h6|h7|h9|h10|global) — Axioma 8.3"),
 ):
     """
     Campo HF de relocalización usando planetas del Retorno Solar.
@@ -1240,6 +1245,10 @@ def get_sr_relocation_field(
     Para cada punto del grid, calcula el HF con las posiciones planetarias
     del momento exacto del RS + ASC/MC local. Muestra qué ubicaciones
     activan mejor la configuración celeste de ese año.
+
+    Parámetro opcional domain (Axioma 8.3 — dimensión semántica):
+      planet_subset = UNION(firdaria_planets, house_significators(natal, domain))
+      Si domain es None o 'global': planet_subset = [firdaria_major, firdaria_minor] solo.
     """
     if not birthDate or lat is None or lon is None:
         raise HTTPException(status_code=400, detail="Missing birthDate/lat/lon")
@@ -1255,8 +1264,52 @@ def get_sr_relocation_field(
 
     try:
         from services.relocation import make_grid, compute_sr_field, build_geojson
+        from core.chart import find_solar_return as _find_sr
+        from core.fardars import get_current_fardar as _get_fardar, is_diurnal_chart as _is_diurnal
+        from core.chart import chart_json as _chart_json
+        from core.houses_swiss import calculate_houses as _calc_houses, HOUSE_SYSTEM_PLACIDUS
+
+        # 1. Natal chart to derive Firdaria + domain significators
+        natal_chart = _chart_json(lat, lon, birth_dt)
+        natal_houses = _calc_houses(birth_dt, lat, lon, HOUSE_SYSTEM_PLACIDUS)
+        sun_lon = next((p.lon for p in natal_chart.planets if p.name == "Sun"), 0.0)
+        asc_lon_natal = natal_houses["asc"]
+        is_diurnal = _is_diurnal(sun_lon, asc_lon_natal)
+
+        # 2. SR date (needed only for Firdaria lookup; planet positions computed inside compute_sr_field)
+        sr_dt_for_firdaria = _find_sr(birth_dt, lat, lon, year)
+        firdaria = _get_fardar(birth_dt, is_diurnal, sr_dt_for_firdaria)
+        major = firdaria.get("major", "N/A")
+        minor = firdaria.get("sub", "N/A")
+        if major == "N/A":
+            fallback_dt = birth_dt + timedelta(days=74 * 365.25)
+            fb = _get_fardar(birth_dt, is_diurnal, fallback_dt)
+            if fb.get("major") != "N/A":
+                major = fb.get("major", "N/A")
+                minor = fb.get("sub", "N/A")
+
+        # 3. Firdaria temporal dimension (Axioma 9)
+        firdaria_planets: List[str] = []
+        if major != "N/A" and minor != "N/A":
+            firdaria_planets = [major.lower(), minor.lower()]
+
+        # 4. Domain semantic dimension (Axioma 8.3)
+        domain_sig: List[str] = []
+        if domain and domain != "global":
+            house_num = _DOMAIN_TO_HOUSE.get(domain)
+            if house_num:
+                from harmony.houses import house_significators as _house_sig
+                planet_pos_natal = {p.name: float(p.lon) for p in natal_chart.planets}
+                natal_for_sig = {**planet_pos_natal, "cusps": list(natal_houses["cusps"])}
+                domain_sig = _house_sig(natal_for_sig, house_num)
+
+        # 5. planet_subset = UNION(firdaria_planets, domain_sig)
+        merged = list(dict.fromkeys(firdaria_planets + domain_sig))
+        planet_subset: List[str] | None = merged if merged else None
+
+        # 6. Full grid computation with planet_subset
         grid = make_grid(step)
-        natal_metrics, rows, sr_dt = compute_sr_field(birth_dt, lat, lon, grid, year=year)
+        natal_metrics, rows, sr_dt = compute_sr_field(birth_dt, lat, lon, grid, year=year, planet_subset=planet_subset)
         geojson = build_geojson(rows)
         geojson["properties"] = {
             "natal_latitude": lat,
@@ -1265,12 +1318,163 @@ def get_sr_relocation_field(
             "sr_datetime": sr_dt.isoformat(),
             "year": year,
             "mode": "solar_return",
+            "domain": domain or "global",
         }
     except Exception as e:
         logging.error(f"[Abu] sr-relocation-field error: {e}")
         raise HTTPException(status_code=500, detail=f"sr-relocation-field error: {str(e)}")
 
     return JSONResponse(content=geojson)
+
+
+class SRScoreCity(BaseModel):
+    id: str
+    lat: float
+    lon: float
+
+
+class SRScoreRequest(BaseModel):
+    birthDate: str
+    birthLat: float
+    birthLon: float
+    sr_year: int | None = None
+    domain: str | None = None   # 'h1'|'h2'|'h4'|'h5'|'h6'|'h7'|'h9'|'h10'|'global' — Axioma 8.3
+    cities: List[SRScoreCity]
+
+
+@app.post(
+    "/api/astro/solar-return-score",
+    response_model=None,
+)
+def get_solar_return_score(
+    body: SRScoreRequest = Body(...),
+    user: dict = Depends(verify_token),
+):
+    """
+    HF escalar por ciudad modulado por Firdaria, para comparación de Retorno Solar.
+
+    Distinto de /api/astro/solar-return (carta SR completa para una ciudad) y de
+    /api/astro/sr-relocation-field (grilla global de heatmap).
+    Este endpoint calcula el HF SR para ciudades puntuales on-demand,
+    filtrando los planetas participantes según la Firdaria activa en la fecha del SR.
+
+    Body: { birthDate, birthLat, birthLon, sr_year?, domain?, cities: [{id, lat, lon}] }
+      domain: 'h1'|'h2'|'h4'|'h5'|'h6'|'h7'|'h9'|'h10'|'global' (Axioma 8.3 — requisito epistémico)
+    planet_subset = UNION(firdaria_planets, house_significators(natal, domain))
+    Response: { firdaria: {major, minor, major_dignity, major_dignity_score},
+                sr_date, scores: [{id, hf_sr}] }
+    """
+    try:
+        birth_dt = datetime.fromisoformat(body.birthDate.replace("Z", "+00:00"))
+    except Exception:
+        raise HTTPException(status_code=422, detail="Invalid birthDate format")
+
+    sr_year = body.sr_year if body.sr_year else datetime.now().year
+
+    if not body.cities:
+        raise HTTPException(status_code=400, detail="At least one city required")
+
+    try:
+        from core.chart import find_solar_return, chart_json as _chart_json
+        from core.fardars import get_current_fardar, is_diurnal_chart
+        from core.extended_calc import calculate_dignity
+        from core.houses_swiss import calculate_houses as _calc_houses, HOUSE_SYSTEM_PLACIDUS
+        from services.relocation import compute_point_hf
+
+        # 1. Find exact SR datetime (independent of location)
+        sr_dt = find_solar_return(birth_dt, body.birthLat, body.birthLon, sr_year)
+
+        # 2. Natal chart to determine sect (diurnal/nocturnal)
+        natal_chart = _chart_json(body.birthLat, body.birthLon, birth_dt)
+        natal_houses = _calc_houses(birth_dt, body.birthLat, body.birthLon, HOUSE_SYSTEM_PLACIDUS)
+        sun_lon = next((p.lon for p in natal_chart.planets if p.name == "Sun"), 0.0)
+        asc_lon_natal = natal_houses["asc"]
+        is_diurnal = is_diurnal_chart(sun_lon, asc_lon_natal)
+
+        # 3. Firdaria active at the SR date
+        firdaria = get_current_fardar(birth_dt, is_diurnal, sr_dt)
+        major = firdaria.get("major", "N/A")
+        minor = firdaria.get("sub", "N/A")
+
+        # Fallback for historical subjects outside 75-year cycle
+        if major == "N/A":
+            from datetime import timedelta
+            fallback_dt = birth_dt + timedelta(days=74 * 365.25)
+            fb = get_current_fardar(birth_dt, is_diurnal, fallback_dt)
+            if fb.get("major") != "N/A":
+                major = fb.get("major", "N/A")
+                minor = fb.get("sub", "N/A")
+
+        # Firdaria temporal dimension (Axioma 9 — cuándo y con qué planetas)
+        firdaria_planets: List[str] = []
+        if major != "N/A" and minor != "N/A":
+            firdaria_planets = [major.lower(), minor.lower()]
+
+        # Domain semantic dimension (Axioma 8.3 — para qué propósito)
+        # Union: firdaria_planets + house_significators(domain) — deduplicado, preservando orden
+        domain_sig: List[str] = []
+        if body.domain and body.domain != "global":
+            house_num = _DOMAIN_TO_HOUSE.get(body.domain)
+            if house_num:
+                from harmony.houses import house_significators as _house_sig
+                planet_pos_natal = {p.name: float(p.lon) for p in natal_chart.planets}
+                natal_for_sig = {**planet_pos_natal, "cusps": list(natal_houses["cusps"])}
+                domain_sig = _house_sig(natal_for_sig, house_num)
+
+        # planet_subset = union of both dimensions (set removes duplicates, dict.fromkeys preserves order)
+        merged = list(dict.fromkeys(firdaria_planets + domain_sig))
+        planet_subset: List[str] | None = merged if merged else None
+
+        # 4. SR planet positions (fixed for all cities)
+        sr_chart = _chart_json(body.birthLat, body.birthLon, sr_dt)
+        sr_planet_pos = {p.name: float(p.lon) for p in sr_chart.planets}
+
+        # 5. Dignity of major firdaria planet (at SR positions)
+        major_dignity = "peregrine"
+        major_dignity_score = 0
+        if major != "N/A" and major in sr_planet_pos:
+            dig = calculate_dignity(major, sr_planet_pos[major])
+            if dig.get("domicile"):
+                major_dignity = "domicile"
+                major_dignity_score = 5
+            elif dig.get("exaltation"):
+                major_dignity = "exaltation"
+                major_dignity_score = 4
+            elif dig.get("detriment"):
+                major_dignity = "detriment"
+                major_dignity_score = -4
+            elif dig.get("fall"):
+                major_dignity = "fall"
+                major_dignity_score = -5
+
+        # 6. Compute HF for each city using SR positions + firdaria subset
+        scores = []
+        for city in body.cities:
+            try:
+                hf_data = compute_point_hf(
+                    sr_dt, city.lat, city.lon, sr_planet_pos, planet_subset=planet_subset
+                )
+                scores.append({"id": city.id, "hf_sr": hf_data["hf_total"]})
+            except Exception as city_err:
+                logging.warning(f"[Abu] solar-return-score city {city.id} error: {city_err}")
+                scores.append({"id": city.id, "hf_sr": 0.0})
+
+        return JSONResponse(content={
+            "firdaria": {
+                "major": major,
+                "minor": minor,
+                "major_dignity": major_dignity,
+                "major_dignity_score": major_dignity_score,
+            },
+            "sr_date": sr_dt.isoformat(),
+            "scores": scores,
+        })
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"[Abu] solar-return-score error: {e}")
+        raise HTTPException(status_code=500, detail=f"solar-return-score error: {str(e)}")
 
 
 @app.get("/health")

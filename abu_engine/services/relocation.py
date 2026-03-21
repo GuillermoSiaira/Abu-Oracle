@@ -247,6 +247,48 @@ def make_ranking(rows: List[dict], top_n: int = 20) -> List[dict]:
     return sorted(seen.values(), key=lambda x: x["hf_total_v3"], reverse=True)[:top_n]
 
 
+# ── Single-point HF (for city comparison, no grid) ───────────────────
+
+def compute_point_hf(
+    ref_dt: datetime,
+    city_lat: float,
+    city_lon: float,
+    planet_pos: Dict[str, float],
+    planet_subset: List[str] | None = None,
+) -> Dict[str, float]:
+    """Compute HF for a single city using pre-computed planet positions.
+
+    Planet positions are fixed externally (e.g. SR or natal chart).
+    Only the local ASC/MC and house cusps change per city.
+
+    Args:
+        ref_dt: Reference datetime used to compute local houses.
+        city_lat: Latitude of the city.
+        city_lon: Longitude of the city.
+        planet_pos: Mapping of planet name → ecliptic longitude (Title-case keys).
+        planet_subset: Optional lowercase planet names to include in HF scoring.
+
+    Returns:
+        Dict with hf_total, hf_aspects, hf_angles, hf_houses, asc_lon, mc_lon.
+    """
+    if ref_dt.tzinfo is None:
+        ref_dt = ref_dt.replace(tzinfo=timezone.utc)
+    h = calculate_houses(ref_dt, city_lat, city_lon, HOUSE_SYSTEM_PLACIDUS)
+    angles = dict(planet_pos)
+    angles["ASC"] = float(h["asc"])
+    angles["MC"] = float(h["mc"])
+    cusps = list(h["cusps"])
+    hf = compute_hf_v3(angles, cusps=cusps, planet_subset=planet_subset)
+    return {
+        "hf_total": round(float(hf["hf_total_v3"]), 4),
+        "hf_aspects": round(float(hf["hf_aspects"]), 4),
+        "hf_angles": round(float(hf["hf_angles"]), 4),
+        "hf_houses": round(float(hf["hf_houses"]), 4),
+        "asc_lon": round(float(h["asc"]), 4),
+        "mc_lon": round(float(h["mc"]), 4),
+    }
+
+
 # ── Solar Return relocation field ─────────────────────────────────────
 
 def compute_sr_field(

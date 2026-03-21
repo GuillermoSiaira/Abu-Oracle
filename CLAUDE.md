@@ -15,6 +15,29 @@
 - Stack en producción: Next.js + Python/FastAPI → Cloud Run (GCP) · Firebase Auth · Firestore · Alchemy webhook · Resend
 - Revisión inicial: `abu-oracle-app-00016-xqp`
 
+### Fixes post-lanzamiento (2026-03-21) — SR domain heatmap + scores + auth local dev
+
+**Axioma 8.3 — SR heatmap domain-aware** (`main.py`, `relocation-tab.tsx`)
+- `GET /api/astro/sr-relocation-field` acepta nuevo param `domain` opcional.
+- Backend: `planet_subset = UNION(firdaria_planets, house_significators(natal, domain))` — misma lógica que `solar-return-score`.
+- Frontend: `srLifeDomain` en deps del SR field useEffect → cambio de dominio re-fetcha el heatmap con el nuevo `domain` param.
+
+**Nuevo endpoint `POST /api/astro/solar-return-score`** (`main.py`, `services/relocation.py`)
+- Computa HF escalar por lista de ciudades usando posiciones del SR + `planet_subset` Firdaria+dominio.
+- Helper `compute_point_hf()` en `services/relocation.py` — HF para un punto sin grid completo.
+- Proxy Next.js en `app/api/astro/solar-return-score/route.ts`.
+
+**Fix scores SR mostraban "—" siempre** (`relocation-tab.tsx`)
+- Causa raíz 1: `fetchSRScores` llamaba al proxy Next.js → `getAbuAuthHeaders()` server-side → sin `currentUser` → sin token → Abu Engine 401 → silent return.
+- Fix: `fetchSRScores` llama `getAbuAuthHeaders()` client-side y va directo a `ABU_BASE_URL` — igual que todos los otros fetches Abu Engine del archivo.
+- Causa raíz 2: Abu Engine en Docker local no tiene credenciales Firebase para `ApplicationDefault()` → `auth.verify_id_token()` lanza excepción → 401 "Error de autenticación".
+- Fix: `docker-compose.yml` agrega `AUTH_ENABLED=false` + `ENV=development` al servicio `abu_engine` → activa el bypass dev en `auth.py`. Fail-closed en Cloud Run: `K_SERVICE` presente → `sys.exit(1)` si `AUTH_ENABLED=false`.
+
+**Bugs visuales modo SR** (`relocation-tab.tsx`, `lilly/city/route.ts`)
+- Badge "filtrando por Firdaria": ahora muestra `"Firdaria · Carrera H10"` cuando hay dominio activo, `"filtrando por Firdaria"` cuando global.
+- Lilly city_select en SR: payload incluye `active_domain` (LifeDomain key) y `active_domain_house` (hX). Route `/api/lilly/city` construye `domainLabel` diferenciado por modo.
+- Logging: todos los fetches silenciosos en `relocation-tab.tsx` ahora loggean con `console.error`.
+
 ### Fixes post-lanzamiento (2026-03-21) — Mapa HF: click handler + SR context + layout
 
 **Fix 1 — Click handler roto tras cambio de dominio** (`HFRelocationMap.tsx`)

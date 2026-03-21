@@ -5,6 +5,10 @@ services:
     ports:
       - "8000:8000"
     restart: always
+    environment:
+      # Dev local — desactiva verificación Firebase (Cloud Run tiene K_SERVICE y hace fail-closed)
+      - AUTH_ENABLED=false
+      - ENV=development
 
   lilly_swarm:
     build: ./lilly_swarm

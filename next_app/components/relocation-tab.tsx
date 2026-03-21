@@ -6,8 +6,8 @@ import { UI } from "@/lib/i18n";
 import { ABU_BASE_URL } from "@/services/abu";
 import { getAbuAuthHeaders } from "@/lib/abu-auth";
 import RankingTable from "@/components/RankingTable";
-import { LifeDomainSelector, type LifeDomain } from "@/components/LifeDomainSelector";
 import { DomainSelector, type Domain } from "@/components/DomainSelector";
+import { LifeDomainSelector, type LifeDomain } from "@/components/LifeDomainSelector";
 import { Globe, Loader2, AlertCircle, Star } from "lucide-react";
 import dynamic from "next/dynamic";
 
@@ -39,37 +39,35 @@ type RelocationResult = {
   grid_points: number;
 };
 
-type DomainRankEntry = {
-  rank: number;
-  city: string;
-  country: string;
-  total_score: number;
-  max_possible: number;
-  grade: string;
-  asc_sign: string;
-  mc_sign: string;
-  key_insight: string;
+
+type SRCityEntry = {
+  id: string;
+  name: string;
+  country?: string;
+  lat: number;
+  lon: number;
+  hf_sr: number | null;
+  isNatal?: boolean;
+  isCurrent?: boolean;
 };
 
-type DomainRankResult = {
-  domain: string;
-  domain_label: string;
-  top_recommendations: DomainRankEntry[];
-  errors: string[];
+type SRFirdaria = {
+  major: string;
+  minor: string;
+  major_dignity: string;
+  major_dignity_score: number;
 };
 
 const DOMAIN_HOUSE_NUM: Record<Domain, number> = {
   global: 0, h1: 1, h2: 2, h4: 4, h5: 5, h6: 6, h7: 7, h9: 9, h10: 10,
 };
 
-const LIFE_DOMAIN_HOUSE: Record<string, number> = {
-  career: 10, love: 7, health: 1, family: 4,
-  resources: 2, creativity: 5, expansion: 9,
+// LifeDomain (semántico) → Domain (formato hX para el backend) — Axioma 8.3
+const LIFE_DOMAIN_TO_HX: Partial<Record<LifeDomain, Domain>> = {
+  career: 'h10', love: 'h7', health: 'h1', family: 'h4',
+  resources: 'h2', creativity: 'h5', expansion: 'h9',
 };
-const LIFE_DOMAIN_LABEL: Record<string, string> = {
-  career: "Carrera", love: "Amor", health: "Salud", family: "Familia",
-  resources: "Recursos", creativity: "Creatividad", expansion: "Expansión",
-};
+
 
 function deriveSignificators(
   houseNum: number,
@@ -110,10 +108,6 @@ export function RelocationTab() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Domain ranking state
-  const [lifeDomain, setLifeDomain] = useState<LifeDomain | null>(null);
-  const [domainRanking, setDomainRanking] = useState<DomainRankResult | null>(null);
-  const [domainLoading, setDomainLoading] = useState(false);
   const [mode, setMode] = useState<'natal' | 'solar_return'>('natal');
   const [srYear, setSrYear] = useState<number>(new Date().getFullYear());
 
@@ -127,6 +121,58 @@ export function RelocationTab() {
   const [domainFieldLoading, setDomainFieldLoading] = useState(false);
   const domainInitRef = useRef(false);
 
+  // Solar Return relocation field
+  const [srGeojsonUrl, setSrGeojsonUrl] = useState<string | null>(null);
+  const [srNatalHf, setSrNatalHf] = useState<number | null>(null);
+  const [srDatetime, setSrDatetime] = useState<string | null>(null);
+  const [srFieldLoading, setSrFieldLoading] = useState(false);
+
+  // Solar Return city comparison (per-city HF scores modulated by Firdaria + domain)
+  const [srCities, setSrCities] = useState<SRCityEntry[]>([]);
+  const [srFirdaria, setSrFirdaria] = useState<SRFirdaria | null>(null);
+  const [srScoreLoading, setSrScoreLoading] = useState(false);
+  const [srLifeDomain, setSrLifeDomain] = useState<LifeDomain | null>(null);
+
+  // Fetch SR scores for a given city list (Firdaria + domain — Axioma 8.3)
+  const fetchSRScores = useCallback(async (cities: SRCityEntry[]) => {
+    if (!birthData || !cities.length) return;
+    setSrScoreLoading(true);
+    try {
+      const domainHx = srLifeDomain ? (LIFE_DOMAIN_TO_HX[srLifeDomain] ?? 'global') : 'global';
+      const authHeaders = await getAbuAuthHeaders({ 'Content-Type': 'application/json' });
+      const res = await fetch(`${ABU_BASE_URL}/api/astro/solar-return-score`, {
+        method: 'POST',
+        headers: authHeaders,
+        body: JSON.stringify({
+          birthDate: birthData.birthDate,
+          birthLat: birthData.lat,
+          birthLon: birthData.lon,
+          sr_year: srYear,
+          domain: domainHx,
+          cities: cities.map((c) => ({ id: c.id, lat: c.lat, lon: c.lon })),
+        }),
+      });
+      if (!res.ok) {
+        console.error(`[SR Scores] ${res.status} ${res.statusText}`, await res.text());
+        return;
+      }
+      const result = await res.json();
+      if (result.firdaria) setSrFirdaria(result.firdaria);
+      if (Array.isArray(result.scores)) {
+        setSrCities((prev) =>
+          prev.map((c) => {
+            const score = result.scores.find((s: { id: string; hf_sr: number }) => s.id === c.id);
+            return score ? { ...c, hf_sr: score.hf_sr } : c;
+          })
+        );
+      }
+    } catch (e) {
+      console.error('[SR Score]', e);
+    } finally {
+      setSrScoreLoading(false);
+    }
+  }, [birthData, srYear, srLifeDomain]);
+
   // Map click → nearest city → city_select a Lilly
   // mode y srYear en deps: onMapClickRef en HFRelocationMap garantiza que se llama la versión más reciente
   const isProcessingClick = useRef(false);
@@ -135,9 +181,17 @@ export function RelocationTab() {
     isProcessingClick.current = true;
     try {
       const res = await fetch(`/api/cities/nearest?lat=${lat}&lon=${lon}`);
-      if (!res.ok) return;
+      if (!res.ok) {
+        console.error(`[MapClick nearest] ${res.status} ${res.statusText}`);
+        return;
+      }
       const nearest = await res.json();
       if (!nearest.city) return;
+
+      // Lilly event — city interpretation
+      const srDomainHx = mode === 'solar_return' && srLifeDomain
+        ? (LIFE_DOMAIN_TO_HX[srLifeDomain] ?? 'global')
+        : undefined;
       setPendingLillyEvent({
         type: 'city_select',
         payload: {
@@ -152,22 +206,38 @@ export function RelocationTab() {
           subject_name: subjectName,
           mode,
           sr_year: mode === 'solar_return' ? srYear : undefined,
+          active_domain: mode === 'solar_return' ? (srLifeDomain ?? 'global') : undefined,
+          active_domain_house: srDomainHx,
           lang,
         },
       });
+
+      // SR mode: add city to comparison list and re-score
+      if (mode === 'solar_return') {
+        const isDuplicate = srCities.some(
+          (c) => c.name === nearest.city && c.country === nearest.country
+        );
+        if (!isDuplicate) {
+          const newCity: SRCityEntry = {
+            id: `${nearest.city}-${nearest.country}-${Date.now()}`,
+            name: nearest.city,
+            country: nearest.country,
+            lat,
+            lon,
+            hf_sr: null,
+          };
+          const updatedCities = [...srCities, newCity];
+          setSrCities(updatedCities);
+          fetchSRScores(updatedCities);
+        }
+      }
     } catch (e) {
       console.error('[MapClick]', e);
     } finally {
       // Cooldown de 1s para prevenir doble-fire (StrictMode dev / handlers acumulados)
       setTimeout(() => { isProcessingClick.current = false; }, 1000);
     }
-  }, [hfDomain, subjectName, mode, srYear, lang, setPendingLillyEvent]);
-
-  // Solar Return relocation field
-  const [srGeojsonUrl, setSrGeojsonUrl] = useState<string | null>(null);
-  const [srNatalHf, setSrNatalHf] = useState<number | null>(null);
-  const [srDatetime, setSrDatetime] = useState<string | null>(null);
-  const [srFieldLoading, setSrFieldLoading] = useState(false);
+  }, [hfDomain, subjectName, mode, srYear, lang, setPendingLillyEvent, srCities, fetchSRScores, srLifeDomain]);
 
   // Cleanup blob URLs on unmount
   useEffect(() => {
@@ -175,6 +245,50 @@ export function RelocationTab() {
       blobUrlsRef.current.forEach((u) => URL.revokeObjectURL(u));
     };
   }, []);
+
+  // Initialize SR city list whenever mode or year changes
+  useEffect(() => {
+    if (mode !== 'solar_return' || !birthData) {
+      if (mode !== 'solar_return') setSrCities([]);
+      return;
+    }
+    const initCities: SRCityEntry[] = [
+      {
+        id: 'natal',
+        name: birthData.city ?? 'Natal',
+        lat: birthData.lat,
+        lon: birthData.lon,
+        hf_sr: null,
+        isNatal: true,
+      },
+    ];
+    const rLat = (birthData as any).residenceLat;
+    const rLon = (birthData as any).residenceLon;
+    if (rLat != null && rLon != null) {
+      const diffDeg = Math.hypot(rLat - birthData.lat, rLon - birthData.lon);
+      if (diffDeg > 0.5) {
+        initCities.push({
+          id: 'current',
+          name: (birthData as any).residenceCity ?? 'Actual',
+          lat: rLat,
+          lon: rLon,
+          hf_sr: null,
+          isCurrent: true,
+        });
+      }
+    }
+    setSrCities(initCities);
+    setSrLifeDomain(null);   // reset domain selection when mode/year changes
+    fetchSRScores(initCities);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, srYear, birthData]);
+
+  // Re-fetch SR scores when domain changes — cities stay accumulated
+  useEffect(() => {
+    if (mode !== 'solar_return' || srCities.length === 0) return;
+    fetchSRScores(srCities);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [srLifeDomain]);
 
   // Fetch domain HF field when hfDomain changes (natal mode)
   useEffect(() => {
@@ -237,22 +351,24 @@ export function RelocationTab() {
         blobUrlsRef.current.push(url);
         setGeojsonUrl(url);
       })
-      .catch(() => {/* keep current map on error */})
+      .catch((e) => console.error('[Domain Field]', e))
       .finally(() => setDomainFieldLoading(false));
   }, [hfDomain, data, birthData]);
 
-  // Fetch Solar Return field when switching to SR mode or changing year
+  // Fetch Solar Return field when switching to SR mode, changing year, or changing domain
   useEffect(() => {
     if (mode !== 'solar_return' || !data || !birthData) return;
 
     setSrFieldLoading(true);
     setSrGeojsonUrl(null);
+    const domainHx = srLifeDomain ? (LIFE_DOMAIN_TO_HX[srLifeDomain] ?? 'global') : 'global';
     const params = new URLSearchParams({
       birthDate: birthData.birthDate,
       lat: String(birthData.lat),
       lon: String(birthData.lon),
       year: String(srYear),
       step: "2.5",
+      domain: domainHx,
     });
 
     getAbuAuthHeaders()
@@ -269,67 +385,10 @@ export function RelocationTab() {
         setSrNatalHf(geojson.properties?.natal_hf ?? null);
         setSrDatetime(geojson.properties?.sr_datetime ?? null);
       })
-      .catch(() => {/* keep null — map won't render */})
+      .catch((e) => console.error('[SR Field]', e))
       .finally(() => setSrFieldLoading(false));
-  }, [mode, srYear, data, birthData]);
-
-  // Fetch domain ranking when domain or base data changes
-  useEffect(() => {
-    if (!lifeDomain || !data || !birthData) {
-      setDomainRanking(null);
-      return;
-    }
-
-    const house_num = LIFE_DOMAIN_HOUSE[lifeDomain] ?? 0;
-    const significators = abuData
-      ? deriveSignificators(
-          house_num,
-          (abuData as any).chart.planets,
-          (abuData as any).chart.houses.houses
-        )
-      : [];
-    setPendingLillyEvent({
-      type: "sr_domain_select",
-      payload: {
-        domain: LIFE_DOMAIN_LABEL[lifeDomain] ?? lifeDomain,
-        house_num,
-        subject_name: subjectName,
-        significators,
-        hf_current: null,
-        hf_max: null,
-        best_city: null,
-        sr_year: srYear,
-        lang,
-      },
-    });
-
-    const cities = data.rankings.slice(0, 20).map((r) => ({
-      name: r.city,
-      lat: r.city_lat,
-      lon: r.city_lon,
-      country: r.country,
-    }));
-
-    const params = new URLSearchParams({
-      birthDate: birthData.birthDate,
-      domain: lifeDomain,
-      top_n: "5",
-    });
-
-    setDomainLoading(true);
-    getAbuAuthHeaders({ "Content-Type": "application/json" })
-      .then((headers) =>
-        fetch(`${ABU_BASE_URL}/api/astro/domain-ranking?${params}`, {
-          method: "POST",
-          headers,
-          body: JSON.stringify(cities),
-        })
-      )
-      .then((r) => r.json())
-      .then((result: DomainRankResult) => setDomainRanking(result))
-      .catch(() => setDomainRanking(null))
-      .finally(() => setDomainLoading(false));
-  }, [lifeDomain, data, birthData]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, srYear, data, birthData, srLifeDomain]);
 
   const fetchRelocation = async () => {
     if (!birthData) return;
@@ -574,12 +633,42 @@ export function RelocationTab() {
             )}
           </div>
 
-          {/* Domain selector — encima del mapa (consistente con modo natal) */}
+          {/* Domain selector — Axioma 8.3: requisito epistémico, no feature de navegación.
+              Firdaria aporta dimensión temporal (cuándo/con qué planetas).
+              El dominio aporta dimensión semántica (para qué propósito). Ambos son obligatorios. */}
           <LifeDomainSelector
-            domain={lifeDomain}
-            onDomainChange={setLifeDomain}
-            disabled={domainLoading}
+            domain={srLifeDomain}
+            onDomainChange={setSrLifeDomain}
+            disabled={srScoreLoading}
           />
+
+          {/* Firdaria activa — label informativo. planet_subset = union(Firdaria, significadores del dominio) */}
+          {srFirdaria && (
+            <div className="flex items-center gap-2 text-xs bg-slate-800/50 rounded-lg px-3 py-2 border border-slate-700/50">
+              <span className="text-amber-400 font-mono">⊙</span>
+              <span className="text-slate-400">Firdaria activa:</span>
+              <span className="text-slate-200 font-medium">{srFirdaria.major} mayor</span>
+              <span className="text-slate-600">/</span>
+              <span className="text-slate-200 font-medium">{srFirdaria.minor} menor</span>
+              {srFirdaria.major_dignity !== 'peregrine' && (
+                <span
+                  className="ml-auto text-[10px] font-mono px-1.5 py-0.5 rounded"
+                  style={{
+                    color: srFirdaria.major_dignity_score > 0 ? '#4ade80' : '#f87171',
+                    background: srFirdaria.major_dignity_score > 0 ? '#14532d40' : '#7f1d1d40',
+                  }}
+                >
+                  {srFirdaria.major} · {srFirdaria.major_dignity}
+                </span>
+              )}
+            </div>
+          )}
+          {srScoreLoading && !srFirdaria && (
+            <div className="flex items-center gap-2 text-xs text-slate-500 px-1">
+              <Loader2 className="w-3 h-3 animate-spin" />
+              Calculando Firdaria…
+            </div>
+          )}
 
           {/* SR Heatmap */}
           <div className="rounded-lg overflow-hidden border border-slate-700 relative">
@@ -610,56 +699,65 @@ export function RelocationTab() {
             )}
           </div>
 
-          {/* Domain ranking */}
-          <div className="rounded-lg border border-slate-700 p-3 space-y-3">
-            <div className="flex items-center gap-2 text-xs text-slate-500">
-              <span className="font-medium text-slate-300">Mejor ubicación por área de vida</span>
-              <span className="text-slate-600">· Doctrina Abu Mashar · Solar Return {srYear}</span>
-            </div>
-
-          {domainLoading && (
-            <div className="flex items-center gap-2 text-slate-500 text-xs py-2">
-              <Loader2 className="w-3 h-3 animate-spin" />
-              Calculando dominio {lifeDomain}…
-            </div>
-          )}
-          {!domainLoading && domainRanking && domainRanking.top_recommendations.length > 0 && (
-            <div className="space-y-1.5">
-              <p className="text-xs text-slate-500 font-mono">
-                Top 5 · {domainRanking.domain_label}
-              </p>
-              {domainRanking.top_recommendations.map((r) => (
-                <div
-                  key={r.city}
-                  className="flex items-center gap-3 text-xs bg-slate-800/50 rounded px-3 py-2"
-                >
-                  <span className="text-slate-500 font-mono w-4 shrink-0">#{r.rank}</span>
-                  <span className="text-slate-200 flex-1 truncate">{r.city}</span>
-                  <span
-                    className="font-mono font-bold shrink-0"
-                    style={{
-                      color:
-                        r.grade === "A" ? "#4ade80"
-                        : r.grade === "B" ? "#fbbf24"
-                        : r.grade === "C" ? "#94a3b8"
-                        : "#f87171",
-                    }}
-                  >
-                    {r.grade} · {r.total_score.toFixed(0)}
-                  </span>
-                  <span className="text-slate-600 text-[10px] truncate max-w-[120px]" title={r.key_insight}>
-                    {r.key_insight}
-                  </span>
+          {/* City comparison — scores filtrados por Firdaria */}
+          {srCities.length > 0 && (
+            <div className="rounded-lg border border-slate-700 p-3 space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-medium text-slate-300">Comparación de ciudades · HF SR</span>
+                <span className="text-slate-600 text-[10px]">
+                  {srLifeDomain
+                    ? (() => {
+                        const hx = LIFE_DOMAIN_TO_HX[srLifeDomain] ?? 'global';
+                        return `Firdaria · ${DOMAIN_LABELS[hx as Domain] ?? srLifeDomain} ${hx.toUpperCase()}`;
+                      })()
+                    : 'filtrando por Firdaria'}
+                </span>
+              </div>
+              {srScoreLoading && (
+                <div className="flex items-center gap-2 text-slate-500 text-xs py-1">
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  Calculando scores…
                 </div>
-              ))}
+              )}
+              {(() => {
+                const maxScore = Math.max(...srCities.map((c) => c.hf_sr ?? -Infinity));
+                return srCities.map((city) => (
+                  <div
+                    key={city.id}
+                    className="flex items-center gap-3 text-xs bg-slate-800/40 rounded px-3 py-2"
+                  >
+                    {/* Badge natal/actual */}
+                    {city.isNatal && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-700 text-slate-400 shrink-0">natal</span>
+                    )}
+                    {city.isCurrent && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-700 text-slate-400 shrink-0">actual</span>
+                    )}
+                    {!city.isNatal && !city.isCurrent && (
+                      <span className="w-10 shrink-0" />
+                    )}
+                    {/* City name */}
+                    <span className="text-slate-200 flex-1 truncate">
+                      {city.hf_sr === maxScore && maxScore > -Infinity && (
+                        <span className="text-amber-400 mr-1">★</span>
+                      )}
+                      {city.name}
+                      {city.country && (
+                        <span className="text-slate-500 ml-1">{city.country}</span>
+                      )}
+                    </span>
+                    {/* Score */}
+                    <span className="font-mono text-amber-400 shrink-0">
+                      {city.hf_sr !== null ? city.hf_sr.toFixed(3) : '—'}
+                    </span>
+                  </div>
+                ));
+              })()}
+              <p className="text-[10px] text-slate-600 pt-1">
+                Clickea el mapa para agregar ciudades · ★ mayor score con Firdaria activa
+              </p>
             </div>
           )}
-          {!domainLoading && lifeDomain === null && (
-            <p className="text-xs text-slate-600 italic">
-              Selecciona un dominio para ver que ciudades activan mejor ese area de tu vida.
-            </p>
-          )}
-          </div>
         </div>
       )}
     </div>
