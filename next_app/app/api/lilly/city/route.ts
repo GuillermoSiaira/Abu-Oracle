@@ -23,12 +23,17 @@ export async function POST(req: Request) {
       subject_name,
       asc_local,
       mc_local,
+      mode,
+      sr_year,
       lang,
       natalData,
     } = body;
 
+    const isSR = mode === 'solar_return';
     const contextLines = [
-      `El usuario ha seleccionado ${city_name ?? '—'} (${country ?? '—'}) para análisis de relocalización.`,
+      isSR
+        ? `El usuario ha seleccionado ${city_name ?? '—'} (${country ?? '—'}) en el mapa de Retorno Solar ${sr_year ?? '—'}.`
+        : `El usuario ha seleccionado ${city_name ?? '—'} (${country ?? '—'}) para análisis de relocalización.`,
       `Sujeto: ${subject_name ?? 'Anónimo'}`,
       `Coordenadas: ${lat != null ? lat.toFixed(2) : '—'}°, ${lon != null ? lon.toFixed(2) : '—'}°`,
       `HF en ${city_name}: ${hf_score != null ? hf_score.toFixed(3) : '—'} (Δ natal: ${delta_natal != null ? (delta_natal >= 0 ? '+' : '') + delta_natal.toFixed(3) : '—'})`,

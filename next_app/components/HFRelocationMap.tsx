@@ -437,6 +437,17 @@ export function HFRelocationMap({ geojsonUrl, rankingUrl, natalHf, initialZoom =
           .addTo(map);
       });
 
+      // Click handler — registrado aquí dentro de 'load' garantiza que 'hf-hover' existe
+      // map.remove() en cleanup elimina todos los listeners automáticamente
+      map.on('click', 'hf-hover', (e: maplibregl.MapLayerMouseEvent) => {
+        if (!e.features || e.features.length === 0) return;
+        const props = e.features[0].properties;
+        if (!props) return;
+        const coords = (e.features[0].geometry as GeoJSON.Point).coordinates;
+        const hfScore = (props[hfKey] ?? props.hf_total ?? 0) as number;
+        const deltaScore = (props[deltaKey] ?? props.delta_hf ?? 0) as number;
+        onMapClickRef.current?.({ lat: coords[1], lon: coords[0], hfScore, deltaScore });
+      });
     });
 
     return () => {
@@ -448,37 +459,6 @@ export function HFRelocationMap({ geojsonUrl, rankingUrl, natalHf, initialZoom =
       }
     };
   }, [filteredGeojson, displayCities, domain, deltaKey, hfKey, colorScale, initialZoom, natalHf]);
-
-  // Click handler registrado en useEffect separado — cleanup garantizado con map.off
-  useEffect(() => {
-    const map = mapInstance.current;
-    if (!map) return;
-
-    const clickHandler = (e: maplibregl.MapLayerMouseEvent) => {
-      if (!e.features || e.features.length === 0) return;
-      const props = e.features[0].properties;
-      if (!props) return;
-      const coords = (e.features[0].geometry as GeoJSON.Point).coordinates;
-      const hfScore = (props[hfKey] ?? props.hf_total ?? 0) as number;
-      const deltaScore = (props[deltaKey] ?? props.delta_hf ?? 0) as number;
-      onMapClickRef.current?.({ lat: coords[1], lon: coords[0], hfScore, deltaScore });
-    };
-
-    // Espera a que el mapa esté cargado antes de registrar el handler
-    const registerHandler = () => {
-      map.on('click', 'hf-hover', clickHandler);
-    };
-
-    if (map.isStyleLoaded()) {
-      registerHandler();
-    } else {
-      map.once('load', registerHandler);
-    }
-
-    return () => {
-      map.off('click', 'hf-hover', clickHandler);
-    };
-  }, [mapInstance.current, hfKey, deltaKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Handle region change: fly to bounds
   const handleRegionChange = (r: Region) => {

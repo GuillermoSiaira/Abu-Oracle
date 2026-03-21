@@ -15,6 +15,26 @@
 - Stack en producción: Next.js + Python/FastAPI → Cloud Run (GCP) · Firebase Auth · Firestore · Alchemy webhook · Resend
 - Revisión inicial: `abu-oracle-app-00016-xqp`
 
+### Fixes post-lanzamiento (2026-03-21) — Mapa HF: click handler + SR context + layout
+
+**Fix 1 — Click handler roto tras cambio de dominio** (`HFRelocationMap.tsx`)
+- Causa raíz: useEffect del click handler tenía `mapInstance.current` (ref) en sus deps → React no re-ejecuta effects cuando cambia una ref → al cambiar dominio el mapa se destruía/recrea pero el handler no se re-registraba.
+- Fix: click handler movido directamente dentro del callback `map.on('load', ...)` del useEffect principal. `map.remove()` en cleanup destruye todos los listeners automáticamente. Zero estados extra, zero useEffects extra.
+
+**Fix 2 — `sr_domain_select` sin route** → ya estaba implementado desde sesión anterior. `routeMap` y `/api/lilly/solar-return/route.ts` existían.
+
+**Fix 3 — Payload incorrecto en click de mapa SR** (`relocation-tab.tsx`, `city/route.ts`)
+- Causa raíz: `handleMapClick` siempre enviaba `domain: hfDomain` (selector del modo natal) sin incluir `mode` ni `sr_year`. Lilly recibía contexto natal cuando el usuario estaba en el mapa SR.
+- Fix: `mode` y `sr_year` en deps del `useCallback` y en el payload. `/api/lilly/city` diferencia primera línea del contextBlock según `mode === 'solar_return'`.
+
+**Fix 4 — Layout inconsistente entre pestañas** (`relocation-tab.tsx`)
+- Causa raíz: `LifeDomainSelector` aparecía debajo del mapa en modo `solar_return`, arriba en modo `natal`.
+- Fix: `LifeDomainSelector` movido antes del `<HFRelocationMap>` en el bloque SR — consistente con modo natal.
+
+**Dev: caché `.next` corrupta por case-mismatch en Windows**
+- Causa: servidor iniciado desde `next_App` (mayúscula) vs ruta real `next_app` (minúscula) → webpack cachea rutas absolutas → mismatch causa `invariant expected layout router to be mounted`.
+- Fix: `Remove-Item -Recurse -Force .next` + reiniciar siempre desde `D:\projects\ai-oracle\next_app` (minúscula).
+
 ### Fixes post-lanzamiento (2026-03-20)
 
 **Fix: Chat conversacional Lilly — LINK_LOST eliminado** (`3999611`)

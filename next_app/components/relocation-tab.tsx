@@ -128,7 +128,7 @@ export function RelocationTab() {
   const domainInitRef = useRef(false);
 
   // Map click → nearest city → city_select a Lilly
-  // useCallback estabiliza la referencia — evita re-renders en cadena y doble registro de handlers
+  // mode y srYear en deps: onMapClickRef en HFRelocationMap garantiza que se llama la versión más reciente
   const isProcessingClick = useRef(false);
   const handleMapClick = useCallback(async ({ lat, lon, hfScore, deltaScore }: { lat: number; lon: number; hfScore: number; deltaScore: number }) => {
     if (isProcessingClick.current) return;
@@ -150,6 +150,8 @@ export function RelocationTab() {
           delta_natal: deltaScore,
           domain: hfDomain,
           subject_name: subjectName,
+          mode,
+          sr_year: mode === 'solar_return' ? srYear : undefined,
           lang,
         },
       });
@@ -159,7 +161,7 @@ export function RelocationTab() {
       // Cooldown de 1s para prevenir doble-fire (StrictMode dev / handlers acumulados)
       setTimeout(() => { isProcessingClick.current = false; }, 1000);
     }
-  }, [hfDomain, subjectName, lang, setPendingLillyEvent]);
+  }, [hfDomain, subjectName, mode, srYear, lang, setPendingLillyEvent]);
 
   // Solar Return relocation field
   const [srGeojsonUrl, setSrGeojsonUrl] = useState<string | null>(null);
@@ -572,6 +574,13 @@ export function RelocationTab() {
             )}
           </div>
 
+          {/* Domain selector — encima del mapa (consistente con modo natal) */}
+          <LifeDomainSelector
+            domain={lifeDomain}
+            onDomainChange={setLifeDomain}
+            disabled={domainLoading}
+          />
+
           {/* SR Heatmap */}
           <div className="rounded-lg overflow-hidden border border-slate-700 relative">
             {srFieldLoading && (
@@ -608,11 +617,6 @@ export function RelocationTab() {
               <span className="text-slate-600">· Doctrina Abu Mashar · Solar Return {srYear}</span>
             </div>
 
-          <LifeDomainSelector
-            domain={lifeDomain}
-            onDomainChange={setLifeDomain}
-            disabled={domainLoading}
-          />
           {domainLoading && (
             <div className="flex items-center gap-2 text-slate-500 text-xs py-2">
               <Loader2 className="w-3 h-3 animate-spin" />
