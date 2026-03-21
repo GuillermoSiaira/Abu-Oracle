@@ -15,6 +15,25 @@
 - Stack en producción: Next.js + Python/FastAPI → Cloud Run (GCP) · Firebase Auth · Firestore · Alchemy webhook · Resend
 - Revisión inicial: `abu-oracle-app-00016-xqp`
 
+### ⚠️ PENDIENTE DE DEPLOY A PRODUCCIÓN (commit `8092fdf`)
+
+Los siguientes cambios están en `main` pero **no han sido desplegados** a Cloud Run:
+
+**Abu Engine** — requiere `docker build` + `docker push` + `gcloud run deploy abu-engine`:
+- `GET /api/astro/sr-relocation-field` acepta param `domain`
+- `POST /api/astro/solar-return-score` (nuevo endpoint)
+- `compute_point_hf()` en `services/relocation.py`
+
+**Next.js app** — requiere build con NEXT_PUBLIC_* args + `docker push` + `gcloud run deploy abu-oracle-app`:
+- `app/api/astro/solar-return-score/route.ts` (nuevo proxy)
+- `app/api/lilly/city/route.ts` (active_domain en context)
+- `components/relocation-tab.tsx` (SR domain heatmap + scores + logging)
+
+**Nota**: `docker-compose.yml` con `AUTH_ENABLED=false` + `ENV=development` es **solo para dev local**.
+En Cloud Run abu_engine ya tiene `AUTH_ENABLED=true` por defecto — no tocar esa variable en producción.
+
+---
+
 ### Fixes post-lanzamiento (2026-03-21) — SR domain heatmap + scores + auth local dev
 
 **Axioma 8.3 — SR heatmap domain-aware** (`main.py`, `relocation-tab.tsx`)
