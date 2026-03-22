@@ -183,20 +183,14 @@ export function TransitsTab() {
     (a, b) => PLANET_ORDER.indexOf(a.planet) - PLANET_ORDER.indexOf(b.planet)
   );
 
-  // Format the displayed date
-  const displayDate = new Date(effectiveTransitDate);
-  const dateLabel = displayDate.toLocaleDateString("es-AR", {
-    day: "numeric", month: "long", year: "numeric",
-  });
-
-  // Date input value (YYYY-MM-DD format)
+  // Date input value (YYYY-MM-DD format) — derived from UTC part only to avoid timezone offset
   const dateInputValue = effectiveTransitDate.split('T')[0];
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-2">
-          <label className="text-xs font-semibold text-slate-400">Fecha:</label>
+          <label className="text-xs font-semibold text-slate-400">Tránsitos activos al</label>
           <input
             type="date"
             value={dateInputValue}
@@ -209,9 +203,6 @@ export function TransitsTab() {
             className="px-2 py-1 text-sm rounded bg-slate-700/50 border border-slate-600/50 text-slate-200 hover:border-slate-500/70 focus:border-amber-400/70 focus:outline-none"
           />
         </div>
-        <h3 className="text-sm font-semibold text-slate-300">
-          Tránsitos activos al {dateLabel}
-        </h3>
         <span className="text-xs text-slate-500">{data.length} aspectos</span>
       </div>
 

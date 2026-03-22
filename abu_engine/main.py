@@ -2078,6 +2078,7 @@ class AnalyzeRequest(BaseModel):
     person: Optional[PersonInput] = Field(default_factory=PersonInput)
     birth: BirthData
     current: CurrentData
+    house_system: Optional[str] = Field(default="placidus", description="Sistema de casas: 'placidus' (default) | 'whole_sign'")
 
 
 @app.post(
@@ -2304,8 +2305,10 @@ def analyze(payload: AnalyzeRequest = Body(
     cusps = None
     t0_houses = time.perf_counter()
     try:
-        from core.houses_swiss import calculate_houses, format_houses_output, HOUSE_SYSTEM_PLACIDUS
-        houses_data = calculate_houses(birth_dt, payload.birth.lat, payload.birth.lon, HOUSE_SYSTEM_PLACIDUS)
+        from core.houses_swiss import calculate_houses, format_houses_output, HOUSE_SYSTEM_PLACIDUS, HOUSE_SYSTEM_WHOLE_SIGN
+        _hs_param = (payload.house_system or "placidus").lower()
+        _hs_code = HOUSE_SYSTEM_WHOLE_SIGN if _hs_param == "whole_sign" else HOUSE_SYSTEM_PLACIDUS
+        houses_data = calculate_houses(birth_dt, payload.birth.lat, payload.birth.lon, _hs_code)
         houses_formatted = format_houses_output(houses_data)
         houses_block = houses_formatted
         asc_lon = houses_data["asc"]
@@ -2313,6 +2316,7 @@ def analyze(payload: AnalyzeRequest = Body(
         cusps = houses_data.get("cusps")
     except Exception as e:
         houses_block = {"note": f"Houses not available: {str(e)}"}
+        _hs_param = "placidus"
     t1_houses = time.perf_counter()
 
     # 3) Detailed positions with dignities, assign houses if available
@@ -2498,7 +2502,8 @@ def analyze(payload: AnalyzeRequest = Body(
         },
         "chart": {
             "planets": detailed_planets,
-            "houses": houses_out
+            "houses": houses_out,
+            "house_system": _hs_param,
         },
         "derived": {
             "sect": sect_label,

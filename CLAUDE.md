@@ -614,6 +614,8 @@ Vectorización aplicada en Fase 8.10 (CC.4). Ver detalle arriba.
 
 ## Cómo trabajar con este repo
 
+Leer PENDING_BUGS.md al inicio de cada sesión junto con CLAUDE.md y ARCHITECTURE.md. Los bugs documentados ahí son issues conocidos — no investigarlos de nuevo, solo tenerlos presentes como contexto.
+
 Cuando Claude Code retome una sesión, leer este archivo primero y preguntar por la fase activa.
 La próxima tarea es siempre la primera sin tilde `✅` en el plan de desarrollo — actualmente **Fase 9 (Lilly Event System completo)**.
 

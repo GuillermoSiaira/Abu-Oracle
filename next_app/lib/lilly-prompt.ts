@@ -158,6 +158,12 @@ export function buildBaseContext(abuData: any): string {
     const profLord = profSign ? (_RULERS[profSign] ?? "—") : "—";
     const profDig  = _getPlanetDignity(planets, profLord);
     lines.push("", "PROFECCIÓN ANUAL");
+    // Anchor Casa 1 = ASC sign explicitly to prevent LLM confusion with the active profection house
+    if (ascLon != null) {
+      const asc1Sign  = _getSign(ascLon);
+      const asc1Ruler = _RULERS[asc1Sign] ?? "—";
+      lines.push(`Casa 1 (ASC): ${asc1Sign} · Señor natal: ${asc1Ruler}`);
+    }
     lines.push(
       `Casa activada: ${profHouse}${profSign ? ` (${profSign})` : ""} · Señor del año: ${profLord} · Dignidad: ${profDig}`
     );
