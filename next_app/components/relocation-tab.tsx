@@ -121,6 +121,9 @@ export function RelocationTab() {
   const [domainFieldLoading, setDomainFieldLoading] = useState(false);
   const domainInitRef = useRef(false);
 
+  // Pre-gate domain selection (Axioma 8.4 — selección obligatoria antes de calcular)
+  const [natalPreDomain, setNatalPreDomain] = useState<LifeDomain | null>(null);
+
   // Solar Return relocation field
   const [srGeojsonUrl, setSrGeojsonUrl] = useState<string | null>(null);
   const [srNatalHf, setSrNatalHf] = useState<number | null>(null);
@@ -356,8 +359,9 @@ export function RelocationTab() {
   }, [hfDomain, data, birthData]);
 
   // Fetch Solar Return field when switching to SR mode, changing year, or changing domain
+  // Axioma 8.4: el heatmap no carga hasta que hay un dominio seleccionado
   useEffect(() => {
-    if (mode !== 'solar_return' || !data || !birthData) return;
+    if (mode !== 'solar_return' || !data || !birthData || !srLifeDomain) return;
 
     setSrFieldLoading(true);
     setSrGeojsonUrl(null);
@@ -447,24 +451,63 @@ export function RelocationTab() {
   }
 
   if (!data && !loading && !error) {
+    const preSelectedHx = natalPreDomain ? LIFE_DOMAIN_TO_HX[natalPreDomain] : undefined;
+    const preSelectedLabel = preSelectedHx ? DOMAIN_LABELS[preSelectedHx as Domain] : '';
     return (
-      <div className="text-center py-12 space-y-4">
-        <Globe className="w-10 h-10 text-amber-400/50 mx-auto" />
-        <p className="text-slate-400 text-sm">
-          {t.calcDesc}
-        </p>
-        <button
-          onClick={fetchRelocation}
-          className="px-6 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-sm font-medium transition-colors"
-        >
-          {t.calculate}
-        </button>
-        <p className="text-slate-600 text-xs">
-          {t.demoLink}{" "}
-          <a href="/relocation" className="text-amber-500 hover:text-amber-400 underline">
-            Relocation Demo
-          </a>.
-        </p>
+      <div className="rounded-xl border border-slate-700/50 bg-slate-900/60 p-7 space-y-7">
+        {/* Doctrine card — Axioma 8.4 */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2.5">
+            <Globe className="w-4 h-4 text-amber-500/50 shrink-0" />
+            <p className="text-[10px] tracking-[0.28em] text-amber-500/60 uppercase font-mono">
+              Axioma 8.4 — Requisito epistémico
+            </p>
+          </div>
+          <h3
+            className="text-xl font-light text-slate-100 tracking-wide leading-snug"
+            style={{ fontFamily: 'Georgia, "Times New Roman", serif', fontVariant: 'small-caps' }}
+          >
+            ¿Para qué aspecto de tu vida buscás ubicación?
+          </h3>
+          <div className="h-px bg-gradient-to-r from-amber-600/35 via-amber-600/10 to-transparent" />
+          <p className="text-sm text-slate-400 leading-relaxed max-w-lg">
+            El campo no puede responder{' '}
+            <em className="text-slate-300 not-italic">"¿dónde es todo mejor?"</em>
+            {' '}— esa pregunta no tiene respuesta útil. Elegí el dominio que te importa
+            y el sistema calcula el campo específico para esa pregunta.
+          </p>
+        </div>
+
+        {/* Domain selector */}
+        <LifeDomainSelector domain={natalPreDomain} onDomainChange={setNatalPreDomain} />
+
+        {/* Calculate button */}
+        <div className="flex items-center gap-5">
+          <button
+            onClick={() => {
+              if (natalPreDomain && preSelectedHx) {
+                setHfDomain(preSelectedHx as Domain);
+                fetchRelocation();
+              }
+            }}
+            disabled={!natalPreDomain}
+            title={!natalPreDomain ? "Elegí un dominio para activar el cálculo" : undefined}
+            className={`px-6 py-2.5 rounded-lg text-sm font-medium transition-all ${
+              natalPreDomain
+                ? 'bg-amber-600 hover:bg-amber-500 text-white shadow-sm shadow-amber-900/20'
+                : 'bg-slate-800/80 text-slate-600 cursor-not-allowed border border-slate-700/40'
+            }`}
+          >
+            {natalPreDomain
+              ? `Calcular campo · ${preSelectedLabel}`
+              : 'Elegí un dominio para activar el cálculo'}
+          </button>
+          {!natalPreDomain && (
+            <a href="/relocation" className="text-xs text-amber-600/50 hover:text-amber-500 underline">
+              Ver demo
+            </a>
+          )}
+        </div>
       </div>
     );
   }
@@ -611,7 +654,7 @@ export function RelocationTab() {
 
       {mode === 'solar_return' && (
         <div className="space-y-3">
-          {/* Year selector + SR datetime */}
+          {/* Year selector + SR datetime — siempre visible */}
           <div className="flex items-center gap-3 text-sm">
             <Star className="w-4 h-4 text-amber-400 shrink-0" />
             <label className="text-slate-400">Retorno Solar</label>
@@ -624,7 +667,7 @@ export function RelocationTab() {
                 <option key={y} value={y}>{y}</option>
               ))}
             </select>
-            {srDatetime && !srFieldLoading && (
+            {srDatetime && !srFieldLoading && srLifeDomain && (
               <span className="text-xs text-slate-500 font-mono ml-auto">
                 ☀ {new Date(srDatetime).toLocaleString(lang === 'es' ? 'es-AR' : 'en-US', {
                   month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'UTC'
@@ -633,130 +676,156 @@ export function RelocationTab() {
             )}
           </div>
 
-          {/* Domain selector — Axioma 8.3: requisito epistémico, no feature de navegación.
-              Firdaria aporta dimensión temporal (cuándo/con qué planetas).
-              El dominio aporta dimensión semántica (para qué propósito). Ambos son obligatorios. */}
-          <LifeDomainSelector
-            domain={srLifeDomain}
-            onDomainChange={setSrLifeDomain}
-            disabled={srScoreLoading}
-          />
-
-          {/* Firdaria activa — label informativo. planet_subset = union(Firdaria, significadores del dominio) */}
-          {srFirdaria && (
-            <div className="flex items-center gap-2 text-xs bg-slate-800/50 rounded-lg px-3 py-2 border border-slate-700/50">
-              <span className="text-amber-400 font-mono">⊙</span>
-              <span className="text-slate-400">Firdaria activa:</span>
-              <span className="text-slate-200 font-medium">{srFirdaria.major} mayor</span>
-              <span className="text-slate-600">/</span>
-              <span className="text-slate-200 font-medium">{srFirdaria.minor} menor</span>
-              {srFirdaria.major_dignity !== 'peregrine' && (
-                <span
-                  className="ml-auto text-[10px] font-mono px-1.5 py-0.5 rounded"
-                  style={{
-                    color: srFirdaria.major_dignity_score > 0 ? '#4ade80' : '#f87171',
-                    background: srFirdaria.major_dignity_score > 0 ? '#14532d40' : '#7f1d1d40',
-                  }}
-                >
-                  {srFirdaria.major} · {srFirdaria.major_dignity}
-                </span>
-              )}
-            </div>
-          )}
-          {srScoreLoading && !srFirdaria && (
-            <div className="flex items-center gap-2 text-xs text-slate-500 px-1">
-              <Loader2 className="w-3 h-3 animate-spin" />
-              Calculando Firdaria…
-            </div>
-          )}
-
-          {/* SR Heatmap */}
-          <div className="rounded-lg overflow-hidden border border-slate-700 relative">
-            {srFieldLoading && (
-              <div className="absolute inset-0 z-20 flex items-center justify-center bg-slate-900/70 rounded-lg" style={{ minHeight: "55vh" }}>
-                <div className="flex flex-col items-center gap-2 text-slate-300 text-sm">
-                  <Loader2 className="w-6 h-6 animate-spin text-amber-400" />
-                  <span>Calculando Retorno Solar {srYear}…</span>
-                  <span className="text-xs text-slate-500">9425 puntos · planetas del RS</span>
+          {/* Gate: pre-screen cuando no hay dominio seleccionado (Axioma 8.4) */}
+          {!srLifeDomain ? (
+            <div className="rounded-xl border border-slate-700/50 bg-slate-900/60 p-7 space-y-6">
+              <div className="space-y-4">
+                <div className="flex items-center gap-2.5">
+                  <Star className="w-4 h-4 text-amber-500/50 shrink-0" />
+                  <p className="text-[10px] tracking-[0.28em] text-amber-500/60 uppercase font-mono">
+                    Axiomas 8.3 + 8.4 — Requisito epistémico
+                  </p>
                 </div>
+                <h3
+                  className="text-xl font-light text-slate-100 tracking-wide leading-snug"
+                  style={{ fontFamily: 'Georgia, "Times New Roman", serif', fontVariant: 'small-caps' }}
+                >
+                  ¿Qué aspecto de este año querés optimizar?
+                </h3>
+                <div className="h-px bg-gradient-to-r from-amber-600/35 via-amber-600/10 to-transparent" />
+                <p className="text-sm text-slate-400 leading-relaxed max-w-lg">
+                  Firdaria determina los planetas de este período.
+                  El dominio determina para qué propósito.
+                  Ambos son necesarios para que el mapa tenga sentido.
+                </p>
               </div>
-            )}
-            {!srFieldLoading && !srGeojsonUrl && data && (
-              <div className="flex items-center justify-center bg-slate-900/50 rounded-lg" style={{ minHeight: "55vh" }}>
-                <p className="text-slate-600 text-xs">Cargando campo SR…</p>
-              </div>
-            )}
-            {srGeojsonUrl && (
-              <HFRelocationMap
-                geojsonUrl={srGeojsonUrl}
-                natalHf={srNatalHf ?? undefined}
-                initialZoom={2}
-                mapHeight="55vh"
-                legendLow={t.legendLow}
-                legendHigh={t.legendHigh}
-                onMapClick={handleMapClick}
+              <LifeDomainSelector
+                domain={srLifeDomain}
+                onDomainChange={setSrLifeDomain}
+                disabled={srScoreLoading}
               />
-            )}
-          </div>
+            </div>
+          ) : (
+            <>
+              {/* Domain selector — Axioma 8.3: requisito epistémico, no feature de navegación */}
+              <LifeDomainSelector
+                domain={srLifeDomain}
+                onDomainChange={setSrLifeDomain}
+                disabled={srScoreLoading}
+              />
 
-          {/* City comparison — scores filtrados por Firdaria */}
-          {srCities.length > 0 && (
-            <div className="rounded-lg border border-slate-700 p-3 space-y-2">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-medium text-slate-300">Comparación de ciudades · HF SR</span>
-                <span className="text-slate-600 text-[10px]">
-                  {srLifeDomain
-                    ? (() => {
+              {/* Firdaria activa — label informativo */}
+              {srFirdaria && (
+                <div className="flex items-center gap-2 text-xs bg-slate-800/50 rounded-lg px-3 py-2 border border-slate-700/50">
+                  <span className="text-amber-400 font-mono">⊙</span>
+                  <span className="text-slate-400">Firdaria activa:</span>
+                  <span className="text-slate-200 font-medium">{srFirdaria.major} mayor</span>
+                  <span className="text-slate-600">/</span>
+                  <span className="text-slate-200 font-medium">{srFirdaria.minor} menor</span>
+                  {srFirdaria.major_dignity !== 'peregrine' && (
+                    <span
+                      className="ml-auto text-[10px] font-mono px-1.5 py-0.5 rounded"
+                      style={{
+                        color: srFirdaria.major_dignity_score > 0 ? '#4ade80' : '#f87171',
+                        background: srFirdaria.major_dignity_score > 0 ? '#14532d40' : '#7f1d1d40',
+                      }}
+                    >
+                      {srFirdaria.major} · {srFirdaria.major_dignity}
+                    </span>
+                  )}
+                </div>
+              )}
+              {srScoreLoading && !srFirdaria && (
+                <div className="flex items-center gap-2 text-xs text-slate-500 px-1">
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  Calculando Firdaria…
+                </div>
+              )}
+
+              {/* SR Heatmap */}
+              <div className="rounded-lg overflow-hidden border border-slate-700 relative">
+                {srFieldLoading && (
+                  <div className="absolute inset-0 z-20 flex items-center justify-center bg-slate-900/70 rounded-lg" style={{ minHeight: "55vh" }}>
+                    <div className="flex flex-col items-center gap-2 text-slate-300 text-sm">
+                      <Loader2 className="w-6 h-6 animate-spin text-amber-400" />
+                      <span>Calculando Retorno Solar {srYear}…</span>
+                      <span className="text-xs text-slate-500">9425 puntos · planetas del RS</span>
+                    </div>
+                  </div>
+                )}
+                {!srFieldLoading && !srGeojsonUrl && data && (
+                  <div className="flex items-center justify-center bg-slate-900/50 rounded-lg" style={{ minHeight: "55vh" }}>
+                    <p className="text-slate-600 text-xs">Cargando campo SR…</p>
+                  </div>
+                )}
+                {srGeojsonUrl && (
+                  <HFRelocationMap
+                    geojsonUrl={srGeojsonUrl}
+                    natalHf={srNatalHf ?? undefined}
+                    initialZoom={2}
+                    mapHeight="55vh"
+                    legendLow={t.legendLow}
+                    legendHigh={t.legendHigh}
+                    onMapClick={handleMapClick}
+                  />
+                )}
+              </div>
+
+              {/* City comparison — scores filtrados por Firdaria */}
+              {srCities.length > 0 && (
+                <div className="rounded-lg border border-slate-700 p-3 space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-medium text-slate-300">Comparación de ciudades · HF SR</span>
+                    <span className="text-slate-600 text-[10px]">
+                      {(() => {
                         const hx = LIFE_DOMAIN_TO_HX[srLifeDomain] ?? 'global';
                         return `Firdaria · ${DOMAIN_LABELS[hx as Domain] ?? srLifeDomain} ${hx.toUpperCase()}`;
-                      })()
-                    : 'filtrando por Firdaria'}
-                </span>
-              </div>
-              {srScoreLoading && (
-                <div className="flex items-center gap-2 text-slate-500 text-xs py-1">
-                  <Loader2 className="w-3 h-3 animate-spin" />
-                  Calculando scores…
-                </div>
-              )}
-              {(() => {
-                const maxScore = Math.max(...srCities.map((c) => c.hf_sr ?? -Infinity));
-                return srCities.map((city) => (
-                  <div
-                    key={city.id}
-                    className="flex items-center gap-3 text-xs bg-slate-800/40 rounded px-3 py-2"
-                  >
-                    {/* Badge natal/actual */}
-                    {city.isNatal && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-700 text-slate-400 shrink-0">natal</span>
-                    )}
-                    {city.isCurrent && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-700 text-slate-400 shrink-0">actual</span>
-                    )}
-                    {!city.isNatal && !city.isCurrent && (
-                      <span className="w-10 shrink-0" />
-                    )}
-                    {/* City name */}
-                    <span className="text-slate-200 flex-1 truncate">
-                      {city.hf_sr === maxScore && maxScore > -Infinity && (
-                        <span className="text-amber-400 mr-1">★</span>
-                      )}
-                      {city.name}
-                      {city.country && (
-                        <span className="text-slate-500 ml-1">{city.country}</span>
-                      )}
-                    </span>
-                    {/* Score */}
-                    <span className="font-mono text-amber-400 shrink-0">
-                      {city.hf_sr !== null ? city.hf_sr.toFixed(3) : '—'}
+                      })()}
                     </span>
                   </div>
-                ));
-              })()}
-              <p className="text-[10px] text-slate-600 pt-1">
-                Clickea el mapa para agregar ciudades · ★ mayor score con Firdaria activa
-              </p>
-            </div>
+                  {srScoreLoading && (
+                    <div className="flex items-center gap-2 text-slate-500 text-xs py-1">
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      Calculando scores…
+                    </div>
+                  )}
+                  {(() => {
+                    const maxScore = Math.max(...srCities.map((c) => c.hf_sr ?? -Infinity));
+                    return srCities.map((city) => (
+                      <div
+                        key={city.id}
+                        className="flex items-center gap-3 text-xs bg-slate-800/40 rounded px-3 py-2"
+                      >
+                        {city.isNatal && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-700 text-slate-400 shrink-0">natal</span>
+                        )}
+                        {city.isCurrent && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-700 text-slate-400 shrink-0">actual</span>
+                        )}
+                        {!city.isNatal && !city.isCurrent && (
+                          <span className="w-10 shrink-0" />
+                        )}
+                        <span className="text-slate-200 flex-1 truncate">
+                          {city.hf_sr === maxScore && maxScore > -Infinity && (
+                            <span className="text-amber-400 mr-1">★</span>
+                          )}
+                          {city.name}
+                          {city.country && (
+                            <span className="text-slate-500 ml-1">{city.country}</span>
+                          )}
+                        </span>
+                        <span className="font-mono text-amber-400 shrink-0">
+                          {city.hf_sr !== null ? city.hf_sr.toFixed(3) : '—'}
+                        </span>
+                      </div>
+                    ));
+                  })()}
+                  <p className="text-[10px] text-slate-600 pt-1">
+                    Clickea el mapa para agregar ciudades · ★ mayor score con Firdaria activa
+                  </p>
+                </div>
+              )}
+            </>
           )}
         </div>
       )}

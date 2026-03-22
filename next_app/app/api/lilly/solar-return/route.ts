@@ -21,12 +21,18 @@ export async function POST(req: Request) {
       hf_max,
       best_city,
       sr_year,
+      active_domain,
+      active_domain_house,
       lang,
       natalData,
     } = body;
 
+    const domainLabel = active_domain
+      ? `${active_domain} (${active_domain_house ?? house_num ?? '—'})`
+      : `${domain?.toUpperCase() ?? '—'} — Casa ${house_num ?? '—'}`;
+
     const lines = [
-      `El usuario activó el dominio ${domain?.toUpperCase() ?? '—'} — Casa ${house_num ?? '—'} en el contexto del Retorno Solar ${sr_year ?? '—'}.`,
+      `El usuario activó el dominio ${domainLabel} en el contexto del Retorno Solar ${sr_year ?? '—'}.`,
       `Sujeto: ${subject_name ?? 'Anónimo'}`,
       Array.isArray(significators) && significators.length
         ? `Significadores de la casa: ${significators.join(', ')}`
@@ -40,6 +46,7 @@ export async function POST(req: Request) {
       best_city
         ? `Mejor ciudad para este dominio: ${best_city}`
         : null,
+      `Fecha actual: ${new Date().toISOString().split('T')[0]}`,
       `Idioma de respuesta: ${lang ?? 'es'}`,
     ].filter(Boolean);
     const baseCtx = buildBaseContext(natalData);

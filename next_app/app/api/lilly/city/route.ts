@@ -46,6 +46,7 @@ export async function POST(req: Request) {
     ];
     if (asc_local) contextLines.push(`ASC local: ${asc_local}`);
     if (mc_local) contextLines.push(`MC local: ${mc_local}`);
+    contextLines.push(`Fecha actual: ${new Date().toISOString().split('T')[0]}`);
     contextLines.push(`Idioma de respuesta: ${lang ?? 'es'}`);
 
     const baseCtx = buildBaseContext(natalData);

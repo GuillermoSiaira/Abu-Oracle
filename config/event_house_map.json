@@ -1,47 +1,37 @@
 {
-  "_comment": "Maps event category → house domain (1-12). Covers both real dataset categories and generic roadmap types.",
-
   "professional_milestone": 10,
+  "professional_achievement": 10,
+  "career_change": 10,
   "award": 10,
   "retirement": 10,
   "political_event": 10,
-  "professional_achievement": 10,
-  "career_change": 10,
-
-  "marriage": 7,
+  "publication": 10,
   "relationship_start": 7,
   "relationship_end": 7,
   "relationship": 7,
+  "marriage": 7,
   "divorce": 7,
   "legal": 7,
   "crisis_legal": 7,
-
   "birth_child": 5,
   "artistic_creation": 5,
   "exhibition": 5,
   "creative": 5,
-
-  "relocation": 4,
-  "family": 4,
-
-  "publication": 9,
+  "relocation": 9,
+  "travel": 9,
+  "discovery": 9,
   "education_start": 9,
   "education_end": 9,
-  "discovery": 9,
-  "travel": 9,
-  "spiritual": 12,
-
-  "death": 8,
+  "health_critical": 6,
+  "illness": 6,
+  "accident": 6,
   "financial_crisis": 2,
   "finances": 2,
-
-  "health_critical": 6,
-  "accident": 6,
-  "illness": 6,
-  "military_service": 6,
-
+  "death": 8,
   "arrest": 12,
-  "psychological_crisis": 12,
-
-  "health": 1
+  "military_service": 12,
+  "spiritual": 12,
+  "psychological_crisis": 1,
+  "health": 1,
+  "family": 4
 }

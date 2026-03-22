@@ -54,6 +54,7 @@ export async function POST(req: Request) {
       aspectLines,
       `Fecha de tránsito: ${dateLabel}`,
       `Sujeto: ${subject_name ?? 'Anónimo'}`,
+      `Fecha actual: ${new Date().toISOString().split('T')[0]}`,
       `Idioma de respuesta: ${lang ?? 'es'}`,
     ].join('\n');
 

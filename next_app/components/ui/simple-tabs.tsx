@@ -52,8 +52,10 @@ export function TabsTrigger({
   return (
     <button
       onClick={() => ctx.setValue(value)}
-      className={`px-3 py-1 rounded-md border ${
-        isActive ? "bg-black text-white" : "bg-white text-black"
+      className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+        isActive
+          ? "bg-slate-700 text-amber-400 border border-slate-600"
+          : "bg-slate-900/60 text-slate-500 hover:text-slate-300 border border-slate-700/40"
       } ${className}`}
     >
       {children}

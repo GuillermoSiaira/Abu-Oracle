@@ -39,6 +39,7 @@ export async function POST(req: Request) {
       best_city
         ? `Mejor ciudad para este dominio: ${best_city}`
         : null,
+      `Fecha actual: ${new Date().toISOString().split('T')[0]}`,
       `Idioma de respuesta: ${lang ?? 'es'}`,
     ].filter(Boolean);
     const baseCtx = buildBaseContext(natalData);

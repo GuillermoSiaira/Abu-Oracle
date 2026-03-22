@@ -42,6 +42,7 @@ export async function POST(req: Request) {
         `Aspecto más exacto: ${closest_aspect.type} con ${closest_aspect.planet} (orb ${closest_aspect.orb.toFixed(1)}°)`
       );
     }
+    contextLines.push(`Fecha actual: ${new Date().toISOString().split('T')[0]}`);
     contextLines.push(`Idioma de respuesta: ${lang ?? 'es'}`);
 
     const baseCtx = buildBaseContext(natalData);

@@ -176,7 +176,9 @@ def process_all_subjects() -> List[dict]:
 
             try:
                 transit_pos = _compute_planet_positions(event_dt)
-                transit_houses = calculate_houses(event_dt, lat, lon, HOUSE_SYSTEM_PLACIDUS)
+                event_lat = evt.get("lat", lat)
+                event_lon = evt.get("lon", lon)
+                transit_houses = calculate_houses(event_dt, event_lat, event_lon, HOUSE_SYSTEM_PLACIDUS)
                 transit_angles: dict = dict(transit_pos)
                 transit_angles["ASC"] = float(transit_houses["asc"])
                 transit_angles["MC"] = float(transit_houses["mc"])

@@ -14,7 +14,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { technique, data, subject_name, lang, natalData } = body;
 
-    let contextBlock = `Sujeto: ${subject_name ?? 'Anónimo'}\nIdioma de respuesta: ${lang ?? 'es'}\n\n`;
+    let contextBlock = `Sujeto: ${subject_name ?? 'Anónimo'}\nFecha actual: ${new Date().toISOString().split('T')[0]}\nIdioma de respuesta: ${lang ?? 'es'}\n\n`;
 
     if (technique === 'sect') {
       contextBlock += [

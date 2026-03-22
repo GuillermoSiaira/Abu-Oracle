@@ -46,6 +46,7 @@ export async function POST(req: Request) {
           : 'ninguna destacada'
       }`,
       `Firdaria actual: mayor ${firdaria_major || '—'} · menor ${firdaria_minor || '—'}`,
+      `Fecha actual: ${new Date().toISOString().split('T')[0]}`,
       `Idioma de respuesta: ${lang || 'es'}`,
       ``,
       `Al final de tu interpretación, añade exactamente este bloque sin modificarlo:`,
