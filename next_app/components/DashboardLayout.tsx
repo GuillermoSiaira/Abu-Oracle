@@ -64,7 +64,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         {/* COLUMNA IZQUIERDA: Contexto Técnico */}
         <aside className="
             hidden lg:flex flex-col
-            w-[180px] shrink-0
+            w-[220px] shrink-0
             bg-[#050505] border-r border-slate-800
             z-10
         ">

@@ -1,8 +1,20 @@
 import { NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
-import { LILLY_SYSTEM_PROMPT, buildBaseContext } from '../../../../lib/lilly-prompt';
+import { LILLY_SYSTEM_PROMPT } from '../../../../lib/lilly-prompt';
+import {
+  buildNatalContext,
+  buildActiveContext,
+  assembleContextBlock,
+  type BiographicalTimeline,
+} from '../../../../lib/context-builder';
 
 export const dynamic = 'force-dynamic';
+
+const EMPTY_TIMELINE: BiographicalTimeline = {
+  profections: [],
+  firdaria: [],
+  transits_window: [],
+};
 
 export async function POST(req: Request) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -20,7 +32,6 @@ export async function POST(req: Request) {
       hf_score,
       delta_natal,
       domain,
-      subject_name,
       asc_local,
       mc_local,
       mode,
@@ -29,37 +40,42 @@ export async function POST(req: Request) {
       active_domain_house,
       lang,
       natalData,
+      birthData,
+      timeline,
+      messages,
     } = body;
 
-    const isSR = mode === 'solar_return';
-    const domainLabel = isSR && active_domain
-      ? `${active_domain} (${active_domain_house ?? 'global'})`
-      : (domain ?? 'global');
-    const contextLines = [
-      isSR
-        ? `El usuario ha seleccionado ${city_name ?? '—'} (${country ?? '—'}) en el mapa de Retorno Solar ${sr_year ?? '—'}.`
-        : `El usuario ha seleccionado ${city_name ?? '—'} (${country ?? '—'}) para análisis de relocalización.`,
-      `Sujeto: ${subject_name ?? 'Anónimo'}`,
-      `Coordenadas: ${lat != null ? lat.toFixed(2) : '—'}°, ${lon != null ? lon.toFixed(2) : '—'}°`,
-      `HF en ${city_name}: ${hf_score != null ? hf_score.toFixed(3) : '—'} (Δ natal: ${delta_natal != null ? (delta_natal >= 0 ? '+' : '') + delta_natal.toFixed(3) : '—'})`,
-      `Dominio activo: ${domainLabel}`,
-    ];
-    if (asc_local) contextLines.push(`ASC local: ${asc_local}`);
-    if (mc_local) contextLines.push(`MC local: ${mc_local}`);
-    contextLines.push(`Fecha actual: ${new Date().toISOString().split('T')[0]}`);
-    contextLines.push(`Idioma de respuesta: ${lang ?? 'es'}`);
+    const natal  = buildNatalContext(natalData, birthData);
+    const active = buildActiveContext({
+      currentDate:   new Date().toISOString(),
+      activeTab:     'hf_map',
+      activeDomain:  active_domain ?? domain ?? null,
+      activeCity:    city_name && lat != null && lon != null && hf_score != null
+        ? { name: city_name, lat, lon, hf_score }
+        : null,
+      lastEventType: 'city_select',
+      triggerData:   {
+        city_name, country, lat, lon, hf_score, delta_natal,
+        domain, asc_local, mc_local, mode, sr_year,
+        active_domain, active_domain_house,
+      },
+    });
+    const block = assembleContextBlock(natal, timeline ?? EMPTY_TIMELINE, active, lang ?? 'es');
 
-    const baseCtx = buildBaseContext(natalData);
-    const contextBlock = baseCtx
-      ? `${baseCtx}\n\n---\n\n${contextLines.join('\n')}`
-      : contextLines.join('\n');
+    const history: Anthropic.MessageParam[] = (messages ?? [])
+      .filter((m: any) => m.role && m.content?.trim())
+      .map((m: any) => ({ role: m.role as 'user' | 'assistant', content: m.content as string }));
+
+    while (history.length > 0 && history[0].role !== 'user') {
+      history.shift();
+    }
 
     const client = new Anthropic({ apiKey });
     const response = await client.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 1024,
       system: LILLY_SYSTEM_PROMPT,
-      messages: [{ role: 'user', content: contextBlock }],
+      messages: [...history, { role: 'user', content: block }],
     });
 
     const text = response.content[0].type === 'text' ? response.content[0].text : '';

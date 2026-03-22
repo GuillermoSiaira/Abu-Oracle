@@ -111,7 +111,7 @@ export default function TechnicalPanel() {
   }
 
   return (
-    <div className="h-full bg-[#050505] text-slate-400 p-3 font-mono text-xs overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800 flex flex-col gap-4">
+    <div className="h-full bg-[#050505] text-slate-400 p-4 font-mono text-sm overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800 flex flex-col gap-4">
 
       {/* CONNECTION STATUS */}
       <div className="border-b border-slate-900 pb-3">

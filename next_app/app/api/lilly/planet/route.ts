@@ -1,8 +1,20 @@
 import { NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
-import { LILLY_SYSTEM_PROMPT, buildBaseContext } from '../../../../lib/lilly-prompt';
+import { LILLY_SYSTEM_PROMPT } from '../../../../lib/lilly-prompt';
+import {
+  buildNatalContext,
+  buildActiveContext,
+  assembleContextBlock,
+  type BiographicalTimeline,
+} from '../../../../lib/context-builder';
 
 export const dynamic = 'force-dynamic';
+
+const EMPTY_TIMELINE: BiographicalTimeline = {
+  profections: [],
+  firdaria: [],
+  transits_window: [],
+};
 
 export async function POST(req: Request) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -20,42 +32,39 @@ export async function POST(req: Request) {
       dignity,
       dignity_score,
       retrograde,
-      subject_name,
       closest_aspect,
       lang,
       natalData,
+      birthData,
+      timeline,
+      messages,
     } = body;
 
-    const degInSign = ((lon % 360) + 360) % 360 % 30;
-    const deg = Math.floor(degInSign);
-    const min = Math.round((degInSign - deg) * 60);
-    const scoreStr = dignity_score > 0 ? `+${dignity_score}` : `${dignity_score}`;
+    const natal  = buildNatalContext(natalData, birthData);
+    const active = buildActiveContext({
+      currentDate:   new Date().toISOString(),
+      activeTab:     'natal_chart',
+      activeDomain:  null,
+      activeCity:    null,
+      lastEventType: 'click_planet',
+      triggerData:   { planet_name, lon, sign, house, dignity, dignity_score, retrograde, closest_aspect },
+    });
+    const block = assembleContextBlock(natal, timeline ?? EMPTY_TIMELINE, active, lang ?? 'es');
 
-    const contextLines = [
-      `El usuario ha seleccionado ${planet_name} en la carta natal de ${subject_name ?? 'Anónimo'}.`,
-      `Posición: ${sign} ${deg}°${String(min).padStart(2,'0')}', Casa ${house ?? '—'}`,
-      `Dignidad: ${dignity} (score: ${scoreStr})`,
-    ];
-    if (retrograde) contextLines.push(`${planet_name} está retrógrado.`);
-    if (closest_aspect) {
-      contextLines.push(
-        `Aspecto más exacto: ${closest_aspect.type} con ${closest_aspect.planet} (orb ${closest_aspect.orb.toFixed(1)}°)`
-      );
+    const history: Anthropic.MessageParam[] = (messages ?? [])
+      .filter((m: any) => m.role && m.content?.trim())
+      .map((m: any) => ({ role: m.role as 'user' | 'assistant', content: m.content as string }));
+
+    while (history.length > 0 && history[0].role !== 'user') {
+      history.shift();
     }
-    contextLines.push(`Fecha actual: ${new Date().toISOString().split('T')[0]}`);
-    contextLines.push(`Idioma de respuesta: ${lang ?? 'es'}`);
-
-    const baseCtx = buildBaseContext(natalData);
-    const contextBlock = baseCtx
-      ? `${baseCtx}\n\n---\n\n${contextLines.join('\n')}`
-      : contextLines.join('\n');
 
     const client = new Anthropic({ apiKey });
     const response = await client.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 1024,
       system: LILLY_SYSTEM_PROMPT,
-      messages: [{ role: 'user', content: contextBlock }],
+      messages: [...history, { role: 'user', content: block }],
     });
 
     const text = response.content[0].type === 'text' ? response.content[0].text : '';

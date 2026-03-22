@@ -1,8 +1,20 @@
 import { NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
-import { LILLY_SYSTEM_PROMPT, buildBaseContext } from '../../../../lib/lilly-prompt';
+import { LILLY_SYSTEM_PROMPT } from '../../../../lib/lilly-prompt';
+import {
+  buildNatalContext,
+  buildActiveContext,
+  assembleContextBlock,
+  type BiographicalTimeline,
+} from '../../../../lib/context-builder';
 
 export const dynamic = 'force-dynamic';
+
+const EMPTY_TIMELINE: BiographicalTimeline = {
+  profections: [],
+  firdaria: [],
+  transits_window: [],
+};
 
 export async function POST(req: Request) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -12,71 +24,38 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    const { technique, data, subject_name, lang, natalData } = body;
+    const { technique, data, subject_name, lang, natalData, birthData, timeline, messages } = body;
 
-    let contextBlock = `Sujeto: ${subject_name ?? 'Anónimo'}\nFecha actual: ${new Date().toISOString().split('T')[0]}\nIdioma de respuesta: ${lang ?? 'es'}\n\n`;
+    const natal  = buildNatalContext(natalData, birthData);
+    const active = buildActiveContext({
+      currentDate:   new Date().toISOString(),
+      activeTab:     'persian_techniques',
+      activeDomain:  null,
+      activeCity:    null,
+      lastEventType: 'click_technique',
+      triggerData:   { technique, data },
+    });
+    const block = assembleContextBlock(natal, timeline ?? EMPTY_TIMELINE, active, lang ?? 'es');
 
-    if (technique === 'sect') {
-      contextBlock += [
-        `El usuario ha seleccionado la SECTA de la carta.`,
-        `Secta: ${data.sect === 'diurnal' ? 'Diurna' : 'Nocturna'}`,
-        `Maestro de secta: ${data.sect_master}`,
-        `Dignidad del maestro: ${data.sect_master_dignity}`,
-      ].join('\n');
-    } else if (technique === 'profection') {
-      contextBlock += [
-        `El usuario ha seleccionado la PROFECCIÓN ANUAL.`,
-        `Casa activada: Casa ${data.annual_house}`,
-        `Signo de la cúspide: ${data.annual_sign}`,
-        `Señor del año: ${data.annual_lord} (${data.annual_lord_dignity})`,
-      ].join('\n');
-    } else if (technique === 'firdaria') {
-      contextBlock += [
-        `El usuario ha seleccionado el FIRDARIA actual.`,
-        `Período mayor: ${data.major_planet} (${data.major_dignity})`,
-        `Sub-período: ${data.minor_planet} (${data.minor_dignity})`,
-        `Período: ${data.start_date} → ${data.end_date}`,
-      ].join('\n');
-    } else if (technique === 'lot') {
-      const lotDisplayName = data.lot_name === 'fortuna' ? 'FORTUNA' : 'ESPÍRITU';
-      contextBlock += [
-        `El usuario ha seleccionado la Parte de ${lotDisplayName} en la carta de ${subject_name ?? 'Anónimo'}.`,
-        `Posición: ${data.sign} ${data.degree}°${data.house ? `, Casa ${data.house}` : ''}`,
-        `Señor del Lote: ${data.lord} — ${data.lord_dignity}`,
-      ].join('\n');
-    } else if (technique === 'lunar_transit') {
-      const aspectLines = Array.isArray(data.aspects) && data.aspects.length > 0
-        ? data.aspects.map((a: any) => `  • ${a.type} con ${a.planet} (orbe ${a.orb?.toFixed?.(2) ?? a.orb}°)`).join('\n')
-        : '  • Sin aspectos exactos';
-      contextBlock += [
-        `El usuario ha seleccionado el TRÁNSITO LUNAR actual.`,
-        `La Luna transita en ${data.moon_position?.toFixed?.(2) ?? data.moon_position}° (${data.moon_sign ?? ''}).`,
-        `Aspectos activos:`,
-        aspectLines,
-      ].join('\n');
-    } else if (technique === 'planetary_cycle') {
-      contextBlock += [
-        `El usuario ha seleccionado un CICLO PLANETARIO.`,
-        `Ciclo: ${data.cycle ?? data.aspect_type}`,
-        `Planeta: ${data.planet} en ${data.angle}° natal`,
-        `Fecha exacta: ${data.exact_date}`,
-      ].join('\n');
+    const history: Anthropic.MessageParam[] = (messages ?? [])
+      .filter((m: any) => m.role && m.content?.trim())
+      .map((m: any) => ({ role: m.role as 'user' | 'assistant', content: m.content as string }));
+
+    while (history.length > 0 && history[0].role !== 'user') {
+      history.shift();
     }
 
-    const baseCtx = buildBaseContext(natalData);
-    const fullContextBlock = baseCtx
-      ? `${baseCtx}\n\n---\n\n${contextBlock}`
-      : contextBlock;
-
-    const shortTechniques = ['lunar_transit', 'planetary_cycle'];
-    const maxTokens = shortTechniques.includes(technique) ? 512 : 1024;
+    const maxTokens =
+      ['lunar_transit', 'planetary_cycle'].includes(technique) ? 512
+      : ['lot', 'sect', 'profection', 'firdaria'].includes(technique) ? 2048
+      : 1024;
 
     const client = new Anthropic({ apiKey });
     const response = await client.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: maxTokens,
       system: LILLY_SYSTEM_PROMPT,
-      messages: [{ role: 'user', content: fullContextBlock }],
+      messages: [...history, { role: 'user', content: block }],
     });
 
     const text = response.content[0].type === 'text' ? response.content[0].text : '';

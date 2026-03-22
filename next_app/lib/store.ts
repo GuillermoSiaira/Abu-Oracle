@@ -7,6 +7,7 @@
     ChatMessage,
     BirthData
   } from "./types"
+  import type { BiographicalTimeline } from "./context-builder"
 
   // ======================================================
   //  ONBOARDING TYPES
@@ -52,6 +53,7 @@
     pendingLillyEvent: Record<string, any> | null
     lastLillyEvent: { type: string; label: string } | null
     lillySuggestions: Array<{ type: string; target: string; label: string }> | null
+    timeline: BiographicalTimeline | null
 
     onboardingStage: OnboardingStage
     onboardingData: OnboardingData
@@ -70,6 +72,7 @@
     setPendingLillyEvent: (event: Record<string, any> | null) => void
     setLastLillyEvent: (evt: { type: string; label: string } | null) => void
     setLillySuggestions: (s: Array<{ type: string; target: string; label: string }> | null) => void
+    setTimeline: (t: BiographicalTimeline | null) => void
     clearAll: () => void
 
     setOnboardingStage: (stage: OnboardingStage) => void
@@ -179,6 +182,7 @@
       pendingLillyEvent: null,
       lastLillyEvent: null,
       lillySuggestions: null,
+      timeline: null,
 
       // ---- Estado de onboarding ----
       onboardingStage: "idle",
@@ -239,6 +243,8 @@
       setLastLillyEvent: (evt) => set({ lastLillyEvent: evt }),
 
       setLillySuggestions: (s) => set({ lillySuggestions: s }),
+
+      setTimeline: (t) => set({ timeline: t }),
 
       // ---------------------------------------------------
       // ONBOARDING MUTATORS

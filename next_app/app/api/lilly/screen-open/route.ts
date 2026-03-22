@@ -1,8 +1,37 @@
 import { NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
-import { LILLY_SYSTEM_PROMPT, buildBaseContext } from '../../../../lib/lilly-prompt';
+import { LILLY_SYSTEM_PROMPT } from '../../../../lib/lilly-prompt';
+import {
+  buildNatalContext,
+  buildActiveContext,
+  assembleContextBlock,
+  type BiographicalTimeline,
+} from '../../../../lib/context-builder';
 
 export const dynamic = 'force-dynamic';
+
+const EMPTY_TIMELINE: BiographicalTimeline = {
+  profections: [],
+  firdaria: [],
+  transits_window: [],
+};
+
+const SUGGESTIONS_SUFFIX = [
+  ``,
+  `Al final de tu interpretación, añade exactamente este bloque sin modificarlo:`,
+  ``,
+  `[SUGERENCIAS]`,
+  `{"suggestions": [`,
+  `  {"type": "click_planet"|"click_technique"|"click_domain", "target": string, "label": string},`,
+  `  ...`,
+  `]}`,
+  ``,
+  `Elige los 3 elementos más significativos de esta carta para sugerir.`,
+  `Priorizar: planetas angulares, planetas en domicilio/exaltación, señor del año, señor del ASC.`,
+  `Para click_domain usar: h1, h2, h4, h5, h6, h7, h9, h10.`,
+  `Para click_technique usar: sect, profection, firdaria, lot_fortuna, lot_spirit.`,
+  `Para click_planet usar el nombre del planeta en inglés (Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn).`,
+].join('\n');
 
 export async function POST(req: Request) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -19,61 +48,41 @@ export async function POST(req: Request) {
       name,
       sect,
       sect_master,
-      asc_ruler,
-      asc_ruler_dignity,
-      mc_ruler,
-      mc_ruler_dignity,
-      strong_dignities,
-      firdaria_major,
-      firdaria_minor,
       lang,
       natalData,
+      birthData,
+      timeline,
+      messages,
     } = body;
 
-    const baseCtx = buildBaseContext(natalData);
+    const natal  = buildNatalContext(natalData, birthData);
+    const active = buildActiveContext({
+      currentDate:   new Date().toISOString(),
+      activeTab:     'persian_techniques',
+      activeDomain:  null,
+      activeCity:    null,
+      lastEventType: 'screen_open',
+      triggerData:   { name, sect, sect_master },
+    });
+    const block =
+      assembleContextBlock(natal, timeline ?? EMPTY_TIMELINE, active, lang ?? 'es')
+      + '\n\n' + SUGGESTIONS_SUFFIX;
 
-    const screenOpenBlock = [
-      `Sujeto: ${name || 'Anónimo'}`,
-      `Secta: ${sect || '—'}`,
-      `Maestro de secta: ${sect_master || '—'}`,
-      `Regente ASC: ${asc_ruler || '—'} (${asc_ruler_dignity || 'Peregrine'})`,
-      `Regente MC: ${mc_ruler || '—'} (${mc_ruler_dignity || 'Peregrine'})`,
-      `Dignidades fuertes: ${
-        Array.isArray(strong_dignities) && strong_dignities.length
-          ? strong_dignities
-              .map((d: { planet: string; dignity: string }) => `${d.planet} en ${d.dignity}`)
-              .join(', ')
-          : 'ninguna destacada'
-      }`,
-      `Firdaria actual: mayor ${firdaria_major || '—'} · menor ${firdaria_minor || '—'}`,
-      `Fecha actual: ${new Date().toISOString().split('T')[0]}`,
-      `Idioma de respuesta: ${lang || 'es'}`,
-      ``,
-      `Al final de tu interpretación, añade exactamente este bloque sin modificarlo:`,
-      ``,
-      `[SUGERENCIAS]`,
-      `{"suggestions": [`,
-      `  {"type": "click_planet"|"click_technique"|"click_domain", "target": string, "label": string},`,
-      `  ...`,
-      `]}`,
-      ``,
-      `Elige los 3 elementos más significativos de esta carta para sugerir.`,
-      `Priorizar: planetas angulares, planetas en domicilio/exaltación, señor del año, señor del ASC.`,
-      `Para click_domain usar: h1, h2, h4, h5, h6, h7, h9, h10.`,
-      `Para click_technique usar: sect, profection, firdaria, lot_fortuna, lot_spirit.`,
-      `Para click_planet usar el nombre del planeta en inglés (Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn).`,
-    ].join('\n');
+    const history: Anthropic.MessageParam[] = (messages ?? [])
+      .filter((m: any) => m.role && m.content?.trim())
+      .map((m: any) => ({ role: m.role as 'user' | 'assistant', content: m.content as string }));
 
-    const contextBlock = baseCtx
-      ? `${baseCtx}\n\n---\n\n${screenOpenBlock}`
-      : screenOpenBlock;
+    // Anthropic requires conversation to start with a user message
+    while (history.length > 0 && history[0].role !== 'user') {
+      history.shift();
+    }
 
     const client = new Anthropic({ apiKey });
     const response = await client.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 1024,
       system: LILLY_SYSTEM_PROMPT,
-      messages: [{ role: 'user', content: contextBlock }],
+      messages: [...history, { role: 'user', content: block }],
     });
 
     const rawText = response.content[0].type === 'text' ? response.content[0].text : '';

@@ -34,6 +34,8 @@ import { usePathname } from 'next/navigation';
 import { useAppStore } from "@/lib/store";
 import { Send, Terminal } from "lucide-react";
 import { UI } from '@/lib/i18n';
+import { getAbuAuthHeaders } from '@/lib/abu-auth';
+import { ABU_BASE_URL } from '@/services/abu';
 
 /* ---------------------------------------------------------
    TerminalMessage
@@ -129,7 +131,7 @@ export default function OracleChat() {
 
   // Store global (NO asumir tipos internos)
   // @ts-ignore
-  const { abuData, birthData, lang, pendingLillyEvent, setPendingLillyEvent, setLastLillyEvent, setLillySuggestions } = useAppStore();
+  const { abuData, birthData, lang, pendingLillyEvent, setPendingLillyEvent, setLastLillyEvent, setLillySuggestions, setTimeline, timeline } = useAppStore();
   const t = UI[lang as keyof typeof UI] ?? UI.es;
   const pathname = usePathname();
   const isChartPage = pathname === '/chart';
@@ -151,12 +153,30 @@ export default function OracleChat() {
       setMessages([]);
       setLastLillyEvent(null);
       setLillySuggestions(null);
+      setTimeline(null);
     }
     prevAbuRef.current = abuData;
 
     const isComplete = (d: any) => Array.isArray(d?.chart?.planets) && d.chart.planets.length > 0;
     if (!initialized.current && isChartPage && isComplete(abuData) && birthData) {
       initialized.current = true;
+
+      // --- Fetch biography (timeline) — una vez por sujeto ---
+      const bDate = (birthData as any).birthDate;
+      const bLat  = (birthData as any).lat;
+      const bLon  = (birthData as any).lon;
+      if (bDate && bLat != null && bLon != null) {
+        const bioUrl = new URL(`${ABU_BASE_URL}/api/astro/biography`);
+        bioUrl.searchParams.set('birthDate', bDate);
+        bioUrl.searchParams.set('birthLat',  String(bLat));
+        bioUrl.searchParams.set('birthLon',  String(bLon));
+        bioUrl.searchParams.set('window_months', '18');
+        getAbuAuthHeaders()
+          .then(headers => fetch(bioUrl.toString(), { headers }))
+          .then(res => res.ok ? res.json() : Promise.reject(res.status))
+          .then(data => setTimeline(data))
+          .catch(err => console.error('[biography]', err));
+      }
 
       // --- Build minimal context from abuData ---
       const name =
@@ -230,6 +250,9 @@ export default function OracleChat() {
           firdaria_minor: firdaria?.sub ?? null,
           lang,
           natalData: abuData,
+          birthData: birthData ?? undefined,
+          timeline:  timeline ?? undefined,
+          messages,
         }),
       })
         .then((res) => res.json())
@@ -305,7 +328,13 @@ export default function OracleChat() {
     fetch(route, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...payload, natalData: abuData }),
+      body: JSON.stringify({
+        ...payload,
+        natalData: abuData,
+        birthData: birthData ?? undefined,
+        timeline:  timeline ?? undefined,
+        messages,
+      }),
     })
       .then((res) => res.json())
       .then((data) => {
@@ -373,7 +402,8 @@ export default function OracleChat() {
         body: JSON.stringify({
           messages: [...messages, newMsg],
           context: sessionContext,
-          session_id: "sidebar-session-v1"
+          session_id: "sidebar-session-v1",
+          timeline: timeline ?? undefined,
         })
       });
 

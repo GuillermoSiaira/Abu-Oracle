@@ -15,7 +15,21 @@
 - Stack en producción: Next.js + Python/FastAPI → Cloud Run (GCP) · Firebase Auth · Firestore · Alchemy webhook · Resend
 - Revisión inicial: `abu-oracle-app-00016-xqp`
 
-### ⚠️ PENDIENTE DE DEPLOY A PRODUCCIÓN (commit `8092fdf`)
+### Fixes UI/SVG — sesión 2026-03-22 (post Context Builder)
+
+| Fix | Archivos | Descripción |
+|---|---|---|
+| Sidebar ancho + font | `DashboardLayout.tsx`, `TechnicalPanel.tsx` | `180px→220px`, `text-xs→text-sm`, `p-3→p-4` |
+| Layout dos columnas Carta Natal | `natal-chart-tab.tsx` | Rueda 60% + posiciones planetarias 40% en `lg+`, scroll interno |
+| Líneas de aspecto en SVG | `zodiac-wheel.tsx`, `natal-chart-tab.tsx` | Prop `natalAspects`, líneas SVG calculadas client-side sobre pares de planetas, radio 130, opacidad 0.7 |
+| Bug casas↔signo | `zodiac-wheel.tsx` | Bloque `SIGNOS` derivado de `houseCusps` reales (antes usaba `ZODIAC_SIGNS` fijo en 0°/30°/60°…) |
+| max_tokens técnicas | `lilly/technique/route.ts` | `lot`/`sect`/`profection`/`firdaria` → 2048 tokens |
+
+---
+
+### ⚠️ PENDIENTE DE DEPLOY A PRODUCCIÓN (commit `8092fdf` + sesión 2026-03-22)
+
+**No deployar parcialmente. Deploy conjunto cuando E2E pass esté completo.**
 
 Los siguientes cambios están en `main` pero **no han sido desplegados** a Cloud Run:
 
@@ -26,8 +40,9 @@ Los siguientes cambios están en `main` pero **no han sido desplegados** a Cloud
 
 **Next.js app** — requiere build con NEXT_PUBLIC_* args + `docker push` + `gcloud run deploy abu-oracle-app`:
 - `app/api/astro/solar-return-score/route.ts` (nuevo proxy)
-- `app/api/lilly/city/route.ts` (active_domain en context)
 - `components/relocation-tab.tsx` (SR domain heatmap + scores + logging)
+- **Context Builder canónico (sesión 2026-03-22)** — ver sección completa abajo
+- FIX 1/2/3 de sesión 2026-03-22 (ancla ASC, header fecha, house_system)
 
 **Nota**: `docker-compose.yml` con `AUTH_ENABLED=false` + `ENV=development` es **solo para dev local**.
 En Cloud Run abu_engine ya tiene `AUTH_ENABLED=true` por defecto — no tocar esa variable en producción.
@@ -622,6 +637,61 @@ La próxima tarea es siempre la primera sin tilde `✅` en el plan de desarrollo
 **Estado Lilly al 2026-03-16 (Fase 8.10)**: screen_open ✅, click_planet ✅, click_technique (sect/profección/firdaria/lot/**lunar_transit**/**planetary_cycle**) ✅, domain_select ✅, city_select ✅. Todas las routes usan `claude-sonnet-4-6` via `@anthropic-ai/sdk`. System prompt v1.0 en `lib/lilly-prompt.ts` ✅. Pendiente: click_house, click_transit, Context Builder centralizado (Fase 9).
 
 **Estado panel guía al 2026-03-16**: TechnicalPanel reescrito — LEYENDO AHORA + SEÑOR DEL AÑO + EXPLORAR operativos. `screen-open` devuelve `{ response, suggestions }`. `store.ts` mantiene `lastLillyEvent` y `lillySuggestions` en memoria (no persisten).
+
+### Context Builder canónico — sesión 2026-03-22 ✅ `[COMPLETO]`
+
+**`/api/astro/biography`** — endpoint verificado ✅
+- Devuelve profections (90 años) + firdaria (75 años aplanada) + transits_window (±18 meses, planetas lentos).
+- Requiere auth (`verify_token`). En dev local: accesible sin auth solo si `AUTH_ENABLED=false` en Docker.
+
+**`next_app/lib/context-builder.ts`** — creado, compila limpio ✅
+- Exporta: `buildNatalContext()`, `buildActiveContext()`, `assembleContextBlock()`, `PlanetPosition`, `NatalContext`, `BiographicalTimeline`, `ActiveContext`.
+- `assembleContextBlock()` produce bloque estructurado: CARTA NATAL · LÍNEA DE TIEMPO (profección activa+siguiente, firdaria activa+siguiente, tránsitos ±18m) · CONTEXTO ACTIVO (trigger_data específico del evento).
+
+**Timeline en Zustand store + fetch en OracleChat** ✅
+- `lib/store.ts`: campo `timeline: BiographicalTimeline | null` + `setTimeline()`. NO persiste en localStorage.
+- `OracleChat.tsx`: fetch a `/api/astro/biography` al detectar cambio de `abuData` (una vez por sujeto). `setTimeline(null)` en reset al cambiar sujeto.
+- `handleSubmit` (chat libre) envía `timeline` a `/api/chat`.
+
+**8 routes Lilly migradas a `assembleContextBlock()`** ✅
+
+| Route | `activeTab` | `lastEventType` | Notas |
+|---|---|---|---|
+| `screen-open` | `persian_techniques` | `screen_open` | Instrucción SUGERENCIAS añadida al bloque |
+| `technique` | `persian_techniques` | `click_technique` | Lógica condicional por técnica eliminada |
+| `planet` | `natal_chart` | `click_planet` | — |
+| `transit` | `transits` | `click_transit` | `currentDate` = `transit_date` si viene |
+| `domain` | `hf_map` | `domain_select` | `activeDomain` propagado |
+| `solar-return` | `hf_map` | `sr_domain_select` | `activeDomain` = `active_domain ?? domain` |
+| `city` | `hf_map` | `city_select` | `activeCity` poblado con `{name, lat, lon, hf_score}` |
+| `chat` | `chat` | `chat` | Bloque en system prompt; filtro `!m.hidden` en history |
+
+**Historial unificado** ✅
+- Todos los callers reactivos envían `messages` (array local OracleChat, incluye reactivos).
+- `/api/chat` filtra `hidden: true` antes de enviar a Anthropic (mensajes sintéticos son ruido en chat libre).
+- Reactivos NO filtran `hidden` — el historial completo llega como contexto a routes reactivas.
+
+**Bug fixes aplicados en esta sesión:**
+- `chat/route.ts`: `currentDate` usaba `meta?.date` (fecha nacimiento) → corregido a `new Date().toISOString()`
+- `OracleChat.tsx handleSubmit`: ahora envía `timeline` a `/api/chat`
+
+**Verificación manual** ✅
+- "¿Cuál es mi ascendente?" → Lilly responde **Acuario 26.9°** (no Capricornio)
+- "¿En qué período estoy?" → Lilly menciona Firdaria Júpiter → **30 jul 2026**, Profección Casa 12 → **5 jul 2026**, convergencia de ambos cierres
+
+**Archivos modificados en sesión 2026-03-22:**
+- `next_app/lib/store.ts` — campo `timeline` + `setTimeline`
+- `next_app/components/OracleChat.tsx` — fetch biography + `timeline` en todos los callers
+- `next_app/app/api/lilly/screen-open/route.ts` — migrada
+- `next_app/app/api/lilly/technique/route.ts` — migrada
+- `next_app/app/api/lilly/planet/route.ts` — migrada
+- `next_app/app/api/lilly/transit/route.ts` — migrada
+- `next_app/app/api/lilly/domain/route.ts` — migrada
+- `next_app/app/api/lilly/solar-return/route.ts` — migrada
+- `next_app/app/api/lilly/city/route.ts` — migrada
+- `next_app/app/api/chat/route.ts` — migrada + bug fix currentDate
+
+---
 
 ### Context Builder — sesión 2026-03-20
 

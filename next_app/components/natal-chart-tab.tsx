@@ -2,7 +2,7 @@
 
 import { useAppStore } from "@/lib/store";
 import { ZodiacWheel } from "./zodiac-wheel";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 // ------------------------------------
 // Utils
@@ -187,6 +187,43 @@ export function NatalChartTab() {
   // Natal planets (raw — keep dignity + retrograde for cards)
   const rawPlanets: any[] = chart.planets ?? [];
 
+  // Aspect lines for ZodiacWheel — computed client-side over all planet pairs
+  const natalAspectLines = useMemo(() => {
+    if (!rawPlanets || rawPlanets.length === 0) return [];
+    const results: Array<{
+      planet_a: string;
+      planet_b: string;
+      type: 'conjunction' | 'sextile' | 'square' | 'trine' | 'opposition';
+      orb: number;
+    }> = [];
+    for (let i = 0; i < rawPlanets.length; i++) {
+      for (let j = i + 1; j < rawPlanets.length; j++) {
+        const lonA = rawPlanets[i].longitude;
+        const lonB = rawPlanets[j].longitude;
+        const diff = Math.abs(((Math.abs(lonA - lonB) % 360) + 360) % 360);
+        const normalised = diff > 180 ? 360 - diff : diff;
+        let bestOrb = Infinity;
+        let bestType: string | null = null;
+        for (const asp of NATAL_ASPECTS) {
+          const orb = Math.abs(normalised - asp.angle);
+          if (orb <= asp.orb && orb < bestOrb) {
+            bestOrb = orb;
+            bestType = asp.type;
+          }
+        }
+        if (bestType && bestOrb <= 8) {
+          results.push({
+            planet_a: rawPlanets[i].name,
+            planet_b: rawPlanets[j].name,
+            type: bestType as 'conjunction' | 'sextile' | 'square' | 'trine' | 'opposition',
+            orb: bestOrb,
+          });
+        }
+      }
+    }
+    return results;
+  }, [rawPlanets]);
+
   // Adapted planets for ZodiacWheel (no transit ring in natal tab)
   const natalPlanets = rawPlanets.map((p: any) => ({
     name: p.name,
@@ -227,7 +264,7 @@ export function NatalChartTab() {
   }
 
   return (
-    <div className="space-y-8 p-4">
+    <div className="space-y-4 p-4">
 
       {/* Orientation selector */}
       <div className="flex gap-2 items-center">
@@ -246,33 +283,41 @@ export function NatalChartTab() {
         ))}
       </div>
 
-      {/* Zodiac wheel — natal only, no transit ring */}
-      <ZodiacWheel
-        planets={natalPlanets}
-        houses={houseData}
-        orientation={orientation}
-        onPlanetClick={(p) => handlePlanetClick({
-          ...rawPlanets.find((r: any) => r.name === p.name),
-          longitude: p.longitude,
-        })}
-      />
+      {/* Two-column layout on large screens */}
+      <div className="flex flex-col lg:flex-row gap-4">
 
-      {/* Planet cards */}
-      <div>
-        <h3 className="text-xs font-mono uppercase tracking-widest text-slate-600 mb-3">
-          Posiciones planetarias
-          <span className="ml-2 text-slate-700 normal-case">— click para interpretar</span>
-        </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-          {rawPlanets.map((p: any) => (
-            <PlanetCard
-              key={p.name}
-              planet={p}
-              allPlanets={rawPlanets}
-              onClick={handlePlanetClick}
-            />
-          ))}
+        {/* Zodiac wheel — natal only, no transit ring */}
+        <div className="lg:w-3/5">
+          <ZodiacWheel
+            planets={natalPlanets}
+            houses={houseData}
+            orientation={orientation}
+            onPlanetClick={(p) => handlePlanetClick({
+              ...rawPlanets.find((r: any) => r.name === p.name),
+              longitude: p.longitude,
+            })}
+            natalAspects={natalAspectLines}
+          />
         </div>
+
+        {/* Planet cards */}
+        <div className="lg:w-2/5 overflow-y-auto max-h-[600px]">
+          <h3 className="text-xs font-mono uppercase tracking-widest text-slate-600 mb-3">
+            Posiciones planetarias
+            <span className="ml-2 text-slate-700 normal-case">— click para interpretar</span>
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2">
+            {rawPlanets.map((p: any) => (
+              <PlanetCard
+                key={p.name}
+                planet={p}
+                allPlanets={rawPlanets}
+                onClick={handlePlanetClick}
+              />
+            ))}
+          </div>
+        </div>
+
       </div>
 
     </div>

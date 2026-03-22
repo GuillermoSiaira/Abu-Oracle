@@ -1,76 +1,58 @@
 import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { LILLY_SYSTEM_PROMPT } from "@/lib/lilly-prompt";
+import {
+  buildNatalContext,
+  buildActiveContext,
+  assembleContextBlock,
+  type BiographicalTimeline,
+} from "@/lib/context-builder";
 
 export const dynamic = "force-dynamic";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
+const EMPTY_TIMELINE: BiographicalTimeline = {
+  profections: [],
+  firdaria: [],
+  transits_window: [],
+};
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { messages, context, session_id } = body;
+    const { messages, context, session_id, timeline } = body;
 
     if (!messages?.length) {
       return NextResponse.json({ error: "No messages provided" }, { status: 400 });
     }
 
-    // Build a compact context block from the astrological data
-    const abuData = context?.calculations;
-    const meta = context?.meta;
+    // Extract abuData and birthData from the existing context shape
+    const abuData   = context?.calculations;
+    const meta      = context?.meta;
+    // Adapt meta shape { date, city } → buildNatalContext shape { birthDate, city }
+    const birthData = meta ? { birthDate: meta.date, city: meta.city } : undefined;
+    const lang: string = abuData?.lang ?? "es";
 
-    let contextBlock = "";
-    if (abuData && meta) {
-      const name = abuData?.person?.name ?? "Unknown";
-      const planets = (abuData?.chart?.planets ?? [])
-        .slice(0, 12)
-        .map((p: any) => `${p.name} ${p.sign} H${p.house}${p.dignity?.kind ? ` (${p.dignity.kind})` : ""}`)
-        .join(", ");
-      const houses = abuData?.chart?.houses;
-      const sect = abuData?.derived?.sect ?? "unknown";
-      const firdaria = abuData?.derived?.firdaria?.current;
-      const profectionHouse: number | null = abuData?.derived?.profection?.house ?? null;
-
-      // Derive profection lord from house cusp → sign → traditional ruler
-      const CHAT_SIGNS = [
-        "Aries","Taurus","Gemini","Cancer","Leo","Virgo",
-        "Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces",
-      ];
-      const CHAT_RULERS: Record<string, string> = {
-        Aries: "Mars", Taurus: "Venus", Gemini: "Mercury", Cancer: "Moon",
-        Leo: "Sun", Virgo: "Mercury", Libra: "Venus", Scorpio: "Mars",
-        Sagittarius: "Jupiter", Capricorn: "Saturn", Aquarius: "Saturn", Pisces: "Jupiter",
-      };
-      let profLord = "?";
-      if (profectionHouse != null) {
-        const cusps: any[] = houses?.houses ?? [];
-        const cusp = cusps.find((h: any) => h.house === profectionHouse);
-        if (cusp) {
-          const signIdx = Math.floor(((cusp.start % 360) + 360) % 360 / 30);
-          profLord = CHAT_RULERS[CHAT_SIGNS[signIdx]] ?? "?";
-        }
-      }
-
-      contextBlock = `
-CHART CONTEXT
-Name: ${name}
-Birth: ${meta.date ?? ""} · ${meta.city ?? ""}
-Sect: ${sect}
-Planets: ${planets}
-ASC: ${houses?.asc?.toFixed(1) ?? "?"} | MC: ${houses?.mc?.toFixed(1) ?? "?"}
-Profection lord: ${profLord} (House ${profectionHouse ?? "?"})
-Firdaria: ${firdaria?.major ?? "?"} / ${firdaria?.sub ?? "?"}
-Lang: ${abuData?.lang ?? "es"}
-`;
+    // Build canonical context block — injected into system prompt (chat pattern)
+    let systemPrompt = LILLY_SYSTEM_PROMPT;
+    if (abuData) {
+      const natal  = buildNatalContext(abuData, birthData);
+      const active = buildActiveContext({
+        currentDate:   new Date().toISOString(),
+        activeTab:     "chat",
+        activeDomain:  null,
+        activeCity:    null,
+        lastEventType: "chat",
+        triggerData:   {},
+      });
+      const block = assembleContextBlock(natal, timeline ?? EMPTY_TIMELINE, active, lang);
+      systemPrompt = `${LILLY_SYSTEM_PROMPT}\n\n---\n${block}`;
     }
 
-    const systemPrompt = contextBlock
-      ? `${LILLY_SYSTEM_PROMPT}\n\n---\n${contextBlock}`
-      : LILLY_SYSTEM_PROMPT;
-
-    // Convert messages to Anthropic format, filtering out any with empty content
+    // Filter hidden messages (synthetic reactives) — they are noise in free chat
     const anthropicMessages = messages
-      .filter((m: any) => m.content?.trim())
+      .filter((m: any) => !m.hidden && m.role && m.content?.trim())
       .map((m: any) => ({
         role: m.role === "user" ? "user" : "assistant",
         content: m.content,

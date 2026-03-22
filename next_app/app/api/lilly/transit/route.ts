@@ -1,17 +1,19 @@
 import { NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
-import { LILLY_SYSTEM_PROMPT, buildBaseContext } from '../../../../lib/lilly-prompt';
+import { LILLY_SYSTEM_PROMPT } from '../../../../lib/lilly-prompt';
+import {
+  buildNatalContext,
+  buildActiveContext,
+  assembleContextBlock,
+  type BiographicalTimeline,
+} from '../../../../lib/context-builder';
 
 export const dynamic = 'force-dynamic';
 
-const ASPECT_ES: Record<string, string> = {
-  conjunction: 'Conjunción',
-  opposition: 'Oposición',
-  square: 'Cuadratura',
-  trine: 'Trígono',
-  sextile: 'Sextil',
-  semisextile: 'Semisextil',
-  quincunx: 'Quincuncio',
+const EMPTY_TIMELINE: BiographicalTimeline = {
+  profections: [],
+  firdaria: [],
+  transits_window: [],
 };
 
 export async function POST(req: Request) {
@@ -28,47 +30,38 @@ export async function POST(req: Request) {
       transit_deg,
       aspects,
       transit_date,
-      subject_name,
       lang,
       natalData,
+      birthData,
+      timeline,
+      messages,
     } = body;
 
-    const dateLabel = transit_date
-      ? new Date(transit_date).toLocaleDateString('es-AR', {
-          day: '2-digit', month: '2-digit', year: 'numeric',
-        })
-      : '—';
+    const natal  = buildNatalContext(natalData, birthData);
+    const active = buildActiveContext({
+      currentDate:   transit_date ?? new Date().toISOString(),
+      activeTab:     'transits',
+      activeDomain:  null,
+      activeCity:    null,
+      lastEventType: 'click_transit',
+      triggerData:   { transit_planet, transit_sign, transit_deg, aspects, transit_date },
+    });
+    const block = assembleContextBlock(natal, timeline ?? EMPTY_TIMELINE, active, lang ?? 'es');
 
-    const aspectLines = Array.isArray(aspects) && aspects.length
-      ? aspects.map((a: any) => {
-          const aspName = ASPECT_ES[a.aspect] ?? a.aspect;
-          const orbStr = Math.abs(a.orb).toFixed(2) + '°';
-          const appStr = a.applying ? 'aplicante' : 'separante';
-          return `- ${aspName} a ${a.natal_planet} natal (orb ${orbStr}, ${appStr})`;
-        }).join('\n')
-      : '- Sin aspectos registrados';
+    const history: Anthropic.MessageParam[] = (messages ?? [])
+      .filter((m: any) => m.role && m.content?.trim())
+      .map((m: any) => ({ role: m.role as 'user' | 'assistant', content: m.content as string }));
 
-    const eventBlock = [
-      `El usuario seleccionó ${transit_planet?.toUpperCase() ?? '—'} en tránsito — actualmente en ${transit_sign ?? '—'} ${transit_deg != null ? transit_deg.toFixed(1) + '°' : ''}.`,
-      `Aspectos activos de este tránsito:`,
-      aspectLines,
-      `Fecha de tránsito: ${dateLabel}`,
-      `Sujeto: ${subject_name ?? 'Anónimo'}`,
-      `Fecha actual: ${new Date().toISOString().split('T')[0]}`,
-      `Idioma de respuesta: ${lang ?? 'es'}`,
-    ].join('\n');
-
-    const baseCtx = buildBaseContext(natalData);
-    const contextBlock = baseCtx
-      ? `${baseCtx}\n\n---\n\n${eventBlock}`
-      : eventBlock;
+    while (history.length > 0 && history[0].role !== 'user') {
+      history.shift();
+    }
 
     const client = new Anthropic({ apiKey });
     const response = await client.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 1024,
       system: LILLY_SYSTEM_PROMPT,
-      messages: [{ role: 'user', content: contextBlock }],
+      messages: [...history, { role: 'user', content: block }],
     });
 
     const text = response.content[0].type === 'text' ? response.content[0].text : '';
