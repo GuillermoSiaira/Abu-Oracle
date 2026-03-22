@@ -922,3 +922,23 @@ Index requerido: single-field en `wallet_address` (Firestore lo crea automática
 1. Probar E2E con 500 USDC real → verificar Firestore + email Resend (webhook Alchemy activo)
 2. **Webhook Paddle** → `next_app/app/api/webhook/payment/route.ts` (cuando aprueben cuenta)
 3. LANZAMIENTO
+
+---
+
+## Ideas y tareas futuras
+
+### PENDIENTE — Axiomática y Canon (post Context Builder)
+
+Una vez que el Context Builder canónico esté funcionando, dedicar una sesión a formalizar los siguientes conceptos:
+
+**AXIOMA 9 — Convergencia Temporal** (para `AXIOMATICS_OF_HEAVENS`)
+> "El tiempo no es un punto sino un campo. El nativo no existe en un momento astrológico — existe en la intersección de múltiples técnicas temporales simultáneas. La lectura válida es aquella que ubica al nativo en ese continuo, no la que fotografía un instante. La validez interpretativa aumenta cuando profección, firdaria y tránsito lento convergen sobre el mismo período."
+
+**PRINCIPIOS OPERATIVOS** (para Canon)
+- **Navegación biográfica**: el pasado es verificable y por eso es la base de la confianza del nativo en el sistema. Lilly puede navegar hacia atrás con la misma precisión que hacia adelante.
+- **Ventana de acción**: el período donde convergen las técnicas favorables tiene fecha de inicio y fecha de cierre. Lilly debe comunicar ambas con precisión, sin generar ansiedad por el cierre.
+- **Convergencia como señal**: cuando profección + firdaria + tránsito lento señalan el mismo período, Lilly lo nombra explícitamente como convergencia — no como coincidencia.
+
+Estos conceptos deben integrarse en:
+- `AXIOMATICS_OF_HEAVENS`: nuevo Axioma 9
+- Canon (ES + EN): sección nueva "Navegación Temporal"

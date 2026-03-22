@@ -1625,6 +1625,405 @@ def get_fardars(
         raise HTTPException(status_code=500, detail=f"Fardar calculation error: {str(e)}")
 
 
+# ─── /api/astro/biography — helpers ────────────────────────────────────────
+
+_bio_ts = None
+
+def _bio_get_ts():
+    """Cached skyfield Timescale — evita lecturas repetidas de disco."""
+    global _bio_ts
+    if _bio_ts is None:
+        from skyfield.api import load
+        _bio_ts = load.timescale()
+    return _bio_ts
+
+_BIO_SIGNS = [
+    "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
+    "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces",
+]
+_BIO_RULERS = {
+    "Aries": "Mars", "Taurus": "Venus", "Gemini": "Mercury", "Cancer": "Moon",
+    "Leo": "Sun", "Virgo": "Mercury", "Libra": "Venus", "Scorpio": "Mars",
+    "Sagittarius": "Jupiter", "Capricorn": "Saturn", "Aquarius": "Saturn",
+    "Pisces": "Jupiter",
+}
+_BIO_EXALT = {
+    "Sun": "Aries", "Moon": "Taurus", "Mercury": "Virgo", "Venus": "Pisces",
+    "Mars": "Capricorn", "Jupiter": "Cancer", "Saturn": "Libra",
+}
+_BIO_SLOW_BODIES = {
+    "Jupiter": "jupiter barycenter",
+    "Saturn":  "saturn barycenter",
+    "Uranus":  "uranus barycenter",
+    "Neptune": "neptune barycenter",
+    "Pluto":   "pluto barycenter",
+}
+_BIO_ASPECTS = {
+    "conjunction": 0, "sextile": 60, "square": 90, "trine": 120, "opposition": 180,
+}
+
+def _bio_dignity(planet: str, lon: float) -> str:
+    """Traditional essential dignity label (regencias tradicionales, sin planetas modernos)."""
+    idx = int(lon % 360 / 30)
+    sign = _BIO_SIGNS[idx]
+    if _BIO_RULERS.get(sign) == planet:
+        return "domicile"
+    if _BIO_RULERS.get(_BIO_SIGNS[(idx + 6) % 12]) == planet:
+        return "detriment"
+    if _BIO_EXALT.get(planet) == sign:
+        return "exaltation"
+    if planet in _BIO_EXALT:
+        ei = _BIO_SIGNS.index(_BIO_EXALT[planet])
+        if _BIO_SIGNS[(ei + 6) % 12] == sign:
+            return "fall"
+    return "peregrine"
+
+def _bio_orb(lon_transit: float, lon_natal: float, angle: int) -> float:
+    """Orbe entre longitud en tránsito y natal para un ángulo de aspecto dado."""
+    diff = abs(lon_transit - lon_natal) % 360
+    if diff > 180:
+        diff = 360 - diff
+    return abs(diff - angle)
+
+def _bio_scan_batch(planet: str, scan_dates: list) -> list:
+    """Posiciones vectorizadas de un planeta lento para todas las scan_dates (1 llamada skyfield)."""
+    eph = EphemerisSingleton()
+    ts  = _bio_get_ts()
+    sky = _BIO_SLOW_BODIES.get(planet)
+    if not sky:
+        return [None] * len(scan_dates)
+    t_arr = ts.from_datetimes(scan_dates)
+    pos   = eph["earth"].at(t_arr).observe(eph[sky])
+    _, lon_arr, _ = pos.ecliptic_latlon()
+    return [float(v) % 360 for v in lon_arr.degrees]
+
+def _bio_planet_lon(dt: datetime, planet: str) -> Optional[float]:
+    """Longitud eclíptica de un planeta lento para una fecha puntual."""
+    eph = EphemerisSingleton()
+    ts  = _bio_get_ts()
+    sky = _BIO_SLOW_BODIES.get(planet)
+    if not sky:
+        return None
+    try:
+        t   = ts.from_datetime(dt)
+        pos = eph["earth"].at(t).observe(eph[sky])
+        _, lon, _ = pos.ecliptic_latlon()
+        return float(lon.degrees) % 360
+    except Exception:
+        return None
+
+def _bio_bisect(
+    lo: datetime, hi: datetime,
+    planet: str, n_lon: float, asp_angle: int,
+    boundary: float, lo_inside: bool,
+    max_iter: int = 15,
+) -> datetime:
+    """
+    Binary search para la fecha en que el orbe cruza `boundary`.
+    lo_inside=True  → orb(lo) ≤ boundary (lo está dentro del tránsito).
+    lo_inside=False → orb(lo) > boundary (lo está fuera).
+    """
+    for _ in range(max_iter):
+        sec = (hi - lo).total_seconds()
+        if abs(sec) < 3600:  # precisión 1 hora — suficiente para tránsitos lentos
+            break
+        mid = lo + timedelta(seconds=sec / 2)
+        lon = _bio_planet_lon(mid, planet)
+        if lon is None:
+            break
+        mid_inside = _bio_orb(lon, n_lon, asp_angle) <= boundary
+        if mid_inside == lo_inside:
+            lo = mid
+        else:
+            hi = mid
+    return lo + timedelta(seconds=(hi - lo).total_seconds() / 2)
+
+def _bio_ternary_exact(
+    lo: datetime, hi: datetime,
+    planet: str, n_lon: float, asp_angle: int,
+    max_iter: int = 20,
+) -> datetime:
+    """
+    Ternary search para la fecha de orbe mínimo (aspecto exacto) en [lo, hi].
+    Válido para funciones unimodales — típico en planetas lentos dentro de la ventana.
+    """
+    for _ in range(max_iter):
+        sec = (hi - lo).total_seconds()
+        if abs(sec) < 3600:
+            break
+        m1 = lo + timedelta(seconds=sec / 3)
+        m2 = hi - timedelta(seconds=sec / 3)
+        lon1 = _bio_planet_lon(m1, planet)
+        lon2 = _bio_planet_lon(m2, planet)
+        orb1 = _bio_orb(lon1, n_lon, asp_angle) if lon1 is not None else 999.0
+        orb2 = _bio_orb(lon2, n_lon, asp_angle) if lon2 is not None else 999.0
+        if orb1 < orb2:
+            hi = m2
+        else:
+            lo = m1
+    return lo + timedelta(seconds=(hi - lo).total_seconds() / 2)
+
+
+@app.get(
+    "/api/astro/biography",
+    response_model=None,
+    responses={
+        400: {"description": "Missing birthDate/birthLat/birthLon"},
+        422: {"description": "Invalid date format"},
+        200: {
+            "description": "Línea de tiempo biográfica: profecciones, firdaria, tránsitos lentos",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "profections": [
+                            {"year_of_life": 1, "house": 1, "sign": "Aquarius",
+                             "lord": "Saturn", "lord_dignity": "peregrine",
+                             "date_start": "1978-07-05", "date_end": "1979-07-05", "is_active": False}
+                        ],
+                        "firdaria": [
+                            {"major_planet": "Moon", "minor_planet": "Moon",
+                             "date_start": "1978-07-05", "date_end": "1979-11-22", "is_active": False}
+                        ],
+                        "transits_window": [
+                            {"transit_planet": "Saturn", "natal_planet": "Moon",
+                             "aspect": "square", "exact_date": "2026-05-14",
+                             "ingress_date": "2026-03-01", "egress_date": "2026-07-28",
+                             "is_active": True}
+                        ]
+                    }
+                }
+            }
+        }
+    }
+)
+def get_biography(
+    user: dict = Depends(verify_token),
+    birthDate: str = Query(..., description="Fecha de nacimiento UTC (ej: 1978-07-06T00:15:00Z)"),
+    birthLat: float = Query(..., description="Latitud de nacimiento"),
+    birthLon: float = Query(..., description="Longitud de nacimiento"),
+    subject_id: str = Query(None, description="ID del sujeto (para logging)"),
+    from_date: str = Query(None, description="Fecha de referencia (default: hoy UTC)"),
+    window_months: int = Query(18, description="Ventana ±N meses respecto a from_date para tránsitos"),
+):
+    """
+    Línea de tiempo biográfica completa:
+    - profections: 90 años desde nacimiento, con signo / señor / dignidad natal del señor.
+    - firdaria: todos los sub-períodos (75 años) aplanados, con is_active.
+    - transits_window: tránsitos de Júpiter/Saturno/Urano/Neptuno/Plutón a planetas natales,
+      orbe ≤ 2°, ventana ±window_months meses respecto a from_date,
+      con ingress_date / exact_date / egress_date.
+    """
+    from datetime import timezone
+
+    # ── Parse fechas ─────────────────────────────────────────────────────────
+    try:
+        birth_dt = datetime.fromisoformat(birthDate.replace("Z", "+00:00"))
+    except Exception:
+        raise HTTPException(status_code=422, detail="Invalid birthDate format")
+
+    try:
+        from_dt = (
+            datetime.fromisoformat(from_date.replace("Z", "+00:00"))
+            if from_date
+            else datetime.now(tz=timezone.utc)
+        )
+        # Normalizar a UTC — from_date puede llegar como fecha simple (naive)
+        if from_dt.tzinfo is None:
+            from_dt = from_dt.replace(tzinfo=timezone.utc)
+    except Exception:
+        raise HTTPException(status_code=422, detail="Invalid from_date format")
+
+    # ── Carta natal: posiciones + ASC ────────────────────────────────────────
+    try:
+        natal_chart = chart_json(birthLat, birthLon, birth_dt)
+        natal_lons: Dict[str, float] = {p.name: float(p.lon) for p in natal_chart.planets}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Natal chart failed: {e}")
+
+    try:
+        from core.houses_swiss import calculate_houses, HOUSE_SYSTEM_PLACIDUS
+        houses_data = calculate_houses(birth_dt, birthLat, birthLon, HOUSE_SYSTEM_PLACIDUS)
+        asc_lon = float(houses_data["asc"])
+    except Exception:
+        asc_lon = natal_lons.get("Sun", 0.0)
+
+    asc_sign   = _BIO_SIGNS[int(asc_lon % 360 / 30)]
+    sun_lon    = natal_lons.get("Sun", 0.0)
+    from core.fardars import is_diurnal_chart as _is_diurnal
+    is_diurnal = _is_diurnal(sun_lon, asc_lon)
+
+    # ── Profecciones (birth → birth + 90 años) ───────────────────────────────
+    from core.profections import calculate_annual_profection
+
+    profections = []
+    for n in range(90):
+        try:
+            try:
+                d_start = birth_dt.replace(year=birth_dt.year + n)
+            except ValueError:
+                d_start = birth_dt.replace(year=birth_dt.year + n, month=3, day=1)
+            try:
+                d_end = birth_dt.replace(year=birth_dt.year + n + 1)
+            except ValueError:
+                d_end = birth_dt.replace(year=birth_dt.year + n + 1, month=3, day=1)
+
+            prof         = calculate_annual_profection(birth_dt, asc_sign, d_start)
+            sign         = prof["profected_sign"]
+            lord         = prof["time_lord"]
+            house        = (prof["sign_offset"] % 12) + 1
+            lord_lon     = natal_lons.get(lord)
+            lord_dignity = _bio_dignity(lord, lord_lon) if lord_lon is not None else "peregrine"
+            is_active    = d_start.date() <= from_dt.date() < d_end.date()
+
+            profections.append({
+                "year_of_life": n + 1,
+                "house":        house,
+                "sign":         sign,
+                "lord":         lord,
+                "lord_dignity": lord_dignity,
+                "date_start":   d_start.date().isoformat(),
+                "date_end":     d_end.date().isoformat(),
+                "is_active":    is_active,
+            })
+        except Exception:
+            continue
+
+    # ── Firdaria (75 años, aplanado a sub-períodos) ──────────────────────────
+    from core.fardars import calculate_fardars as _calc_fardars
+
+    firdaria    = []
+    from_dt_utc = from_dt if from_dt.tzinfo else from_dt.replace(tzinfo=timezone.utc)
+    try:
+        for major_p in _calc_fardars(birth_dt, is_diurnal):
+            major = major_p["major"]
+            for sub in major_p["sub"]:
+                sub_start = datetime.fromisoformat(sub["start"])
+                sub_end   = datetime.fromisoformat(sub["end"])
+                # Ajuste 1 — timezone safety: calculate_fardars devuelve ISO con tz,
+                # pero se normaliza por robustez ante versiones que no lo hagan.
+                if sub_start.tzinfo is None:
+                    sub_start = sub_start.replace(tzinfo=timezone.utc)
+                if sub_end.tzinfo is None:
+                    sub_end = sub_end.replace(tzinfo=timezone.utc)
+                firdaria.append({
+                    "major_planet": major,
+                    "minor_planet": sub["planet"],
+                    "date_start":   sub_start.date().isoformat(),
+                    "date_end":     sub_end.date().isoformat(),
+                    "is_active":    sub_start <= from_dt_utc < sub_end,
+                })
+    except Exception as e:
+        firdaria = [{"error": str(e)}]
+
+    # ── Tránsitos lentos ±window_months meses ────────────────────────────────
+    transits_window: List[Dict[str, Any]] = []
+    try:
+        MAX_ORB    = 2.0
+        STEP_DAYS  = 14
+        total_days = int(window_months * 30.44)
+
+        scan_start = from_dt - timedelta(days=total_days)
+        scan_end   = from_dt + timedelta(days=total_days)
+
+        scan_dates: List[datetime] = []
+        d = scan_start
+        while d <= scan_end:
+            scan_dates.append(d)
+            d += timedelta(days=STEP_DAYS)
+
+        # Posiciones vectorizadas: 5 llamadas skyfield (una por planeta lento)
+        slow_lons: Dict[str, List] = {
+            pl: _bio_scan_batch(pl, scan_dates)
+            for pl in _BIO_SLOW_BODIES
+        }
+
+        # Planetas natales relevantes (excluir nodos)
+        SKIP_NATAL = {"North Node", "South Node"}
+        natal_list = [(nm, ln) for nm, ln in natal_lons.items() if nm not in SKIP_NATAL]
+
+        # Detectar step indices con orbe ≤ MAX_ORB
+        detections: Dict[tuple, List[int]] = {}
+        for t_pl, lons in slow_lons.items():
+            for i, t_lon in enumerate(lons):
+                if t_lon is None:
+                    continue
+                for n_name, n_lon in natal_list:
+                    for asp_name, asp_angle in _BIO_ASPECTS.items():
+                        if _bio_orb(t_lon, n_lon, asp_angle) <= MAX_ORB:
+                            detections.setdefault((t_pl, n_name, asp_name), []).append(i)
+
+        # Agrupar índices consecutivos en ventanas (gap > 2 pasos = ventanas separadas)
+        def _windows(indices: List[int]) -> List[tuple]:
+            if not indices:
+                return []
+            idx = sorted(set(indices))
+            wins, ws, wp = [], idx[0], idx[0]
+            for ix in idx[1:]:
+                if ix - wp > 2:
+                    wins.append((ws, wp))
+                    ws = ix
+                wp = ix
+            wins.append((ws, wp))
+            return wins
+
+        for (t_pl, n_name, asp_name), idx_list in detections.items():
+            asp_angle = _BIO_ASPECTS[asp_name]
+            n_lon     = natal_lons.get(n_name)
+            if n_lon is None:
+                continue
+
+            for (wi_s, wi_e) in _windows(idx_list):
+                dt_first = scan_dates[wi_s]
+                dt_last  = scan_dates[wi_e]
+
+                # Ingress: búsqueda binaria entre paso-anterior y primer paso dentro
+                if wi_s > 0:
+                    ingress_dt = _bio_bisect(
+                        lo=scan_dates[wi_s - 1], hi=dt_first,
+                        planet=t_pl, n_lon=n_lon, asp_angle=asp_angle,
+                        boundary=MAX_ORB, lo_inside=False,
+                    )
+                else:
+                    ingress_dt = dt_first
+
+                # Egress: búsqueda binaria entre último paso dentro y paso-siguiente
+                if wi_e < len(scan_dates) - 1:
+                    egress_dt = _bio_bisect(
+                        lo=dt_last, hi=scan_dates[wi_e + 1],
+                        planet=t_pl, n_lon=n_lon, asp_angle=asp_angle,
+                        boundary=MAX_ORB, lo_inside=True,
+                    )
+                else:
+                    egress_dt = dt_last
+
+                # Exact date: ternary search para orbe mínimo
+                exact_dt = _bio_ternary_exact(
+                    lo=ingress_dt, hi=egress_dt,
+                    planet=t_pl, n_lon=n_lon, asp_angle=asp_angle,
+                )
+
+                transits_window.append({
+                    "transit_planet": t_pl,
+                    "natal_planet":   n_name,
+                    "aspect":         asp_name,
+                    "exact_date":     exact_dt.date().isoformat(),
+                    "ingress_date":   ingress_dt.date().isoformat(),
+                    "egress_date":    egress_dt.date().isoformat(),
+                    "is_active":      ingress_dt <= from_dt_utc <= egress_dt,
+                })
+
+        transits_window.sort(key=lambda x: x["exact_date"])
+
+    except Exception as e:
+        transits_window = [{"error": str(e)}]
+
+    return {
+        "profections":     profections,
+        "firdaria":        firdaria,
+        "transits_window": transits_window,
+    }
+
+
 @app.get(
     "/api/astro/lots",
     response_model=None,
