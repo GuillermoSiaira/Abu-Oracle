@@ -652,9 +652,67 @@ Vectorización aplicada en Fase 8.10 (CC.4). Ver detalle arriba.
 
 ---
 
+## Estrategia Comercial
+
+**Principio rector**: el sistema vende, el fundador crea.
+
+El fundador tiene dificultad constitutiva para sostener el intercambio
+mercantil directo. La solución es arquitectónica, no psicológica.
+
+### Modelo faceless + agente autónomo
+
+El Genesis launch es el prototipo funcional:
+- Pago USDC on-chain → Arbitrum One, Safe multisig
+- Webhook Alchemy → validación HMAC-SHA256
+- Firebase Auth → creación automática de usuario
+- Resend → email de bienvenida automático
+- Flujo completo sin intervención manual del fundador
+
+Horizonte: agente autónomo on-chain (ERC-8004) que opere, cobre,
+entregue acceso y reinvierta en infraestructura sin intervención humana.
+
+### Pricing Genesis (activo)
+- 100 slots · 500 USDC · acceso de por vida
+- Safe multisig: 0x95CEaBdf0fE31610b8A0B09DDC0708A7Ed625c82
+
+### Ideas post-lanzamiento
+1. Pronóstico largo plazo: Gantt tránsitos + Firdaria + Lilly reactiva
+2. Reporte audio+visual cobrable: ElevenLabs + PDF — pago via Paddle
+3. Agente autónomo ERC-8004: flujo comercial completamente on-chain
+
+### Canales de distribución (faceless)
+Mostrar el output del sistema, no al fundador.
+El HF map, las lecturas de Lilly, los rankings de ciudades — eso es
+el contenido. Guillermo no tiene que aparecer.
+
+| Canal | Formato |
+|---|---|
+| Twitter/X | Thread técnico-astrológico |
+| Instagram | Visual HF map + lectura corta |
+| Landing page | Demo interactivo público |
+
+---
+
+## Bugs Pendientes
+
+Esta sección es la fuente de verdad de bugs abiertos.
+Marcar con ✅ al resolver. No eliminar — mover a historial abajo.
+
+| # | Bug | Archivo | Prioridad | Estado |
+|---|---|---|---|---|
+| BUG-01 | Dignidades: rulerships modernos en lugar de tradicionales (Urano→Acuario, Plutón→Escorpio, Neptuno→Piscis). Impacto confirmado: Saturno en Leo devuelve peregrine en lugar de detriment | extended_calc.py | Alta — riesgo de impactar HF | 🔴 Abierto |
+| BUG-02 | birth_dt no emitido en contextBlock — Lilly no calcula edad del nativo. Fix: agregar línea en context-builder.ts:~284 bajo header CARTA NATAL | context-builder.ts | Alta — fix trivial | 🔴 Abierto |
+| BUG-03 | UTC vs hora local en profecciones — birth_dt en UTC corre el aniversario profeccional 1 día. Fix: usar fecha local del nacimiento, no UTC | profections.py | Alta — afecta todos UTC± | 🔴 Abierto |
+| BUG-04 | LINK_LOST intermitente en /api/chat — posible cold start Cloud Run + timeout Vercel edge (>25s con max_tokens:2500). Requiere reproducir + logs Cloud Run | next_app/api/chat | Media — requiere diagnóstico | 🔴 Abierto |
+
+### Historial bugs resueltos
+(vacío por ahora)
+
+---
+
 ## Cómo trabajar con este repo
 
-Leer PENDING_BUGS.md al inicio de cada sesión junto con CLAUDE.md y ARCHITECTURE.md. Los bugs documentados ahí son issues conocidos — no investigarlos de nuevo, solo tenerlos presentes como contexto.
+Leer CLAUDE.md al inicio de cada sesión (sección "## Bugs Pendientes" incluida). Los bugs documentados son issues conocidos — no investigarlos de nuevo, solo tenerlos presentes como contexto.
 
 Cuando Claude Code retome una sesión, leer este archivo primero y preguntar por la fase activa.
 La próxima tarea es siempre la primera sin tilde `✅` en el plan de desarrollo — actualmente **Fase 9 (Lilly Event System completo)**.
