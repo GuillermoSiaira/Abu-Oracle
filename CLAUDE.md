@@ -705,12 +705,26 @@ Marcar con ✅ al resolver. No eliminar — mover a historial abajo.
 | BUG-02 | birth_dt no emitido en contextBlock — Lilly no calcula edad del nativo. Fix: agregar línea en context-builder.ts:~284 bajo header CARTA NATAL | context-builder.ts | Alta — fix trivial | 🟢 Resuelto · commit fix-bug02 |
 | BUG-03 | UTC vs hora local en profecciones — birth_dt en UTC corre el aniversario profeccional 1 día. Fix: usar fecha local del nacimiento, no UTC | profections.py | Alta — afecta todos UTC± | 🟢 Resuelto · limitación: abu-analyzer.tsx usa GET /chart/extended — BUG-03 no corregido en ese flujo legacy. Pendiente. |
 | BUG-04 | LINK_LOST intermitente en /api/chat — posible cold start Cloud Run + timeout Vercel edge (>25s con max_tokens:2500). Requiere reproducir + logs Cloud Run | next_app/api/chat | Media — requiere diagnóstico | 🔴 Abierto |
-| BUG-05 | Home muestra datos astrológicos de sesión previa — el store persiste estado entre navegaciones y el panel izquierdo renderiza datos del último usuario cargado sin verificar si hay usuario activo en Home. Comportamiento correcto: panel vacío en Home | store Zustand + componente panel izquierdo | Media | 🔴 Abierto |
+| BUG-05 | Home muestra datos astrológicos de sesión previa — el store persiste estado entre navegaciones y el panel izquierdo renderiza datos del último usuario cargado sin verificar si hay usuario activo en Home. Comportamiento correcto: panel vacío en Home | store Zustand + componente panel izquierdo | Media | 🟢 Resuelto · `TechnicalPanel.tsx`: `hasChart = isChartPage && !!abuData?.chart?.planets?.length` |
 | BUG-06 | Badge del mapa muestra siempre "Global" aunque el dominio activo sea otro. El heatmap sí cambia pero el badge no se actualiza | HFRelocationMap.tsx o RelocationClient.tsx | Baja | ⬜ Descartado · /relocation eliminado del navbar (redirect a /chart) |
 | BUG-07 | Top 3 ciudades no cambia al seleccionar dominio — muestra siempre el ranking global. Debería recalcularse por dominio activo | RelocationClient.tsx o lógica de ranking | Media | ⬜ Descartado · /relocation eliminado del navbar (redirect a /chart) |
+| BUG-08 | Oracle Interface muestra historial de conversación al volver de /chart a Home — los mensajes no se borran al cambiar de ruta | OracleChat.tsx | Media | 🟢 Resuelto · Decisión de diseño: mensajes persisten en sesión activa mientras el sujeto no cambie. Reset solo al cambiar abuData. |
 
 ### Historial bugs resueltos
 (vacío por ahora)
+
+---
+
+## Features Post-Launch
+
+### Memoria de Lilly
+
+**Corto plazo (sesión):** La conversación con Lilly persiste mientras el sujeto no cambie y la sesión esté activa. El reset de `messages[]` en `OracleChat.tsx` ocurre únicamente cuando cambia `abuData` (cambio de sujeto). ✅ Implementado como decisión de diseño (BUG-08 resuelto 2026-03-23).
+
+**Largo plazo (longitudinal):** Abu Oracle como astrólogo personal — Lilly recuerda contexto entre sesiones: preferencias del usuario, eventos vitales compartidos, patrones identificados en conversaciones anteriores.
+- Infra disponible: Firestore (ya habilitado y en uso para auth + pagos).
+- Modelo de negocio: feature premium — mejora la UX del usuario que quiere un astrólogo personal continuo.
+- Estado: ⏳ pendiente diseño y implementación post-launch.
 
 ---
 

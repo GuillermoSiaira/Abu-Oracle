@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { Cpu } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 import { UI } from '@/lib/i18n';
@@ -52,6 +53,8 @@ const ROUTE_MAP: Record<string, string> = {
 export default function TechnicalPanel() {
   const { abuData, lang, lastLillyEvent, lillySuggestions, setPendingLillyEvent } = useAppStore() as any;
   const t = UI[lang as keyof typeof UI] ?? UI.es;
+  const pathname = usePathname();
+  const isChartPage = pathname === '/chart';
 
   const [abuStatus, setAbuStatus] = useState<ConnStatus>('checking');
   const [lillyStatus, setLillyStatus] = useState<ConnStatus>('checking');
@@ -76,7 +79,7 @@ export default function TechnicalPanel() {
     return () => { cancelled = true; clearInterval(interval); };
   }, []);
 
-  const hasChart = !!abuData?.chart?.planets?.length;
+  const hasChart = isChartPage && !!abuData?.chart?.planets?.length;
   const planets: any[] = abuData?.chart?.planets ?? [];
 
   // --- Year lord from profection ---
