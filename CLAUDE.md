@@ -704,6 +704,9 @@ Marcar con ✅ al resolver. No eliminar — mover a historial abajo.
 | BUG-02 | birth_dt no emitido en contextBlock — Lilly no calcula edad del nativo. Fix: agregar línea en context-builder.ts:~284 bajo header CARTA NATAL | context-builder.ts | Alta — fix trivial | 🟢 Resuelto · commit fix-bug02 |
 | BUG-03 | UTC vs hora local en profecciones — birth_dt en UTC corre el aniversario profeccional 1 día. Fix: usar fecha local del nacimiento, no UTC | profections.py | Alta — afecta todos UTC± | 🟢 Resuelto · limitación: abu-analyzer.tsx usa GET /chart/extended — BUG-03 no corregido en ese flujo legacy. Pendiente. |
 | BUG-04 | LINK_LOST intermitente en /api/chat — posible cold start Cloud Run + timeout Vercel edge (>25s con max_tokens:2500). Requiere reproducir + logs Cloud Run | next_app/api/chat | Media — requiere diagnóstico | 🔴 Abierto |
+| BUG-05 | Home muestra datos astrológicos de sesión previa — el store persiste estado entre navegaciones y el panel izquierdo renderiza datos del último usuario cargado sin verificar si hay usuario activo en Home. Comportamiento correcto: panel vacío en Home | store Zustand + componente panel izquierdo | Media | 🔴 Abierto |
+| BUG-06 | Badge del mapa muestra siempre "Global" aunque el dominio activo sea otro. El heatmap sí cambia pero el badge no se actualiza | HFRelocationMap.tsx o RelocationClient.tsx | Baja | 🔴 Abierto |
+| BUG-07 | Top 3 ciudades no cambia al seleccionar dominio — muestra siempre el ranking global. Debería recalcularse por dominio activo | RelocationClient.tsx o lógica de ranking | Media | 🔴 Abierto |
 
 ### Historial bugs resueltos
 (vacío por ahora)
