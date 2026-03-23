@@ -2,14 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Globe } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 import { LANG_OPTIONS, type Lang } from '@/lib/i18n';
 
 const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/chart', label: 'Carta' },
-  { href: '/relocation', label: 'Relocalización', icon: Globe },
 ];
 
 export default function Navigation() {

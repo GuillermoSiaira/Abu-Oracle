@@ -632,6 +632,7 @@ Vectorización aplicada en Fase 8.10 (CC.4). Ver detalle arriba.
   - `next_app/app/chart/` — Carta natal (requiere `abuData`)
   - `next_app/app/relocation/RelocationClient.tsx` — Mapa relocalización (única consumer del mapa)
   - `next_app/app/relocation-map/` — ELIMINADA
+  - `/relocation` — ELIMINADA del navbar · redirect a `/chart` (prototipo temprano: datos estáticos, sin Lilly, sin datos on-demand. Flujo único de relocalización: `/chart` → tab Mapa HF)
 - Componentes UI clave:
   - `next_app/components/Navigation.tsx` — Top bar global con selector de idioma conectado a `setLang` del store (visible en todas las páginas)
   - `next_app/components/TechnicalPanel.tsx` — Panel guía activa (desde Fase 8.10): LEYENDO AHORA (`lastLillyEvent`), SEÑOR DEL AÑO (profección), EXPLORAR (sugerencias de Lilly). Sección `tpSysArch` colapsable + status dots siempre visibles
@@ -705,8 +706,8 @@ Marcar con ✅ al resolver. No eliminar — mover a historial abajo.
 | BUG-03 | UTC vs hora local en profecciones — birth_dt en UTC corre el aniversario profeccional 1 día. Fix: usar fecha local del nacimiento, no UTC | profections.py | Alta — afecta todos UTC± | 🟢 Resuelto · limitación: abu-analyzer.tsx usa GET /chart/extended — BUG-03 no corregido en ese flujo legacy. Pendiente. |
 | BUG-04 | LINK_LOST intermitente en /api/chat — posible cold start Cloud Run + timeout Vercel edge (>25s con max_tokens:2500). Requiere reproducir + logs Cloud Run | next_app/api/chat | Media — requiere diagnóstico | 🔴 Abierto |
 | BUG-05 | Home muestra datos astrológicos de sesión previa — el store persiste estado entre navegaciones y el panel izquierdo renderiza datos del último usuario cargado sin verificar si hay usuario activo en Home. Comportamiento correcto: panel vacío en Home | store Zustand + componente panel izquierdo | Media | 🔴 Abierto |
-| BUG-06 | Badge del mapa muestra siempre "Global" aunque el dominio activo sea otro. El heatmap sí cambia pero el badge no se actualiza | HFRelocationMap.tsx o RelocationClient.tsx | Baja | 🔴 Abierto |
-| BUG-07 | Top 3 ciudades no cambia al seleccionar dominio — muestra siempre el ranking global. Debería recalcularse por dominio activo | RelocationClient.tsx o lógica de ranking | Media | 🔴 Abierto |
+| BUG-06 | Badge del mapa muestra siempre "Global" aunque el dominio activo sea otro. El heatmap sí cambia pero el badge no se actualiza | HFRelocationMap.tsx o RelocationClient.tsx | Baja | ⬜ Descartado · /relocation eliminado del navbar (redirect a /chart) |
+| BUG-07 | Top 3 ciudades no cambia al seleccionar dominio — muestra siempre el ranking global. Debería recalcularse por dominio activo | RelocationClient.tsx o lógica de ranking | Media | ⬜ Descartado · /relocation eliminado del navbar (redirect a /chart) |
 
 ### Historial bugs resueltos
 (vacío por ahora)
