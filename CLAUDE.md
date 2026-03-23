@@ -602,7 +602,7 @@ Vectorización aplicada en Fase 8.10 (CC.4). Ver detalle arriba.
 - **Sistema de casas**: Placidus
 - **Referencial**: Topocéntrico
 - **Efemérides**: Swiss Ephemeris DE440s (rango 1849-12-26 a 2150-01-22)
-- **Grilla relocalización**: 2.5°×2.5°, lat∈[-70,70], lon∈[-180,175], 9,425 puntos
+- **Grilla relocalización**: 2.5°×2.5°, lat∈[-70,70], lon∈[-180,175], ~9,425 puntos (resolución 2.5° elegida por calidad visual — 5° producía rendering insuficiente)
 - **Planetas activos**: Sol, Luna, Mercurio, Venus, Marte, Júpiter, Saturno, Urano, Neptuno, Plutón + ASC + MC
 - **Aspectos**: conjunción 0°, sextil 60°, cuadratura 90°, trígono 120°, oposición 180°
 - **Grupos de aspecto**: harmony = sextil+trígono, tension = cuadratura+oposición, conjunction = conjunción
