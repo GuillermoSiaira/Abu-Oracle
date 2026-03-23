@@ -100,7 +100,7 @@ export default function BirthDataPanel() {
 
       const abuRes = await runAbuAnalyze({
         person: { name: trimmedName || null, question: "" },
-        birth: { date: isoDate, lat: birthLatNum, lon: birthLonNum },
+        birth: { date: isoDate, lat: birthLatNum, lon: birthLonNum, utc_offset: utcOffset },
         current: { lat: resLatNum, lon: resLonNum, date: new Date().toISOString() },
       });
 

@@ -2465,6 +2465,7 @@ class BirthData(BaseModel):
     date: str = Field(description="ISO datetime, e.g. 1990-01-01T12:00:00Z")
     lat: float
     lon: float
+    utc_offset: Optional[float] = Field(default=0.0, description="UTC offset en horas del lugar de nacimiento (ej: -3 para Argentina, +1 para Madrid)")
 
 
 class CurrentData(BaseModel):
@@ -2766,7 +2767,7 @@ def analyze(payload: AnalyzeRequest = Body(
     try:
         asc_sign = get_sign_name(asc_lon or 0.0)
         from core.profections import calculate_annual_profection
-        annual_prof = calculate_annual_profection(birth_dt, asc_sign, current_dt)
+        annual_prof = calculate_annual_profection(birth_dt, asc_sign, current_dt, utc_offset=payload.birth.utc_offset or 0.0)
         sign_offset = annual_prof.get("sign_offset")
         if isinstance(sign_offset, int):
             profection_house_num = (sign_offset % 12) + 1

@@ -3,7 +3,7 @@ Profecciones (Profections)
 Sistema de direcciones primarias anual para determinar el regente del año.
 """
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict
 
 
@@ -29,16 +29,17 @@ SIGN_RULERS = {
 }
 
 
-def calculate_profection_year(birth_date: datetime, current_date: datetime = None) -> Dict:
+def calculate_profection_year(birth_date: datetime, current_date: datetime = None, utc_offset: float = 0.0) -> Dict:
     """
     Calcula la profección anual del Ascendente.
-    
+
     El Ascendente avanza un signo por año de vida.
-    
+
     Args:
-        birth_date: Fecha de nacimiento
+        birth_date: Fecha de nacimiento (UTC)
         current_date: Fecha actual (default: hoy)
-    
+        utc_offset: Offset UTC del lugar de nacimiento en horas (ej: -3 para Argentina)
+
     Returns:
         dict: {
             "year": int (edad),
@@ -49,16 +50,17 @@ def calculate_profection_year(birth_date: datetime, current_date: datetime = Non
     if current_date is None:
         current_date = datetime.utcnow()
 
-    # Normalize timezone awareness to avoid naive/aware comparisons
-    # We operate in date arithmetic only; drop tzinfo for consistency
-    if hasattr(birth_date, 'tzinfo') and birth_date.tzinfo is not None:
-        birth_date = birth_date.replace(tzinfo=None)
+    # Convertir birth_date UTC a fecha local usando el offset del nativo.
+    # Ejemplo: 1978-07-06T00:15Z + offset(-3h) → 1978-07-05 21:15 local
+    birth_date_local = birth_date + timedelta(hours=utc_offset)
+    if hasattr(birth_date_local, 'tzinfo') and birth_date_local.tzinfo is not None:
+        birth_date_local = birth_date_local.replace(tzinfo=None)
     if hasattr(current_date, 'tzinfo') and current_date.tzinfo is not None:
         current_date = current_date.replace(tzinfo=None)
-    
-    # Calcular edad (años completos)
-    age = current_date.year - birth_date.year
-    if (current_date.month, current_date.day) < (birth_date.month, birth_date.day):
+
+    # Calcular edad (años completos) usando la fecha LOCAL de nacimiento
+    age = current_date.year - birth_date_local.year
+    if (current_date.month, current_date.day) < (birth_date_local.month, birth_date_local.day):
         age -= 1
     
     # Offset de signo (módulo 12)
@@ -94,16 +96,18 @@ def get_profected_sign(natal_asc_sign: str, year_offset: int) -> str:
 def calculate_annual_profection(
     birth_date: datetime,
     natal_asc_sign: str,
-    current_date: datetime = None
+    current_date: datetime = None,
+    utc_offset: float = 0.0,
 ) -> Dict:
     """
     Calcula la profección anual completa con regente del año.
-    
+
     Args:
-        birth_date: Fecha de nacimiento
+        birth_date: Fecha de nacimiento (UTC)
         natal_asc_sign: Signo del Ascendente natal (ej: "Gemini")
         current_date: Fecha actual (default: hoy)
-    
+        utc_offset: Offset UTC del lugar de nacimiento en horas (ej: -3 para Argentina)
+
     Returns:
         dict: {
             "year": int,
@@ -112,7 +116,7 @@ def calculate_annual_profection(
             "sign_offset": int
         }
     """
-    profection = calculate_profection_year(birth_date, current_date)
+    profection = calculate_profection_year(birth_date, current_date, utc_offset=utc_offset)
     
     profected_sign = get_profected_sign(natal_asc_sign, profection["sign_offset"])
     time_lord = SIGN_RULERS[profected_sign]

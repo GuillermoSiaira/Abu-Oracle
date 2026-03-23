@@ -168,6 +168,7 @@ export default function DemoPage() {
           date: subject.birth_datetime,
           lat: subject.natal_lat,
           lon: subject.natal_lon,
+          utc_offset: 0,
         },
         current: {
           lat: subject.natal_lat,

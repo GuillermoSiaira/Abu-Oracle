@@ -702,7 +702,7 @@ Marcar con ✅ al resolver. No eliminar — mover a historial abajo.
 |---|---|---|---|---|
 | BUG-01 | Dignidades: rulerships modernos en lugar de tradicionales (Urano→Acuario, Plutón→Escorpio, Neptuno→Piscis). Impacto confirmado: Saturno en Leo devuelve peregrine en lugar de detriment | extended_calc.py | Alta — riesgo de impactar HF | 🔴 Abierto |
 | BUG-02 | birth_dt no emitido en contextBlock — Lilly no calcula edad del nativo. Fix: agregar línea en context-builder.ts:~284 bajo header CARTA NATAL | context-builder.ts | Alta — fix trivial | 🟢 Resuelto · commit fix-bug02 |
-| BUG-03 | UTC vs hora local en profecciones — birth_dt en UTC corre el aniversario profeccional 1 día. Fix: usar fecha local del nacimiento, no UTC | profections.py | Alta — afecta todos UTC± | 🔴 Abierto |
+| BUG-03 | UTC vs hora local en profecciones — birth_dt en UTC corre el aniversario profeccional 1 día. Fix: usar fecha local del nacimiento, no UTC | profections.py | Alta — afecta todos UTC± | 🟢 Resuelto · limitación: abu-analyzer.tsx usa GET /chart/extended — BUG-03 no corregido en ese flujo legacy. Pendiente. |
 | BUG-04 | LINK_LOST intermitente en /api/chat — posible cold start Cloud Run + timeout Vercel edge (>25s con max_tokens:2500). Requiere reproducir + logs Cloud Run | next_app/api/chat | Media — requiere diagnóstico | 🔴 Abierto |
 
 ### Historial bugs resueltos

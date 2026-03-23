@@ -107,6 +107,7 @@ export interface AbuAnalyzeRequest {
     date: string
     lat: number
     lon: number
+    utc_offset?: number
   }
   current: {
     lat: number
