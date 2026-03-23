@@ -1,24 +1,26 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAppStore } from "@/lib/store";
-import { getAbuAuthHeaders } from "@/lib/abu-auth";
 
-const ABU_URL = process.env.NEXT_PUBLIC_ABU_URL || "http://localhost:8000";
+// ── Constants ────────────────────────────────────────────────────────────────
 
 const SIGNS = [
   "Aries","Taurus","Gemini","Cancer","Leo","Virgo",
   "Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces",
 ];
 
-const ASPECT_META: Record<string,{ label: string; symbol: string; color: string }> = {
-  conjunction:  { label: "Conjunción",  symbol: "☌", color: "text-amber-400 border-amber-400/40 bg-amber-400/10" },
-  opposition:   { label: "Oposición",   symbol: "☍", color: "text-red-400 border-red-400/40 bg-red-400/10" },
-  square:       { label: "Cuadratura",  symbol: "□", color: "text-orange-400 border-orange-400/40 bg-orange-400/10" },
-  trine:        { label: "Trígono",     symbol: "△", color: "text-emerald-400 border-emerald-400/40 bg-emerald-400/10" },
-  sextile:      { label: "Sextil",      symbol: "⚹", color: "text-teal-400 border-teal-400/40 bg-teal-400/10" },
-  semisextile:  { label: "Semisextil",  symbol: "⚺", color: "text-slate-400 border-slate-400/40 bg-slate-400/10" },
-  quincunx:     { label: "Quincuncio",  symbol: "⚻", color: "text-violet-400 border-violet-400/40 bg-violet-400/10" },
+const ASPECT_META: Record<string, {
+  label: string; symbol: string;
+  color: string; barColor: string;
+}> = {
+  conjunction: { label: "Conjunción",  symbol: "☌", color: "text-amber-400",   barColor: "rgba(251,191,36,0.55)"   },
+  opposition:  { label: "Oposición",   symbol: "☍", color: "text-red-400",     barColor: "rgba(248,113,113,0.55)"  },
+  square:      { label: "Cuadratura",  symbol: "□", color: "text-orange-400",  barColor: "rgba(251,146,60,0.55)"   },
+  trine:       { label: "Trígono",     symbol: "△", color: "text-emerald-400", barColor: "rgba(52,211,153,0.55)"   },
+  sextile:     { label: "Sextil",      symbol: "⚹", color: "text-teal-400",    barColor: "rgba(45,212,191,0.55)"   },
+  semisextile: { label: "Semisextil",  symbol: "⚺", color: "text-slate-400",   barColor: "rgba(148,163,184,0.35)"  },
+  quincunx:    { label: "Quincuncio",  symbol: "⚻", color: "text-violet-400",  barColor: "rgba(167,139,250,0.55)"  },
 };
 
 const PLANET_SYMBOLS: Record<string, string> = {
@@ -27,97 +29,128 @@ const PLANET_SYMBOLS: Record<string, string> = {
   "North Node":"☊", "South Node":"☋", ASC:"AC", MC:"MC",
 };
 
-function lonToSignDeg(lon: number): { sign: string; deg: number } {
-  const idx = Math.floor((lon % 360) / 30);
-  const deg = (lon % 360) % 30;
-  return { sign: SIGNS[idx] ?? "?", deg };
+const PLANET_ORDER = ["Pluto","Neptune","Uranus","Saturn","Jupiter","Mars","Sun","Venus","Mercury","Moon"];
+const MONTHS_ES    = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function daysBetween(a: Date, b: Date): number {
+  return (b.getTime() - a.getTime()) / 86_400_000;
 }
 
-interface TransitAspect {
-  natal_planet: string;
-  transit_planet: string;
-  aspect: string;
-  orb: number;
-  applying: boolean;
-  exactness: string;
-  natal_longitude: number;
-  transit_longitude: number;
+/** Returns 0–100 clamped percentage position of `date` within [startDate, startDate + totalDays]. */
+function dateToPct(date: Date, startDate: Date, totalDays: number): number {
+  return Math.max(0, Math.min(100, (daysBetween(startDate, date) / totalDays) * 100));
 }
 
-interface GroupedTransit {
-  planet: string;
-  longitude: number;
-  sign: string;
-  deg: number;
-  aspects: TransitAspect[];
+function fmtDate(iso: string): string {
+  const d = new Date(iso);
+  return `${d.getDate()} ${MONTHS_ES[d.getMonth()]} ${d.getFullYear()}`;
 }
+
+// ── Component ────────────────────────────────────────────────────────────────
 
 export function TransitsTab() {
-  const birthData = useAppStore((s) => s.birthData);
-  const abuData = useAppStore((s) => s.abuData);
-  const transitDate = useAppStore((s) => s.transitDate);
-  const setTransitDate = useAppStore((s) => s.setTransitDate);
-  const lang = useAppStore((s) => s.lang);
+  const abuData            = useAppStore((s) => s.abuData);
+  const birthData          = useAppStore((s) => s.birthData);
+  const timeline           = useAppStore((s) => s.timeline);
+  const lang               = useAppStore((s) => s.lang);
   const setPendingLillyEvent = useAppStore((s) => s.setPendingLillyEvent);
-  const subjectName = (birthData as any)?.userName || (abuData as any)?.person?.name || 'Anónimo';
-  const [data, setData] = useState<TransitAspect[] | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  const [defaultDate] = useState(() => new Date().toISOString());
-  const effectiveTransitDate = transitDate ?? defaultDate;
+  const [windowMonths, setWindowMonths]   = useState(18);
+  const [onlyActive, setOnlyActive]       = useState(false);
+  const [barAreaPx, setBarAreaPx]         = useState(0);
 
-  const fetchTransits = () => {
-    if (!birthData?.birthDate || !birthData.lat || !birthData.lon) return;
+  interface TooltipState {
+    rowId: string; screenX: number; screenY: number;
+    planet: string; sym: string; natSym: string; natalPlanet: string;
+    meta: { label: string; symbol: string; color: string; barColor: string };
+    exact_date: string; ingress_date: string; egress_date: string; is_active: boolean;
+  }
+  const [tooltip, setTooltip] = useState<TooltipState | null>(null);
+  const hoveredId = tooltip?.rowId ?? null;
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000);
-
-    setLoading(true);
-    setError(null);
-
-    getAbuAuthHeaders({ "Content-Type": "application/json" })
-      .then((headers) =>
-        fetch(`${ABU_URL}/api/astro/transits/with-natal`, {
-          method: "POST",
-          headers,
-          signal: controller.signal,
-          body: JSON.stringify({
-            birthDate: birthData.birthDate,
-            birthLat: birthData.lat,
-            birthLon: birthData.lon,
-            transitDate: effectiveTransitDate,
-            transitLat: birthData.lat,
-            transitLon: birthData.lon,
-          }),
-        })
-      )
-      .then((r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
-      })
-      .then((d) => setData(d))
-      .catch((e) => {
-        if (e.name === "AbortError") {
-          setError("El cálculo tardó demasiado. Intentá de nuevo.");
-        } else {
-          setError(e.message);
-        }
-      })
-      .finally(() => {
-        clearTimeout(timeoutId);
-        setLoading(false);
-      });
-
-    return controller;
-  };
+  interface FirdariaTooltip {
+    screenX: number; screenY: number;
+    majorPlanet: string; minorPlanet: string;
+    dateStart: string; dateEnd: string; isActive: boolean;
+  }
+  const [firTooltip, setFirTooltip] = useState<FirdariaTooltip | null>(null);
+  const barAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const controller = fetchTransits();
-    return () => { controller?.abort(); };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [birthData?.birthDate, birthData?.lat, birthData?.lon, effectiveTransitDate]);
+    const el = barAreaRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([entry]) => setBarAreaPx(entry.contentRect.width));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
+  const subjectName  = (birthData as any)?.userName || (abuData as any)?.person?.name || "Anónimo";
+  const transits     = timeline?.transits_window ?? [];
+  const firdariaRaw  = timeline?.firdaria ?? [];
+
+  // ── Window bounds ─────────────────────────────────────────────────────────
+  const today      = new Date();
+  const ganttStart = new Date(today);
+  ganttStart.setMonth(ganttStart.getMonth() - windowMonths);
+  const ganttEnd   = new Date(today);
+  ganttEnd.setMonth(ganttEnd.getMonth() + windowMonths);
+  const totalDays  = daysBetween(ganttStart, ganttEnd);
+  const todayPct   = dateToPct(today, ganttStart, totalDays);
+
+  // ── Firdaria major periods (derived by grouping minor sub-periods) ─────────
+  const majorMap = new Map<string, { start: Date; end: Date }>();
+  for (const f of firdariaRaw) {
+    const s = new Date(f.date_start);
+    const e = new Date(f.date_end);
+    if (!majorMap.has(f.major_planet)) {
+      majorMap.set(f.major_planet, { start: s, end: e });
+    } else {
+      const r = majorMap.get(f.major_planet)!;
+      if (s < r.start) r.start = s;
+      if (e > r.end)   r.end   = e;
+    }
+  }
+  const majorPeriods = Array.from(majorMap.entries())
+    .map(([planet, r]) => ({ planet, ...r }))
+    .filter((m) => m.start <= ganttEnd && m.end >= ganttStart);
+
+  const minorVisible = firdariaRaw.filter((f) => {
+    const s = new Date(f.date_start);
+    const e = new Date(f.date_end);
+    return s <= ganttEnd && e >= ganttStart;
+  });
+
+  // ── Group transits by planet (respecting onlyActive filter) ──────────────
+  const visibleTransits = onlyActive ? transits.filter((t) => t.is_active) : transits;
+  const grouped = new Map<string, typeof transits>();
+  for (const t of visibleTransits) {
+    if (!grouped.has(t.transit_planet)) grouped.set(t.transit_planet, []);
+    grouped.get(t.transit_planet)!.push(t);
+  }
+  const sortedPlanets = Array.from(grouped.keys()).sort(
+    (a, b) => PLANET_ORDER.indexOf(a) - PLANET_ORDER.indexOf(b)
+  );
+  const activeCount = transits.filter((t) => t.is_active).length;
+
+  // ── Month axis labels ──────────────────────────────────────────────────────
+  const monthLabels: { label: string; pct: number }[] = [];
+  {
+    const d = new Date(ganttStart);
+    d.setDate(1);
+    d.setMonth(d.getMonth() + 1);
+    while (d < ganttEnd) {
+      const pct = dateToPct(d, ganttStart, totalDays);
+      const lbl = d.getMonth() === 0
+        ? `${MONTHS_ES[0]} '${String(d.getFullYear()).slice(2)}`
+        : MONTHS_ES[d.getMonth()];
+      monthLabels.push({ label: lbl, pct });
+      d.setMonth(d.getMonth() + 1);
+    }
+  }
+
+  // ── Guards ─────────────────────────────────────────────────────────────────
   if (!abuData) {
     return (
       <div className="p-8 text-center text-sm text-slate-500">
@@ -126,195 +159,323 @@ export function TransitsTab() {
     );
   }
 
-  if (loading) {
-    return (
-      <div className="p-8 text-center text-sm text-slate-400 animate-pulse">
-        Calculando tránsitos…
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="p-6 space-y-3 text-sm text-red-400 bg-red-400/10 rounded-lg border border-red-400/20">
-        <p>Error al calcular tránsitos: {error}</p>
-        <button
-          onClick={() => fetchTransits()}
-          className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded text-xs transition-colors"
-        >
-          Reintentar
-        </button>
-      </div>
-    );
-  }
-
-  if (!data || data.length === 0) {
+  if (transits.length === 0) {
     return (
       <div className="p-8 text-center text-sm text-slate-500">
-        No hay tránsitos significativos en este momento.
+        No hay tránsitos de planetas lentos disponibles.
+        {!timeline && " Cargando línea de tiempo…"}
       </div>
     );
   }
 
-  // Group aspects by transit planet
-  const grouped: Record<string, GroupedTransit> = {};
-  for (const asp of data) {
-    if (!grouped[asp.transit_planet]) {
-      const { sign, deg } = lonToSignDeg(asp.transit_longitude);
-      grouped[asp.transit_planet] = {
-        planet: asp.transit_planet,
-        longitude: asp.transit_longitude,
-        sign,
-        deg,
-        aspects: [],
-      };
-    }
-    grouped[asp.transit_planet].aspects.push(asp);
-  }
-
-  // Sort aspects within each group by orb (closest first)
-  Object.values(grouped).forEach((g) =>
-    g.aspects.sort((a, b) => Math.abs(a.orb) - Math.abs(b.orb))
-  );
-
-  // Sort groups: outer planets first (most significant)
-  const PLANET_ORDER = ["Pluto","Neptune","Uranus","Saturn","Jupiter","Mars","Sun","Venus","Mercury","Moon"];
-  const sortedGroups = Object.values(grouped).sort(
-    (a, b) => PLANET_ORDER.indexOf(a.planet) - PLANET_ORDER.indexOf(b.planet)
-  );
-
-  // Date input value (YYYY-MM-DD format) — derived from UTC part only to avoid timezone offset
-  const dateInputValue = effectiveTransitDate.split('T')[0];
-
+  // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-2">
-          <label className="text-xs font-semibold text-slate-400">Tránsitos activos al</label>
-          <input
-            type="date"
-            value={dateInputValue}
-            onChange={(e) => {
-              if (e.target.value) {
-                const date = new Date(e.target.value + 'T00:00:00Z');
-                setTransitDate(date.toISOString());
-              }
-            }}
-            className="px-2 py-1 text-sm rounded bg-slate-700/50 border border-slate-600/50 text-slate-200 hover:border-slate-500/70 focus:border-amber-400/70 focus:outline-none"
-          />
-        </div>
-        <span className="text-xs text-slate-500">{data.length} aspectos</span>
+    <div className="space-y-3 text-xs select-none">
+
+      {/* ── Controls ────────────────────────────────────────────────────── */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="text-slate-400 font-semibold">Ventana:</span>
+        {([6, 12, 18] as const).map((m) => (
+          <button
+            key={m}
+            onClick={() => setWindowMonths(m)}
+            className={`px-2 py-1 rounded transition-colors border ${
+              windowMonths === m
+                ? "bg-amber-400/20 text-amber-300 border-amber-400/40"
+                : "bg-slate-700/40 text-slate-400 border-slate-700/60 hover:border-slate-500/70"
+            }`}
+          >
+            ± {m}m
+          </button>
+        ))}
+        <button
+          onClick={() => setOnlyActive((v) => !v)}
+          className={`ml-auto px-2 py-1 rounded transition-colors border flex items-center gap-1.5 ${
+            onlyActive
+              ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
+              : "bg-slate-700/40 text-slate-400 border-slate-700/60 hover:border-slate-500/70"
+          }`}
+        >
+          <span className={`w-1.5 h-1.5 rounded-full ${onlyActive ? "bg-emerald-400" : "bg-slate-500"}`} />
+          Solo activos {activeCount > 0 && `(${activeCount})`}
+        </button>
+        <span className="text-slate-600">{visibleTransits.length}/{transits.length} · planetas lentos</span>
       </div>
 
-      {sortedGroups.map((group) => {
-        const sym = PLANET_SYMBOLS[group.planet] ?? group.planet[0];
+      {/* ── Gantt chart ─────────────────────────────────────────────────── */}
+      {/* isolation:isolate creates a stacking context so z:-1 children sit above the container background */}
+      <div className="rounded-xl border border-slate-700/50 bg-slate-800/30 relative" style={{ isolation: "isolate" }}>
+
+        {/* ── Firdaria overlay — z:-1 keeps it behind rows but above container bg ── */}
+        <div className="absolute inset-0 flex pointer-events-none overflow-hidden" style={{ zIndex: -1 }}>
+          <div className="w-[90px] shrink-0" />
+          <div className="flex-1 relative" ref={barAreaRef}>
+            {/* Major bands */}
+            {majorPeriods.map((m) => {
+              const lp     = dateToPct(m.start, ganttStart, totalDays);
+              const wp     = dateToPct(m.end,   ganttStart, totalDays) - lp;
+              if (wp <= 0) return null;
+              const bandPx = (wp / 100) * barAreaPx;
+              // Find the active minor period for this major planet (for tooltip)
+              const activMinor = minorVisible.find(f => f.major_planet === m.planet && f.is_active);
+              const anyMinor   = minorVisible.find(f => f.major_planet === m.planet);
+              const minorLabel = (activMinor ?? anyMinor)?.minor_planet ?? "—";
+              return (
+                <div
+                  key={`maj-${m.planet}`}
+                  className="absolute inset-y-0 cursor-default"
+                  style={{
+                    left: `${lp}%`, width: `${wp}%`,
+                    background: "rgba(127,119,221,0.13)",
+                    pointerEvents: "auto",
+                  }}
+                  onMouseEnter={(e) => {
+                    const r = e.currentTarget.getBoundingClientRect();
+                    setFirTooltip({
+                      screenX: r.left + r.width / 2, screenY: r.top + 64,
+                      majorPlanet: m.planet, minorPlanet: minorLabel,
+                      dateStart: m.start.toISOString().slice(0, 10),
+                      dateEnd:   m.end.toISOString().slice(0, 10),
+                      isActive:  activMinor !== undefined,
+                    });
+                  }}
+                  onMouseLeave={() => setFirTooltip(null)}
+                >
+                  {bandPx > 120 && (
+                    <span className="absolute left-1 text-[9px] text-purple-300/50 whitespace-nowrap pointer-events-none" style={{ top: 60 }}>
+                      ▶ Firdaria {m.planet} (mayor)
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+            {/* Minor bands */}
+            {minorVisible.map((f, i) => {
+              const s      = new Date(f.date_start);
+              const e      = new Date(f.date_end);
+              const lp     = dateToPct(s, ganttStart, totalDays);
+              const wp     = dateToPct(e, ganttStart, totalDays) - lp;
+              if (wp <= 0) return null;
+              const bandPx = (wp / 100) * barAreaPx;
+              return (
+                <div
+                  key={`min-${i}`}
+                  className="absolute inset-y-0"
+                  style={{
+                    left: `${lp}%`,
+                    width: `${wp}%`,
+                    background: f.is_active ? "rgba(29,158,117,0.22)" : "rgba(29,158,117,0.10)",
+                    borderLeft: f.is_active ? "1px solid rgba(29,158,117,0.35)" : undefined,
+                  }}
+                >
+                  {bandPx > 120 && (
+                    <span className="absolute left-1 text-[9px] text-teal-400/45 whitespace-nowrap pointer-events-none" style={{ top: 78 }}>
+                      ↳ {f.minor_planet}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+            {/* Today line */}
+            <div
+              className="absolute top-0 bottom-0 w-px bg-amber-400/55"
+              style={{ left: `${todayPct}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Month axis header — static (does NOT scroll, sibling to rows) */}
+        <div
+          className="flex shrink-0 border-b border-slate-700/40 bg-slate-900/60 rounded-t-xl"
+          style={{ height: 56, position: "relative", zIndex: 10 }}
+        >
+          <div className="w-[90px] shrink-0" />
+          <div className="flex-1 relative">
+            {monthLabels.map((l, i) => (
+              <span
+                key={i}
+                className="absolute -translate-x-1/2 text-slate-500 pointer-events-none"
+                style={{
+                  left: `${l.pct}%`,
+                  top: 0,
+                  writingMode: "vertical-rl",
+                  transform: "rotate(180deg)",
+                  height: 56,
+                  fontSize: 10,
+                  display: "flex",
+                  justifyContent: "center",
+                  overflow: "visible",
+                }}
+              >
+                {l.label}
+              </span>
+            ))}
+            {/* Today tick in axis */}
+            <div
+              className="absolute top-0 bottom-0 w-px bg-amber-400/70"
+              style={{ left: `${todayPct}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Scrollable rows — only this div scrolls; firdaria overlay is above it */}
+        <div style={{ overflowY: "auto", height: "calc(100vh - 220px)", position: "relative", zIndex: 1 }}>
+
+          {/* ── Transit rows ──────────────────────────────────────────────── */}
+          {sortedPlanets.map((planet) => {
+            const aspects = grouped.get(planet)!;
+            const sym     = PLANET_SYMBOLS[planet] ?? planet[0];
+            return (
+              <div key={planet} className="border-b border-slate-700/25 last:border-0">
+                {aspects.map((t, i) => {
+                  const meta    = ASPECT_META[t.aspect] ?? {
+                    label: t.aspect, symbol: "?",
+                    color: "text-slate-400", barColor: "rgba(148,163,184,0.4)",
+                  };
+                  const ingress  = new Date(t.ingress_date);
+                  const egress   = new Date(t.egress_date);
+                  const exact    = new Date(t.exact_date);
+                  const lp       = dateToPct(ingress, ganttStart, totalDays);
+                  const rp       = dateToPct(egress,  ganttStart, totalDays);
+                  const wp       = Math.max(rp - lp, 0.4);
+                  const exactPct = dateToPct(exact, ganttStart, totalDays);
+                  const rowId    = `${planet}-${t.natal_planet}-${t.aspect}-${i}`;
+                  const isHov    = hoveredId === rowId;
+                  const natSym   = PLANET_SYMBOLS[t.natal_planet] ?? t.natal_planet[0];
+
+                  return (
+                    <div key={rowId} className="flex items-center h-8">
+
+                      {/* Label column */}
+                      <div className="w-[90px] shrink-0 px-2 flex items-center gap-1 z-10">
+                        {i === 0 ? (
+                          <span className="text-amber-400 font-semibold">{sym}</span>
+                        ) : (
+                          <span className="w-[14px]" />
+                        )}
+                        <span className="ml-auto flex items-center gap-0.5 text-slate-400">
+                          <span>{natSym}</span>
+                          <span className={`opacity-80 ${meta.color}`}>{meta.symbol}</span>
+                        </span>
+                      </div>
+
+                      {/* Bar area */}
+                      <div className="flex-1 relative h-full">
+
+                        {/* Bar */}
+                        {lp < 100 && rp > 0 && (
+                          <button
+                            className="absolute top-1/2 -translate-y-1/2 h-[14px] rounded-sm z-20 transition-opacity"
+                            style={{
+                              left:    `${lp}%`,
+                              width:   `${wp}%`,
+                              background: meta.barColor,
+                              opacity: isHov ? 1 : 0.75,
+                              boxShadow: isHov
+                                ? `0 0 0 1px ${meta.barColor}, 0 2px 6px rgba(0,0,0,0.4)`
+                                : "none",
+                            }}
+                            onMouseEnter={(e) => {
+                              const r = e.currentTarget.getBoundingClientRect();
+                              setTooltip({
+                                rowId, screenX: r.left + r.width / 2, screenY: r.top,
+                                planet, sym, natSym, natalPlanet: t.natal_planet, meta,
+                                exact_date: t.exact_date, ingress_date: t.ingress_date,
+                                egress_date: t.egress_date, is_active: t.is_active,
+                              });
+                            }}
+                            onMouseLeave={() => setTooltip(null)}
+                            onClick={() =>
+                              setPendingLillyEvent({
+                                type: "click_transit",
+                                payload: {
+                                  transit_planet: planet,
+                                  transit_sign:   "",
+                                  transit_deg:    0,
+                                  aspects: [{
+                                    natal_planet: t.natal_planet,
+                                    aspect:       t.aspect,
+                                    orb:          0,
+                                    applying:     true,
+                                  }],
+                                  transit_date:   t.exact_date,
+                                  subject_name:   subjectName,
+                                  lang,
+                                },
+                              })
+                            }
+                          />
+                        )}
+
+                        {/* Exact-date marker */}
+                        {exactPct > 0 && exactPct < 100 && (
+                          <div
+                            className="absolute top-1 bottom-1 w-0.5 bg-white/22 z-20 pointer-events-none"
+                            style={{ left: `${exactPct}%` }}
+                          />
+                        )}
+
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <p className="text-center text-slate-600 pt-1">
+        Planetas lentos · Júpiter · Saturno · Urano · Neptuno · Plutón · haz click en una barra para consultar a Lilly
+      </p>
+
+      {/* ── Firdaria tooltip ─────────────────────────────────────────────── */}
+      {firTooltip && (() => {
+        const vw  = typeof window !== "undefined" ? window.innerWidth : 800;
+        const cx  = Math.min(Math.max(firTooltip.screenX, 115), vw - 115);
         return (
           <div
-            key={group.planet}
-            className="rounded-xl border border-slate-700/50 bg-slate-800/40 overflow-hidden"
+            className="bg-slate-900/95 border border-purple-500/30 rounded-lg px-3 py-2 space-y-1 shadow-xl pointer-events-none text-xs"
+            style={{ position: "fixed", left: cx, top: firTooltip.screenY, transform: "translateX(-50%)", zIndex: 9999 }}
           >
-            {/* Planet header */}
-            <div
-              className="flex items-center gap-3 px-4 py-3 bg-slate-700/30 border-b border-slate-700/40 cursor-pointer hover:border-amber-400/40 hover:bg-slate-700/50 transition-colors"
-              onClick={() => {
-                console.log('[click_transit] payload:', {
-                  transit_planet: group.planet,
-                  transit_sign: group.sign,
-                  transit_deg: group.deg,
-                  aspects: group.aspects,
-                  transit_date: effectiveTransitDate,
-                  subject_name: subjectName,
-                  lang,
-                });
-                setPendingLillyEvent({
-                  type: 'click_transit',
-                  payload: {
-                    transit_planet: group.planet,
-                    transit_sign: group.sign,
-                    transit_deg: group.deg,
-                    aspects: group.aspects.map(a => ({
-                      natal_planet: a.natal_planet,
-                      aspect: a.aspect,
-                      orb: a.orb,
-                      applying: a.applying,
-                    })),
-                    transit_date: effectiveTransitDate,
-                    subject_name: subjectName,
-                    lang,
-                  },
-                });
-              }}
-            >
-              <span className="text-lg w-6 text-center text-amber-400">{sym}</span>
-              <div>
-                <span className="font-semibold text-slate-200">{group.planet}</span>
-                <span className="ml-2 text-xs text-slate-400">
-                  en {group.sign} {group.deg.toFixed(1)}°
-                </span>
-              </div>
+            <div className="font-semibold text-purple-300 whitespace-nowrap">
+              ▶ Firdaria {firTooltip.majorPlanet} (mayor)
             </div>
-
-            {/* Aspects list */}
-            <div className="divide-y divide-slate-700/30">
-              {group.aspects.map((asp, i) => {
-                const meta = ASPECT_META[asp.aspect] ?? {
-                  label: asp.aspect,
-                  symbol: "?",
-                  color: "text-slate-400 border-slate-400/40 bg-slate-400/10",
-                };
-                const natSym = PLANET_SYMBOLS[asp.natal_planet] ?? asp.natal_planet[0];
-                const orbStr = Math.abs(asp.orb).toFixed(2) + "°";
-                const isExact = Math.abs(asp.orb) <= 1;
-
-                return (
-                  <div
-                    key={i}
-                    className={`flex items-center justify-between px-4 py-2.5 text-sm ${
-                      isExact ? "bg-amber-500/5" : ""
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <span
-                        className={`shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border ${meta.color}`}
-                      >
-                        <span>{meta.symbol}</span>
-                        <span className="hidden sm:inline">{meta.label}</span>
-                      </span>
-                      <span className="text-slate-300">
-                        <span className="text-amber-400 mr-1">{natSym}</span>
-                        {asp.natal_planet}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-2 shrink-0 ml-2 text-xs">
-                      <span
-                        className={`px-1.5 py-0.5 rounded ${
-                          asp.applying
-                            ? "text-emerald-400 bg-emerald-400/10"
-                            : "text-slate-500 bg-slate-700/40"
-                        }`}
-                      >
-                        {asp.applying ? "▶ aplicante" : "◀ separante"}
-                      </span>
-                      <span
-                        className={`font-mono font-semibold ${
-                          isExact ? "text-amber-400" : "text-slate-400"
-                        }`}
-                      >
-                        {orbStr}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="text-teal-400/80">↳ Menor: {firTooltip.minorPlanet}</div>
+            <div className="text-slate-500 space-y-0.5">
+              <div>Inicio:&nbsp;<span className="text-slate-300">{fmtDate(firTooltip.dateStart)}</span></div>
+              <div>Fin:&nbsp;<span className="text-slate-300">{fmtDate(firTooltip.dateEnd)}</span></div>
             </div>
+            {firTooltip.isActive && <div className="text-emerald-400 font-medium">● Período activo</div>}
           </div>
         );
-      })}
+      })()}
 
-      <p className="text-xs text-center text-slate-600 pt-2">
-        Aspectos calculados para la ubicación natal · solo aspectos mayores (orbe ≤ 8°)
-      </p>
+      {/* ── Global tooltip — position:fixed escapes any overflow clipping ── */}
+      {tooltip && (() => {
+        const vw       = typeof window !== "undefined" ? window.innerWidth : 800;
+        const estW     = 210;
+        const cx       = Math.min(Math.max(tooltip.screenX, estW / 2 + 8), vw - estW / 2 - 8);
+        return (
+          <div
+            className="bg-slate-900/95 border border-slate-600/60 rounded-lg px-3 py-2 space-y-1 shadow-xl pointer-events-none text-xs"
+            style={{ position: "fixed", left: cx, top: tooltip.screenY - 8, transform: "translate(-50%,-100%)", zIndex: 9999 }}
+          >
+            <div className="font-semibold text-slate-100 whitespace-nowrap">
+              {tooltip.sym} {tooltip.planet}&nbsp;
+              <span className={tooltip.meta.color}>{tooltip.meta.symbol}</span>&nbsp;
+              {tooltip.natSym} {tooltip.natalPlanet}
+            </div>
+            <div className={`${tooltip.meta.color} opacity-80`}>{tooltip.meta.label}</div>
+            <div className="text-slate-500 space-y-0.5">
+              <div>Exacto:&nbsp;<span className="text-slate-300">{fmtDate(tooltip.exact_date)}</span></div>
+              <div>Ingreso:&nbsp;<span className="text-slate-300">{fmtDate(tooltip.ingress_date)}</span></div>
+              <div>Egreso:&nbsp;<span className="text-slate-300">{fmtDate(tooltip.egress_date)}</span></div>
+            </div>
+            {tooltip.is_active && <div className="text-emerald-400 font-medium">● Activo ahora</div>}
+          </div>
+        );
+      })()}
     </div>
   );
 }

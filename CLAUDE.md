@@ -15,6 +15,31 @@
 - Stack en producción: Next.js + Python/FastAPI → Cloud Run (GCP) · Firebase Auth · Firestore · Alchemy webhook · Resend
 - Revisión inicial: `abu-oracle-app-00016-xqp`
 
+### Gantt de Tránsitos — sesión 2026-03-22 (E2E pass session 2)
+
+**`next_app/components/transits-tab.tsx` — reescritura completa**
+
+La pestaña Tránsitos fue reemplazada por un Gantt interactivo. Los datos vienen de `useAppStore(s => s.timeline?.transits_window)` (ya cargado por OracleChat al montar la carta) — sin fetch adicional.
+
+| Feature | Descripción |
+|---|---|
+| Gantt CSS | Barras `position:absolute` con `left%` + `width%` calculados desde fechas reales. Contenedor: header fijo 56px + área scrolleable `height: calc(100vh - 220px)` |
+| Eje temporal | Labels de meses rotados verticalmente (`writing-mode: vertical-rl; transform: rotate(180deg)`), centrados con `justifyContent: center` |
+| Selector ventana | Botones ± 6m / 12m / 18m (default 18) — recalcula bounds del Gantt |
+| Bandas Firdaria | Overlay `position:absolute; z-index:-1` con `isolation:isolate` en contenedor → Mayor: púrpura `rgba(127,119,221,0.13)` · Menor: teal `rgba(29,158,117,0.10/0.22)`. Labels bajo el header (`top:60/78px`). Tooltip interactivo en banda mayor: planeta mayor/menor, fechas, badge activo |
+| Barras de tránsito | Coloreadas por tipo de aspecto (ASPECT_META). Marcador blanco en `exact_date`. Línea naranja = hoy |
+| Filtro "Solo activos" | Botón toggle — filtra `transits_window` a `is_active: true`. Muestra contador `N/Total` |
+| Tooltip global | `position:fixed` con `getBoundingClientRect()` — escapa cualquier `overflow` del scroll container. Clamped al viewport. Muestra: `{sym} {planet} {symbol} {natSym} {natalPlanet}` + tipo aspecto + exacto/ingreso/egreso + badge activo |
+| Click en barra | `setPendingLillyEvent({ type: 'click_transit', payload: { transit_planet, natal_planet, aspect, exact_date } })` → Lilly interpreta |
+
+**Decisiones técnicas:**
+- Overlay Firdaria fuera del div scrolleable → `position:absolute` en el outer container → persiste al hacer scroll
+- `isolation:isolate` en outer container → `z-index:-1` en overlay queda sobre el background pero bajo las filas
+- Tooltip con `position:fixed` (no `absolute`) → no se clipea por `overflow-y:auto` del scroll container
+- Header separado del scroll container → no usa `sticky` (evita duplicación) — el único elemento que scrollea es el div de filas
+
+---
+
 ### Fixes UI/SVG — sesión 2026-03-22 (post Context Builder)
 
 | Fix | Archivos | Descripción |
