@@ -289,6 +289,7 @@ export function assembleContextBlock(
   lines.push(`CARTA NATAL — ${natal.subject_name} · Carta ${natal.sect}`);
   lines.push(`Sistema de casas: ${natal.house_system}`);
   lines.push(SEP);
+  lines.push(`Fecha de nacimiento: ${natal.birth_dt}  ·  ${natal.birth_city}`);
   lines.push("");
 
   // Ángulos
