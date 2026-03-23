@@ -715,16 +715,23 @@ Marcar con ✅ al resolver. No eliminar — mover a historial abajo.
 
 ---
 
-## Features Post-Launch
+## Próximas Features
 
-### Memoria de Lilly
+### Memoria de sesión de Lilly (implementado)
+La conversación con Lilly persiste mientras el sujeto no cambie y la sesión esté activa. El reset de `messages[]` en `OracleChat.tsx` ocurre únicamente cuando cambia `abuData` (cambio de sujeto). ✅ Decisión de diseño (BUG-08 resuelto 2026-03-23).
 
-**Corto plazo (sesión):** La conversación con Lilly persiste mientras el sujeto no cambie y la sesión esté activa. El reset de `messages[]` en `OracleChat.tsx` ocurre únicamente cuando cambia `abuData` (cambio de sujeto). ✅ Implementado como decisión de diseño (BUG-08 resuelto 2026-03-23).
+### Memoria longitudinal de Lilly
+Abu Oracle como astrólogo personal — Lilly recuerda contexto entre sesiones distintas: preferencias del usuario, eventos vitales compartidos, patrones identificados en conversaciones anteriores.
 
-**Largo plazo (longitudinal):** Abu Oracle como astrólogo personal — Lilly recuerda contexto entre sesiones: preferencias del usuario, eventos vitales compartidos, patrones identificados en conversaciones anteriores.
-- Infra disponible: Firestore (ya habilitado y en uso para auth + pagos).
-- Modelo de negocio: feature premium — mejora la UX del usuario que quiere un astrólogo personal continuo.
-- Estado: ⏳ pendiente diseño y implementación post-launch.
+- Infra disponible: Firestore ya implementado.
+- Modelo: feature premium — se ofrece al usuario como mejora de UX ("tu astrólogo personal te recuerda").
+- Estado: ⏳ Próxima feature prioritaria — diseño pendiente.
+
+Componentes a definir:
+- **Qué se guarda**: resumen de conversación, eventos mencionados, preferencias explícitas del usuario
+- **Cuándo se guarda**: al cerrar sesión, cada N mensajes
+- **Cómo se inyecta**: en el `contextBlock` de Lilly (nuevo campo en `assembleContextBlock()`)
+- **Pricing**: ¿incluido en plan base o feature premium?
 
 ---
 
