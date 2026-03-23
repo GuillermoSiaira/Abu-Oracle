@@ -422,7 +422,7 @@ export default function OracleChat() {
       ]);
 
     } catch (error) {
-      console.error(error);
+      console.warn('[handleSubmit]', error);
       setMessages(prev => [
         ...prev,
         {
