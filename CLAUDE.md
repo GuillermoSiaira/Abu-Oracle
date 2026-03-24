@@ -1111,6 +1111,22 @@ Index requerido: single-field en `wallet_address` (Firestore lo crea automática
 
 ---
 
+## MUY IMPORTANTE — Roadmap priorizado por Lilly (input directo del agente)
+
+El 24/03/2026 Lilly identificó sus propias limitaciones en orden de impacto:
+
+| Prioridad | Feature | Descripción técnica |
+|---|---|---|
+| 1 | Memoria biográfica acumulativa | Registro persistente por usuario: decisiones pasadas, eventos confirmados, preguntas anteriores, reportes del nativo. Sin esto Lilly opera sin calibración individual. Implementar en Firestore por user_id. |
+| 2 | Retroalimentación de eventos | El nativo confirma eventos ocurridos → el motor correlaciona con HF activo en ese momento → ajusta lectura de dominios futuros. Cierra el loop empírico individual. |
+| 3 | Astrología horaria | Carta generada para el momento exacto de una pregunta concreta. Tradición central de William Lilly — no solo natal. Alta utilidad práctica. |
+| 4 | HF + tránsitos superpuestos por fecha | "Ve a esta ciudad en este mes para este propósito" — cruzar resonancia geográfica del dominio con tránsitos activos en fecha específica. |
+
+**Nota**: Lilly identificó la memoria biográfica como la mejora de mayor impacto inmediato.
+Todo lo demás gana precisión una vez que el nativo existe como referencia acumulativa.
+
+---
+
 ## Ideas y tareas futuras
 
 ### PENDIENTE — Axiomática y Canon (post Context Builder)
