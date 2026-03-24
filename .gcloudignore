@@ -1,9 +1,85 @@
 # Cloud Build source archive ignore rules.
-# Inherits .gitignore patterns, then overrides for abu_engine/data/.
-#!include:.gitignore
+# Written explicitly (NOT using #!include:.gitignore) so we can allow
+# abu_engine/data/ (weights.json, cities.json) while still blocking
+# the large root-level data/, output/, and node_modules/ directories.
 
-# Un-ignore abu_engine/data/ so weights.json and cities.json reach the builder.
-# de440s.bsp (32 MB) is downloaded during `docker build` (see abu_engine/Dockerfile),
-# so we can safely exclude it from the upload to keep the archive small.
-!abu_engine/data/
+# ── Node / Next.js ───────────────────────────────────────────────────
+node_modules/
+.next/
+out/
+.turbo/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ── Build artifacts ───────────────────────────────────────────────────
+dist/
+build/
+**/dist/
+**/build/
+tmp/
+logs/
+*.log
+
+# ── Python ────────────────────────────────────────────────────────────
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+env/
+.venv/
+env.bak/
+pip-wheel-metadata/
+.pytest_cache/
+.coverage
+.nyc_output/
+coverage/
+
+# ── Secrets / env files ───────────────────────────────────────────────
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+abu-engine-sa-key.json
+
+# ── Large data directories (root-level, NOT abu_engine/data/) ─────────
+# Leading slash anchors to repo root so abu_engine/data/ is NOT matched.
+/data/
+output/
+
+# de440s.bsp is 32 MB and downloaded at `docker build` time (Dockerfile RUN step).
+# Exclude it from the upload even though the rest of abu_engine/data/ is allowed.
 abu_engine/data/de440s.bsp
+
+# ── GeoJSON / rankings (large generated files) ────────────────────────
+next_app/public/geojson/
+next_app/public/rankings/
+
+# ── Docker ────────────────────────────────────────────────────────────
+docker-data/
+*.pid
+
+# ── OS / Editor ───────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.code-workspace
+*.swp
+*.swo
+
+# ── Misc ──────────────────────────────────────────────────────────────
+astro-texts/
+*.zip
+*.7z
+build_output.txt
+next_app/build_output.txt
+next_app/_tmp_tree_depth3.txt
+firebase_apps_response.json
+.claude/
+next_app/tsconfig.tsbuildinfo
