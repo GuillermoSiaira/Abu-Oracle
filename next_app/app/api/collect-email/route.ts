@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/lib/firebase-admin";
+import { getAdminDb } from "@/lib/firebase-admin";
 
 const CORS = {
   "Access-Control-Allow-Origin": "https://abu-oracle.com",
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "invalid email" }, { status: 400, headers: CORS });
   }
 
-  await adminDb.collection("pending_payments").add({
+  await getAdminDb().collection("pending_payments").add({
     email,
     wallet_address: wallet,
     created_at: new Date().toISOString(),

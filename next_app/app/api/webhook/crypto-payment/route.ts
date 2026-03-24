@@ -1,7 +1,7 @@
 import { createHmac } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
-import { adminAuth, adminDb } from "@/lib/firebase-admin";
+import { getAdminAuth, getAdminDb } from "@/lib/firebase-admin";
 
 // ---------------------------------------------------------------------------
 // Config
@@ -53,7 +53,7 @@ interface AlchemyWebhookPayload {
 async function provisionGenesisUser(walletAddress: string, txHash: string) {
   // Look up real email from pending_payments (registered before payment)
   let email: string;
-  const snapshot = await adminDb
+  const snapshot = await getAdminDb()
     .collection("pending_payments")
     .where("wallet_address", "==", walletAddress.toLowerCase())
     .get();
@@ -74,7 +74,7 @@ async function provisionGenesisUser(walletAddress: string, txHash: string) {
 
   // Idempotency: skip if the user already exists
   try {
-    await adminAuth.getUserByEmail(email);
+    await getAdminAuth().getUserByEmail(email);
     console.log(`[crypto-webhook] User already exists for wallet ${walletAddress} — skipping`);
     return;
   } catch {
@@ -82,7 +82,7 @@ async function provisionGenesisUser(walletAddress: string, txHash: string) {
   }
 
   // Create Firebase Auth user
-  const userRecord = await adminAuth.createUser({
+  const userRecord = await getAdminAuth().createUser({
     email,
     password,
     displayName: walletAddress,
@@ -90,7 +90,7 @@ async function provisionGenesisUser(walletAddress: string, txHash: string) {
   });
 
   // Create Firestore document
-  await adminDb.collection("users").doc(userRecord.uid).set({
+  await getAdminDb().collection("users").doc(userRecord.uid).set({
     uid: userRecord.uid,
     email,
     api_key: uuidv4(),
