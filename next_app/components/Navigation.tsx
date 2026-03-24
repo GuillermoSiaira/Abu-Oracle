@@ -25,7 +25,7 @@ export default function Navigation() {
         </span>
       </div>
       <nav className="ml-8 flex items-center gap-1">
-        {navLinks.map(({ href, label, icon: Icon }) => {
+        {navLinks.map(({ href, label }) => {
           const active = pathname === href;
           return (
             <Link
@@ -37,7 +37,6 @@ export default function Navigation() {
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
               }`}
             >
-              {Icon && <Icon className="w-3.5 h-3.5" />}
               {label}
             </Link>
           );

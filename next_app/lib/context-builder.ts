@@ -151,7 +151,7 @@ export interface ActiveContext {
  */
 export function buildNatalContext(
   abuData: any,
-  birthData?: { birthDate?: string | null; city?: string | null; userName?: string | null } | null,
+  birthData?: { birthDate?: string | null; city?: string | null; userName?: string | null; utcOffset?: number | null } | null,
 ): NatalContext {
   const planets: any[] = abuData?.chart?.planets ?? [];
   const housesObj       = abuData?.chart?.houses ?? {};
@@ -221,7 +221,23 @@ export function buildNatalContext(
 
   return {
     subject_name:  birthData?.userName || abuData?.person?.name || "Anónimo",
-    birth_dt:      birthData?.birthDate ?? abuData?.subject?.birth_dt ?? "",
+    birth_dt: (() => {
+      const rawDt = birthData?.birthDate ?? abuData?.subject?.birth_dt ?? "";
+      if (!rawDt) return rawDt;
+      try {
+        const utcMs    = new Date(rawDt).getTime();
+        const offsetMs = (birthData?.utcOffset ?? 0) * 60 * 60 * 1000;
+        const local    = new Date(utcMs + offsetMs);
+        const dd  = String(local.getUTCDate()).padStart(2, '0');
+        const mm  = String(local.getUTCMonth() + 1).padStart(2, '0');
+        const yyyy = local.getUTCFullYear();
+        const hh  = String(local.getUTCHours()).padStart(2, '0');
+        const min = String(local.getUTCMinutes()).padStart(2, '0');
+        return `${dd}/${mm}/${yyyy} ${hh}:${min}`;
+      } catch {
+        return rawDt;
+      }
+    })(),
     birth_city:    birthData?.city ?? abuData?.subject?.birth_city ?? "",
     house_system:  abuData?.chart?.house_system ?? "placidus",
     sect,
