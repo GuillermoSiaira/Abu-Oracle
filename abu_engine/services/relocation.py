@@ -19,7 +19,7 @@ from harmony.field_v3 import compute_hf_v3
 
 logger = logging.getLogger(__name__)
 
-CITIES_PATH = Path(__file__).resolve().parent.parent / "data" / "cities.json"
+CITIES_PATH = Path(__file__).resolve().parent.parent / "cities.json"
 
 # ISO-2 → full country name (246 codes from worldcities.csv)
 _ISO2_TO_COUNTRY: Dict[str, str] = {

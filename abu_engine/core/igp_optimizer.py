@@ -250,7 +250,7 @@ def generate_cache_key(birth_date: datetime, target_year: int, city_id: str) -> 
     return hashlib.sha256(key_string.encode('utf-8')).hexdigest()
 
 
-def load_cities_dataset(dataset_path: str = "data/cities.json") -> List[Dict[str, Any]]:
+def load_cities_dataset(dataset_path: str = "cities.json") -> List[Dict[str, Any]]:
     """
     Load cities dataset from JSON file.
     

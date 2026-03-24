@@ -4,7 +4,7 @@ from pathlib import Path
 
 # Cargar pesos desde ruta absoluta
 BASE_DIR = Path(__file__).resolve().parent.parent
-WEIGHTS_PATH = BASE_DIR / "data" / "weights.json"
+WEIGHTS_PATH = BASE_DIR / "weights.json"
 
 with open(WEIGHTS_PATH, "r", encoding="utf-8") as f:
     weights = json.load(f)

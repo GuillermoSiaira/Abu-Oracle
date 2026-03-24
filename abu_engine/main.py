@@ -37,7 +37,7 @@ _CITIES_CACHE: list = []
 
 def _load_cities() -> list:
     base_dir = Path(__file__).resolve().parent
-    cities_file = base_dir / "data" / "cities.json"
+    cities_file = base_dir / "cities.json"
     try:
         with open(cities_file, "r", encoding="utf-8") as f:
             return json.load(f)

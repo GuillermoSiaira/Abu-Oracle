@@ -1,9 +1,92 @@
-# Cloud Build source archive ignore rules.
-# Inherits .gitignore (which excludes all data/ directories), then
-# explicitly includes the two Abu Engine config files needed at runtime.
-#!include:.gitignore
+# Cloud Build source archive — explicit exclusion list.
+# Written WITHOUT #!include:.gitignore to avoid the parent-directory
+# restriction bug that caused 1.2 GiB uploads.
+# weights.json and cities.json are now in abu_engine/ root (not in data/)
+# so they are automatically included here.
 
-# Include the Abu Engine runtime config files even though data/ is ignored.
-# de440s.bsp (32MB) stays excluded — it is downloaded in Dockerfile RUN step.
-!abu_engine/data/weights.json
-!abu_engine/data/cities.json
+# ── Git metadata ────────────────────────────────────────────────────
+.git
+.gitignore
+.gcloudignore
+
+# ── Secrets / env files ─────────────────────────────────────────────
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+abu-engine-sa-key.json
+
+# ── Node / Next.js ───────────────────────────────────────────────────
+node_modules/
+.next/
+out/
+.turbo/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+next_app/tsconfig.tsbuildinfo
+
+# ── Build artifacts ───────────────────────────────────────────────────
+dist/
+build/
+tmp/
+logs/
+*.log
+build_output.txt
+next_app/build_output.txt
+next_app/_tmp_tree_depth3.txt
+
+# ── Python ────────────────────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+venv310/
+env/
+.venv/
+.venv311/
+.venv311-test/
+env.bak/
+pip-wheel-metadata/
+.pytest_cache/
+.coverage
+coverage/
+
+# ── Large dataset / generated output directories ──────────────────────
+data/
+output/
+astro_dataset/
+lilly_swarm/data/
+
+# ── Large generated static assets (Next.js public/) ─────────────────
+next_app/public/geojson/
+next_app/public/rankings/
+next_app/public/demo/
+
+# ── Abu Engine ephemeris (downloaded at docker build time) ────────────
+abu_engine/data/de440s.bsp
+
+# ── Docker runtime data ───────────────────────────────────────────────
+docker-data/
+*.pid
+
+# ── OS / Editor ───────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.code-workspace
+*.swp
+*.swo
+
+# ── Misc ──────────────────────────────────────────────────────────────
+astro-texts/
+*.zip
+*.7z
+firebase_apps_response.json
+.claude/
+screenshots/
