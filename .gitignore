@@ -44,10 +44,8 @@ pip-wheel-metadata/
 # --- Docker ---
 *.pid
 docker-data/
-# Anchor to repo root so abu_engine/data/ is NOT excluded.
-/data/
-# Exclude only the 32 MB Skyfield ephemeris (downloaded at docker build time).
-abu_engine/data/de440s.bsp
+data/
+!/abu_engine/data/placeholder.txt
 
 # --- Databases ---
 *.sqlite3

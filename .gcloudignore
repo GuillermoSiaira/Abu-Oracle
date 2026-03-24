@@ -1,0 +1,9 @@
+# Cloud Build source archive ignore rules.
+# Inherits .gitignore (which excludes all data/ directories), then
+# explicitly includes the two Abu Engine config files needed at runtime.
+#!include:.gitignore
+
+# Include the Abu Engine runtime config files even though data/ is ignored.
+# de440s.bsp (32MB) stays excluded — it is downloaded in Dockerfile RUN step.
+!abu_engine/data/weights.json
+!abu_engine/data/cities.json
