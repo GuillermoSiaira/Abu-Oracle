@@ -57,7 +57,8 @@ pip-wheel-metadata/
 coverage/
 
 # ── Large dataset / generated output directories ──────────────────────
-data/
+# Leading slash anchors to repo root — next_app/data/ (worldcities.csv) is NOT excluded.
+/data/
 output/
 astro_dataset/
 lilly_swarm/data/
