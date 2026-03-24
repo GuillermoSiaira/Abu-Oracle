@@ -735,6 +735,14 @@ Componentes a definir:
 
 ---
 
+## Bugs pendientes / Edge cases conocidos
+
+| ID | Archivo | Descripción | Bloqueante |
+|---|---|---|---|
+| BUG-02b | `next_app/app/api/chat/route.ts` | Construye `birthData` desde `meta` ({ date, city }) sin incluir `utcOffset`. El IIFE en context-builder.ts hace fallback a utcOffset=0 → Lilly recibe fecha UTC en el chat libre. No bloqueante porque Lilly ya conoce la fecha local desde screen_open. | No |
+
+---
+
 ## Cómo trabajar con este repo
 
 Leer CLAUDE.md al inicio de cada sesión (sección "## Bugs Pendientes" incluida). Los bugs documentados son issues conocidos — no investigarlos de nuevo, solo tenerlos presentes como contexto.
