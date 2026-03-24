@@ -1,0 +1,43 @@
+steps:
+  # ── 1. Build ──────────────────────────────────────────────────────────────
+  # NEXT_PUBLIC_* vars are baked into the client-side bundle at build time.
+  # They are public values (visible in every browser that loads the app).
+  # Runtime secrets (ANTHROPIC_API_KEY, etc.) are NOT needed here —
+  # gcloud run deploy --image preserves all existing Cloud Run env vars.
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - build
+      - --build-arg=NEXT_PUBLIC_ABU_URL=https://abu-engine-503488473965.us-central1.run.app
+      - --build-arg=NEXT_PUBLIC_LILLY_URL=https://lilly-engine-503488473965.us-central1.run.app
+      - --build-arg=NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSyBLbKAcAFoAOIslLuFxp9363e1bDkhh9gA
+      - --build-arg=NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=abu-oracle.firebaseapp.com
+      - --build-arg=NEXT_PUBLIC_FIREBASE_PROJECT_ID=abu-oracle
+      - --build-arg=NEXT_PUBLIC_APP_URL=https://app.abu-oracle.com
+      - -t
+      - gcr.io/abu-oracle/abu-oracle-app:latest
+      - ./next_app
+
+  # ── 2. Push ───────────────────────────────────────────────────────────────
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - push
+      - gcr.io/abu-oracle/abu-oracle-app:latest
+
+  # ── 3. Deploy ─────────────────────────────────────────────────────────────
+  # --image only: preserves all existing Cloud Run config (env vars, SA, scaling)
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    args:
+      - gcloud
+      - run
+      - deploy
+      - abu-oracle-app
+      - --image=gcr.io/abu-oracle/abu-oracle-app:latest
+      - --region=us-central1
+      - --platform=managed
+
+images:
+  - gcr.io/abu-oracle/abu-oracle-app:latest
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: E2_HIGHCPU_8

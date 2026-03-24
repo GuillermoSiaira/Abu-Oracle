@@ -1,0 +1,33 @@
+steps:
+  # ── 1. Build ──────────────────────────────────────────────────────────────
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - build
+      - -t
+      - gcr.io/abu-oracle/abu-engine:latest
+      - ./abu_engine
+
+  # ── 2. Push ───────────────────────────────────────────────────────────────
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - push
+      - gcr.io/abu-oracle/abu-engine:latest
+
+  # ── 3. Deploy ─────────────────────────────────────────────────────────────
+  # --image only: preserves all existing Cloud Run config (env vars, SA, scaling)
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    args:
+      - gcloud
+      - run
+      - deploy
+      - abu-engine
+      - --image=gcr.io/abu-oracle/abu-engine:latest
+      - --region=us-central1
+      - --platform=managed
+
+images:
+  - gcr.io/abu-oracle/abu-engine:latest
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: E2_HIGHCPU_8
