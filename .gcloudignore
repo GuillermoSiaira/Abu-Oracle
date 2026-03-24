@@ -1,0 +1,9 @@
+# Cloud Build source archive ignore rules.
+# Inherits .gitignore patterns, then overrides for abu_engine/data/.
+#!include:.gitignore
+
+# Un-ignore abu_engine/data/ so weights.json and cities.json reach the builder.
+# de440s.bsp (32 MB) is downloaded during `docker build` (see abu_engine/Dockerfile),
+# so we can safely exclude it from the upload to keep the archive small.
+!abu_engine/data/
+abu_engine/data/de440s.bsp
