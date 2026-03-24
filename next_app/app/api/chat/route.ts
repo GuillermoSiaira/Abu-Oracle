@@ -31,7 +31,7 @@ export async function POST(req: Request) {
     const abuData   = context?.calculations;
     const meta      = context?.meta;
     // Adapt meta shape { date, city } → buildNatalContext shape { birthDate, city }
-    const birthData = meta ? { birthDate: meta.date, city: meta.city } : undefined;
+    const birthData = meta ? { birthDate: meta.date, city: meta.city, utcOffset: meta.utcOffset } : undefined;
     const lang: string = abuData?.lang ?? "es";
 
     // Build canonical context block — injected into system prompt (chat pattern)

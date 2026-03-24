@@ -388,6 +388,7 @@ export default function OracleChat() {
       const sessionContext = {
         meta: birthData ? {
           date: birthData.birthDate,
+          utcOffset: birthData.utcOffset,
           // city puede no existir tipado → defensive access
           city: (birthData as any)?.city || "Unknown",
           lat: birthData.lat,
