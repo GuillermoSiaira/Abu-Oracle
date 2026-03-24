@@ -1,7 +1,7 @@
 # ARCHITECTURE.md — Abu Oracle: Contrato entre capas
 > Documento de sincronización entre Abu Engine (hilo técnico) y Lilly Agent (hilo de agente).
 > Leer junto a CLAUDE.md al inicio de cualquier sesión que toque la integración Abu↔Lilly.
-> Versión: 0.2 · Marzo 2026
+> Versión: 0.3 · Marzo 2026
 > Estado: Activo — actualizar ante cualquier cambio de contrato entre capas.
 
 ---
@@ -48,8 +48,10 @@ interface AbuContext {
     lon:       number            // longitud eclíptica 0-360
     sign:      string            // 'Cancer' | 'Leo' | ...
     house:     number            // 1-12
-    dignity:   string            // 'domicile' | 'exaltation' | 'peregrine' | 'detriment' | 'fall'
-    dignity_score: number        // según tabla persa: +5/+4/0/-4/-5
+    dignity:             string   // = dignity_traditional (backward compat)
+    dignity_score:       number   // según tabla D4: +5/+4/0/−4/−5 (traditional)
+    dignity_traditional: string   // sistema helenístico/persa (default)
+    dignity_modern:      string   // sistema moderno (s. XX)
     retrograde: boolean
   }>
 
@@ -59,9 +61,13 @@ interface AbuContext {
   asc_sign: string
   mc_sign:  string
 
-  // Regentes
-  asc_ruler: string              // planeta que rige el signo del ASC
-  mc_ruler:  string              // planeta que rige el signo del MC
+  // Regentes — sistema dual (BUG-01 resuelto 2026-03-23)
+  asc_ruler:             string  // = asc_ruler_traditional (backward compat)
+  asc_ruler_traditional: string  // regente helenístico/persa del ASC
+  asc_ruler_modern:      string  // regente moderno (s. XX) del ASC
+  mc_ruler:              string  // = mc_ruler_traditional (backward compat)
+  mc_ruler_traditional:  string  // regente helenístico/persa del MC
+  mc_ruler_modern:       string  // regente moderno (s. XX) del MC
   sect_master: string            // maestro de secta (diurno/nocturno)
   sect:      'diurnal' | 'nocturnal'
 
@@ -350,6 +356,9 @@ antes de llegar al usuario. Voz unificada de Lilly hacia afuera.
 | 5 | Caché de AbuContext por sesión | ⏳ Pendiente | Sin implementar |
 | 6 | `click_planet` handler + route | ✅ Resuelto | Fase 8.6 — `natal-chart-tab.tsx` + `/api/lilly/planet` |
 | 7 | `city_select` handler + route | ✅ Resuelto | Fase 8.7 — `relocation-tab.tsx` + `/api/lilly/city` |
+| 8 | Rulerships duales BUG-01 | ✅ Resuelto | 2026-03-23 — dos sistemas como capas separadas: `dignity_traditional` + `dignity_modern` en planetas; `asc/mc_ruler_traditional/modern` en ángulos |
+| 9 | Exaltaciones transpersonales BUG-01 | ✅ Resuelto | D2: Urano/Neptuno/Plutón son siempre peregrine en el sistema tradicional — no tienen exaltación ni caída helenística |
+| 10 | Contrato dignity — tres campos canónicos | ✅ Resuelto | D3: `dignity` (=traditional, backward compat) + `dignity_traditional` (string) + `dignity_modern` (string). Scoring D4: domicile+5, exaltation+4, peregrine 0, detriment−4, fall−5 |
 
 ---
 
@@ -380,6 +389,10 @@ antes de llegar al usuario. Voz unificada de Lilly hacia afuera.
 | SR route | `lilly/solar-return/route.ts` | 8.11 | Nueva route con `sr_year` en contextBlock |
 | click_transit | `transits-tab.tsx` + `transit/route.ts` | 8.11 | Handler + route completos |
 | max_tokens transit | `transit/route.ts` | 8.11 | 512 → 1024 para grupos multi-aspecto |
+| Rulerships duales | `abu_engine/core/extended_calc.py` | BUG-01 | Tablas separadas `RULERSHIPS_TRADITIONAL` / `RULERSHIPS_MODERN`. `_TRANSPERSONAL` fuerza peregrine en sistema tradicional. `calculate_dignity(system=)` + `calculate_dignity_dual()`. Backward compat: boolean fields preservados. |
+| asc/mc_ruler dual | `abu_engine/main.py` | BUG-01 | Bloque de cómputo pre-response: `_asc_ruler_trad`, `_asc_ruler_mod`, `_mc_ruler_trad`, `_mc_ruler_mod`. Seis campos en `chart` del response. |
+| Lilly doctrinal | `next_app/lib/lilly-prompt.ts` | BUG-01 | `_RULERS_MODERN` añadida. `buildBaseContext()` genera label dual cuando trad≠mod. Bloque doctrinal "SISTEMA DE REGENCIAS EN ABU ORACLE" en `LILLY_SYSTEM_PROMPT`. |
+| Frontend dignity dual | `next_app/components/natal-chart-tab.tsx` | BUG-01 | `hasDual` condition en `PlanetCard`: dos badges apilados (Trad/Mod) cuando `dignity_traditional !== dignity_modern`. Panel Ángulos con `ascRulerLabel` dual. |
 
 ---
 
@@ -389,9 +402,10 @@ antes de llegar al usuario. Voz unificada de Lilly hacia afuera.
 |---|---|---|
 | v0.1 | 2026-03-13 | Documento inicial. AbuContext schema, LillyEvent contrato, Context Builder plantillas, decisiones pendientes. |
 | v0.2 | 2026-03-16 | Routes ad-hoc implementadas. Event System parcial. `deriveSignificators()`. Fix infinite loop tránsitos. HF en system prompt. SR integrado. Decisiones 1 y 3 resueltas. Tabla de fixes técnicos. |
+| v0.3 | 2026-03-23 | BUG-01 Rulerships duales resuelto. Contrato AbuContext extendido con `dignity_traditional`/`dignity_modern` en planetas y 6 campos `asc/mc_ruler_*` en ángulos. Sistema tradicional helenístico/persa como primario. Transpersonales siempre peregrine en sistema tradicional. Scoring D4 canónico. Bloque doctrinal en LILLY_SYSTEM_PROMPT. Frontend: badges duales en PlanetCard + panel Ángulos. |
 
 ---
 
-*Abu Oracle Project — ARCHITECTURE.md v0.2*
+*Abu Oracle Project — ARCHITECTURE.md v0.3*
 *Mantener actualizado ante cualquier cambio de contrato entre capas.*
 *Ambos hilos (Abu Engine y Lilly) deben leer este archivo al inicio de sesiones de integración.*

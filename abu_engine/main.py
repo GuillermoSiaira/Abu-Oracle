@@ -14,12 +14,14 @@ from core.forecast import forecast_for_locations, forecast_timeseries, detect_pe
 from core.life_cycles import forecast_life_cycles
 from core.chart import chart_json, ChartDTO, solar_return_chart, EphemerisSingleton
 from core.extended_calc import (
-    calculate_detailed_positions, 
+    calculate_detailed_positions,
     calculate_part_of_fortune,
     get_lunar_nodes,
     format_position,
     get_sign_name,
-    normalize_lon
+    normalize_lon,
+    RULERSHIPS_TRADITIONAL,
+    RULERSHIPS_MODERN,
 )
 from skyfield.api import load
 import logging
@@ -2895,6 +2897,14 @@ def analyze(payload: AnalyzeRequest = Body(
         solar_return_block = None
     t1_solar_return = time.perf_counter()
 
+    # Compute dual-system ASC / MC rulers (BUG-01 fix)
+    _asc_sign = get_sign_name(asc_lon) if asc_lon is not None else None
+    _mc_sign  = get_sign_name(mc_lon)  if mc_lon  is not None else None
+    _asc_ruler_trad = RULERSHIPS_TRADITIONAL.get(_asc_sign) if _asc_sign else None
+    _asc_ruler_mod  = RULERSHIPS_MODERN.get(_asc_sign)      if _asc_sign else None
+    _mc_ruler_trad  = RULERSHIPS_TRADITIONAL.get(_mc_sign)  if _mc_sign  else None
+    _mc_ruler_mod   = RULERSHIPS_MODERN.get(_mc_sign)       if _mc_sign  else None
+
     response = {
         "person": {
             "name": payload.person.name if payload.person else None,
@@ -2904,6 +2914,14 @@ def analyze(payload: AnalyzeRequest = Body(
             "planets": detailed_planets,
             "houses": houses_out,
             "house_system": _hs_param,
+            # ASC ruler — backward compat + dual system (D1/D3)
+            "asc_ruler":             _asc_ruler_trad,
+            "asc_ruler_traditional": _asc_ruler_trad,
+            "asc_ruler_modern":      _asc_ruler_mod,
+            # MC ruler — same pattern
+            "mc_ruler":              _mc_ruler_trad,
+            "mc_ruler_traditional":  _mc_ruler_trad,
+            "mc_ruler_modern":       _mc_ruler_mod,
         },
         "derived": {
             "sect": sect_label,

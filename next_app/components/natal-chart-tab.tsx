@@ -45,6 +45,27 @@ function dignityBadgeClass(d: DignityInfo): string {
   return "border-slate-700/40 bg-slate-800/20 text-slate-500";
 }
 
+// Dignity scores per D4 (matches backend extended_calc.py)
+const DIGNITY_SCORES_MAP: Record<string, number> = {
+  domicile: 5, exaltation: 4, peregrine: 0, detriment: -4, fall: -5,
+};
+
+/** Build DignityInfo from a canonical string ("domicile" | "exaltation" | …) */
+function getDignityInfoFromString(s: string): DignityInfo {
+  const lower = (s ?? "peregrine").toLowerCase();
+  const score = DIGNITY_SCORES_MAP[lower] ?? 0;
+  const label = lower.charAt(0).toUpperCase() + lower.slice(1);
+  if (lower === "domicile" || lower === "exaltation")
+    return { label, color: "text-amber-400", score };
+  if (lower === "detriment" || lower === "fall")
+    return { label, color: "text-red-400", score };
+  return { label: "Peregrine", color: "text-slate-500", score: 0 };
+}
+
+function fmtScore(n: number): string {
+  return n > 0 ? `+${n}` : n < 0 ? `${n}` : "0";
+}
+
 // ------------------------------------
 // Aspect computation (natal aspects)
 // ------------------------------------
@@ -107,20 +128,40 @@ function PlanetCard({ planet, allPlanets, onClick }: PlanetCardProps) {
   const isRetrograde = planet.retrograde === true;
   const scoreStr = d.score > 0 ? `+${d.score}` : d.score < 0 ? `${d.score}` : "";
 
+  // Dual-dignity display: only when traditional ≠ modern (Escorpio/Acuario/Piscis cases)
+  const hasDual = !!(
+    planet.dignity_traditional &&
+    planet.dignity_modern &&
+    planet.dignity_traditional !== planet.dignity_modern
+  );
+  const dTrad = hasDual ? getDignityInfoFromString(planet.dignity_traditional) : d;
+  const dMod  = hasDual ? getDignityInfoFromString(planet.dignity_modern)      : d;
+
   return (
     <button
       onClick={() => onClick(planet)}
       className="w-full text-left p-3 rounded-sm border border-slate-800 bg-[#080808] hover:border-amber-500/30 hover:bg-amber-500/5 cursor-pointer transition-colors group"
     >
-      {/* Row 1 — Symbol + Name | Dignity badge */}
-      <div className="flex items-center justify-between mb-1">
+      {/* Row 1 — Symbol + Name | Dignity badge(s) */}
+      <div className="flex items-start justify-between mb-1">
         <span className="flex items-center gap-1.5 text-slate-200 text-sm font-medium">
           <span className="text-base">{sym}</span>
           {planet.name}
         </span>
-        <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${dignityBadgeClass(d)}`}>
-          {d.label}{scoreStr ? ` ${scoreStr}` : ""}
-        </span>
+        {hasDual ? (
+          <div className="flex flex-col items-end gap-0.5">
+            <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${dignityBadgeClass(dTrad)}`}>
+              Trad: {dTrad.label} ({fmtScore(dTrad.score)})
+            </span>
+            <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${dignityBadgeClass(dMod)}`}>
+              Mod: {dMod.label} ({fmtScore(dMod.score)})
+            </span>
+          </div>
+        ) : (
+          <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${dignityBadgeClass(d)}`}>
+            {d.label}{scoreStr ? ` ${scoreStr}` : ""}
+          </span>
+        )}
       </div>
 
       {/* Row 2 — Degree + Sign · Casa | [R] */}
@@ -186,6 +227,18 @@ export function NatalChartTab() {
 
   // Natal planets (raw — keep dignity + retrograde for cards)
   const rawPlanets: any[] = chart.planets ?? [];
+
+  // ASC / MC ruler labels — dual system (BUG-01)
+  const ascRulerTrad  = chart.asc_ruler_traditional as string | undefined;
+  const ascRulerMod   = chart.asc_ruler_modern      as string | undefined;
+  const mcRulerTrad   = chart.mc_ruler_traditional  as string | undefined;
+  const mcRulerMod    = chart.mc_ruler_modern       as string | undefined;
+  const ascRulerLabel = ascRulerTrad && ascRulerMod && ascRulerTrad !== ascRulerMod
+    ? `${ascRulerTrad} (trad.) / ${ascRulerMod} (mod.)`
+    : (ascRulerTrad ?? "—");
+  const mcRulerLabel  = mcRulerTrad  && mcRulerMod  && mcRulerTrad  !== mcRulerMod
+    ? `${mcRulerTrad} (trad.) / ${mcRulerMod} (mod.)`
+    : (mcRulerTrad ?? "—");
 
   // Aspect lines for ZodiacWheel — computed client-side over all planet pairs
   const natalAspectLines = useMemo(() => {
@@ -302,6 +355,34 @@ export function NatalChartTab() {
 
         {/* Planet cards */}
         <div className="lg:w-2/5 overflow-y-auto max-h-[600px]">
+
+          {/* Angles panel — ASC/MC with dual rulers */}
+          {(chart.houses?.asc != null || chart.houses?.mc != null) && (
+            <div className="mb-3 p-2 rounded-sm border border-slate-800 bg-[#080808]">
+              <h3 className="text-[10px] font-mono uppercase tracking-widest text-slate-600 mb-1.5">
+                Ángulos
+              </h3>
+              {chart.houses?.asc != null && (
+                <div className="text-[11px] font-mono text-slate-400 leading-5">
+                  <span className="text-slate-500">ASC</span>
+                  {" · "}
+                  {getSignFromLongitude(chart.houses.asc)} {formatDegMin(chart.houses.asc)}
+                  {" · Señor: "}
+                  <span className="text-slate-300">{ascRulerLabel}</span>
+                </div>
+              )}
+              {chart.houses?.mc != null && (
+                <div className="text-[11px] font-mono text-slate-400 leading-5">
+                  <span className="text-slate-500">MC</span>
+                  {" · "}
+                  {getSignFromLongitude(chart.houses.mc)} {formatDegMin(chart.houses.mc)}
+                  {" · Señor: "}
+                  <span className="text-slate-300">{mcRulerLabel}</span>
+                </div>
+              )}
+            </div>
+          )}
+
           <h3 className="text-xs font-mono uppercase tracking-widest text-slate-600 mb-3">
             Posiciones planetarias
             <span className="ml-2 text-slate-700 normal-case">— click para interpretar</span>

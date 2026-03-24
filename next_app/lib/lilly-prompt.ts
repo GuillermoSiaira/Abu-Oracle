@@ -6,10 +6,17 @@ const _SIGNS = [
   "Aries","Taurus","Gemini","Cancer","Leo","Virgo",
   "Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces",
 ];
+// Traditional rulerships — primary system (Hellenistic/Persian, 7 classical planets)
 const _RULERS: Record<string, string> = {
   Aries: "Mars", Taurus: "Venus", Gemini: "Mercury", Cancer: "Moon",
   Leo: "Sun", Virgo: "Mercury", Libra: "Venus", Scorpio: "Mars",
   Sagittarius: "Jupiter", Capricorn: "Saturn", Aquarius: "Saturn", Pisces: "Jupiter",
+};
+// Modern rulerships — parallel display layer only (D1)
+const _RULERS_MODERN: Record<string, string> = {
+  Aries: "Mars", Taurus: "Venus", Gemini: "Mercury", Cancer: "Moon",
+  Leo: "Sun", Virgo: "Mercury", Libra: "Venus", Scorpio: "Pluto",
+  Sagittarius: "Jupiter", Capricorn: "Saturn", Aquarius: "Uranus", Pisces: "Neptune",
 };
 
 function _getSign(lon: number): string {
@@ -129,24 +136,37 @@ export function buildBaseContext(abuData: any): string {
     lines.push(`${p.name} · ${sign} ${degMin} · ${house} · ${dig}${score}${retro}`);
   }
 
-  // Angles
+  // Angles — dual-system rulers (D1/D3: traditional primary, modern parallel)
   if (ascLon != null || mcLon != null) {
     lines.push("", "ÁNGULOS");
     if (ascLon != null) {
-      const ascSign   = _getSign(ascLon);
-      const ascRuler  = _RULERS[ascSign] ?? "—";
-      const ascRPlant = planets.find((p: any) => p.name === ascRuler);
-      const ascRSign  = ascRPlant ? (ascRPlant.sign || _getSign(ascRPlant.longitude ?? 0)) : "—";
-      const ascRDig   = _getDignityLabel(ascRPlant?.dignity);
-      lines.push(`ASC · ${ascSign} ${_getDegMin(ascLon)} · Señor: ${ascRuler} (${ascRSign}, ${ascRDig})`);
+      const ascSign      = _getSign(ascLon);
+      // Prefer backend-computed rulers (main.py BUG-01 fix); fallback to local tables
+      const ascRulerTrad = (abuData.chart?.asc_ruler_traditional as string | undefined)
+                           ?? _RULERS[ascSign] ?? "—";
+      const ascRulerMod  = (abuData.chart?.asc_ruler_modern as string | undefined)
+                           ?? _RULERS_MODERN[ascSign] ?? "—";
+      const ascRPlant    = planets.find((p: any) => p.name === ascRulerTrad);
+      const ascRSign     = ascRPlant ? (ascRPlant.sign || _getSign(ascRPlant.longitude ?? 0)) : "—";
+      const ascRDig      = _getDignityLabel(ascRPlant?.dignity);
+      const ascRulerLabel = ascRulerTrad !== ascRulerMod
+        ? `${ascRulerTrad} (trad.) / ${ascRulerMod} (mod.)`
+        : ascRulerTrad;
+      lines.push(`ASC · ${ascSign} ${_getDegMin(ascLon)} · Señor: ${ascRulerLabel} · ${ascRulerTrad}: ${ascRSign}, ${ascRDig}`);
     }
     if (mcLon != null) {
-      const mcSign   = _getSign(mcLon);
-      const mcRuler  = _RULERS[mcSign] ?? "—";
-      const mcRPlant = planets.find((p: any) => p.name === mcRuler);
-      const mcRSign  = mcRPlant ? (mcRPlant.sign || _getSign(mcRPlant.longitude ?? 0)) : "—";
-      const mcRDig   = _getDignityLabel(mcRPlant?.dignity);
-      lines.push(`MC · ${mcSign} ${_getDegMin(mcLon)} · Señor: ${mcRuler} (${mcRSign}, ${mcRDig})`);
+      const mcSign      = _getSign(mcLon);
+      const mcRulerTrad = (abuData.chart?.mc_ruler_traditional as string | undefined)
+                          ?? _RULERS[mcSign] ?? "—";
+      const mcRulerMod  = (abuData.chart?.mc_ruler_modern as string | undefined)
+                          ?? _RULERS_MODERN[mcSign] ?? "—";
+      const mcRPlant    = planets.find((p: any) => p.name === mcRulerTrad);
+      const mcRSign     = mcRPlant ? (mcRPlant.sign || _getSign(mcRPlant.longitude ?? 0)) : "—";
+      const mcRDig      = _getDignityLabel(mcRPlant?.dignity);
+      const mcRulerLabel = mcRulerTrad !== mcRulerMod
+        ? `${mcRulerTrad} (trad.) / ${mcRulerMod} (mod.)`
+        : mcRulerTrad;
+      lines.push(`MC · ${mcSign} ${_getDegMin(mcLon)} · Señor: ${mcRulerLabel} · ${mcRulerTrad}: ${mcRSign}, ${mcRDig}`);
     }
   }
 
@@ -311,6 +331,36 @@ El HF es el núcleo del sistema que Lilly habita y puede explicar con autoridad.
 
 7. ARABIC PARTS
 The Part of Fortune (Fortuna) indicates material wellbeing, the body, and available resources. Its lord is the primary indicator of material fortune. The Part of Spirit indicates intentional agency, vocation, and chosen direction. When Fortuna and its lord are well-disposed, material conditions support the native's path. When Spirit and its lord are strong, the native's will finds clear expression.
+
+---
+SISTEMA DE REGENCIAS EN ABU ORACLE
+
+Abu Oracle opera con dos capas de regencias simultáneas:
+
+· Sistema tradicional (helenístico/persa medieval, 7 planetas):
+  Escorpio → Marte, Acuario → Saturno, Piscis → Júpiter.
+  Este es el sistema doctrinal primario. Toda interpretación de dignidades,
+  regentes de carta y significadores de casa usa este sistema por defecto.
+
+· Sistema moderno (astrología psicológica del siglo XX, 10 planetas):
+  Escorpio → Plutón, Acuario → Urano, Piscis → Neptuno.
+  Este sistema se muestra al usuario como capa paralela, no como corrección
+  del sistema tradicional.
+
+Urano, Neptuno y Plutón NO son regentes en la tradición helenística/persa.
+Son planetas transpersonales con rol en tránsitos generacionales y en el
+agente Moderno del Swarm. No tienen exaltación ni caída en ningún sistema
+con consenso doctrinal — Abu Oracle no les asigna dignidades por exaltación
+ni caída.
+
+Cuando el contexto incluya asc_ruler_traditional y asc_ruler_modern con
+valores distintos, mencionar ambos con sus etiquetas. Nunca usar solo el
+valor moderno como si fuera el único regente del ascendente.
+
+Ejemplo correcto para ASC en Acuario:
+"El regente tradicional del Ascendente es Saturno. En la lectura moderna,
+Urano asume esa función."
+---
 
 INTERPRETATION RULES
 

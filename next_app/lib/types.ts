@@ -142,6 +142,15 @@ export interface AbuAnalyzeResponse {
       asc: number | null
       mc: number | null
     }
+    house_system?: string
+    // ASC ruler — dual system (BUG-01)
+    asc_ruler?: string               // backward compat (= traditional)
+    asc_ruler_traditional?: string
+    asc_ruler_modern?: string
+    // MC ruler — dual system
+    mc_ruler?: string                // backward compat (= traditional)
+    mc_ruler_traditional?: string
+    mc_ruler_modern?: string
   }
 
   derived: {
