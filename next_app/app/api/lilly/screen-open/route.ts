@@ -7,6 +7,8 @@ import {
   assembleContextBlock,
   type BiographicalTimeline,
 } from '../../../../lib/context-builder';
+import { getUserIdFromRequest } from '../../../../lib/get-user-id';
+import { getRecentHistory, formatMemoryForPrompt } from '../../../../lib/chat-memory';
 
 export const dynamic = 'force-dynamic';
 
@@ -55,6 +57,11 @@ export async function POST(req: Request) {
       messages,
     } = body;
 
+    // ── Memoria biográfica (si el usuario está autenticado) ──────────────────
+    const userId = await getUserIdFromRequest(req);
+    const memoryCtx = userId ? await getRecentHistory(userId) : null;
+    const memoryBlock = memoryCtx ? formatMemoryForPrompt(memoryCtx) : '';
+
     const natal  = buildNatalContext(natalData, birthData);
     const active = buildActiveContext({
       currentDate:   new Date().toISOString(),
@@ -65,7 +72,7 @@ export async function POST(req: Request) {
       triggerData:   { name, sect, sect_master },
     });
     const block =
-      assembleContextBlock(natal, timeline ?? EMPTY_TIMELINE, active, lang ?? 'es')
+      assembleContextBlock(natal, timeline ?? EMPTY_TIMELINE, active, lang ?? 'es', memoryBlock || undefined)
       + '\n\n' + SUGGESTIONS_SUFFIX;
 
     const history: Anthropic.MessageParam[] = (messages ?? [])

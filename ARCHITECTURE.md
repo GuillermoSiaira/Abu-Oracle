@@ -393,6 +393,8 @@ antes de llegar al usuario. Voz unificada de Lilly hacia afuera.
 | asc/mc_ruler dual | `abu_engine/main.py` | BUG-01 | Bloque de cómputo pre-response: `_asc_ruler_trad`, `_asc_ruler_mod`, `_mc_ruler_trad`, `_mc_ruler_mod`. Seis campos en `chart` del response. |
 | Lilly doctrinal | `next_app/lib/lilly-prompt.ts` | BUG-01 | `_RULERS_MODERN` añadida. `buildBaseContext()` genera label dual cuando trad≠mod. Bloque doctrinal "SISTEMA DE REGENCIAS EN ABU ORACLE" en `LILLY_SYSTEM_PROMPT`. |
 | Frontend dignity dual | `next_app/components/natal-chart-tab.tsx` | BUG-01 | `hasDual` condition en `PlanetCard`: dos badges apilados (Trad/Mod) cuando `dignity_traditional !== dignity_modern`. Panel Ángulos con `ascRulerLabel` dual. |
+| Memoria persistente Lilly | `next_app/lib/chat-memory.ts`, `get-user-id.ts`, `context-builder.ts`, `api/lilly/screen-open/route.ts`, `api/chat/route.ts` | 8.12 | Historial Firestore por usuario. Schema: `users/{uid}/lilly_exchanges` + `lilly_summary/current`. 5 exchanges recientes inyectados en contextBlock. Summarización automática vía Haiku cuando >50 exchanges. Sin auth → sin memoria (dev compatible). |
+| FIREBASE_SERVICE_ACCOUNT_JSON | `next_app/.env.local` | 8.12 | Valor JSON envuelto en comillas simples para parsing correcto de dotenv en dev local. |
 
 ---
 
@@ -403,9 +405,10 @@ antes de llegar al usuario. Voz unificada de Lilly hacia afuera.
 | v0.1 | 2026-03-13 | Documento inicial. AbuContext schema, LillyEvent contrato, Context Builder plantillas, decisiones pendientes. |
 | v0.2 | 2026-03-16 | Routes ad-hoc implementadas. Event System parcial. `deriveSignificators()`. Fix infinite loop tránsitos. HF en system prompt. SR integrado. Decisiones 1 y 3 resueltas. Tabla de fixes técnicos. |
 | v0.3 | 2026-03-23 | BUG-01 Rulerships duales resuelto. Contrato AbuContext extendido con `dignity_traditional`/`dignity_modern` en planetas y 6 campos `asc/mc_ruler_*` en ángulos. Sistema tradicional helenístico/persa como primario. Transpersonales siempre peregrine en sistema tradicional. Scoring D4 canónico. Bloque doctrinal en LILLY_SYSTEM_PROMPT. Frontend: badges duales en PlanetCard + panel Ángulos. |
+| v0.4 | 2026-03-25 | Memoria persistente Lilly implementada (Fase 8.12). Firestore: `lilly_exchanges` + `lilly_summary/current` por usuario. `assembleContextBlock()` acepta `memoryContext` opcional. `getUserIdFromRequest()` extrae uid del Bearer token. Summarización automática vía Haiku. OracleChat envía Authorization header en todos los fetches Lilly. |
 
 ---
 
-*Abu Oracle Project — ARCHITECTURE.md v0.3*
+*Abu Oracle Project — ARCHITECTURE.md v0.4*
 *Mantener actualizado ante cualquier cambio de contrato entre capas.*
 *Ambos hilos (Abu Engine y Lilly) deben leer este archivo al inicio de sesiones de integración.*

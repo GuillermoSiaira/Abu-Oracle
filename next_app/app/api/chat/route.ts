@@ -7,6 +7,13 @@ import {
   assembleContextBlock,
   type BiographicalTimeline,
 } from "@/lib/context-builder";
+import { getUserIdFromRequest } from "@/lib/get-user-id";
+import {
+  getRecentHistory,
+  formatMemoryForPrompt,
+  saveExchange,
+  summarizeIfNeeded,
+} from "@/lib/chat-memory";
 
 export const dynamic = "force-dynamic";
 
@@ -20,12 +27,20 @@ const EMPTY_TIMELINE: BiographicalTimeline = {
 
 export async function POST(req: Request) {
   try {
+    // Clone request so we can read body AND headers (getUserIdFromRequest reads headers)
+    const reqClone = req.clone();
     const body = await req.json();
     const { messages, context, session_id, timeline } = body;
 
     if (!messages?.length) {
       return NextResponse.json({ error: "No messages provided" }, { status: 400 });
     }
+
+    // ── Auth + memory ────────────────────────────────────────────────────────
+    const userId = await getUserIdFromRequest(reqClone);
+    console.log("[chat-memory] userId:", userId);
+    const memoryCtx = userId ? await getRecentHistory(userId) : null;
+    const memoryBlock = memoryCtx ? formatMemoryForPrompt(memoryCtx) : '';
 
     // Extract abuData and birthData from the existing context shape
     const abuData   = context?.calculations;
@@ -46,7 +61,13 @@ export async function POST(req: Request) {
         lastEventType: "chat",
         triggerData:   {},
       });
-      const block = assembleContextBlock(natal, timeline ?? EMPTY_TIMELINE, active, lang);
+      const block = assembleContextBlock(
+        natal,
+        timeline ?? EMPTY_TIMELINE,
+        active,
+        lang,
+        memoryBlock || undefined,
+      );
       systemPrompt = `${LILLY_SYSTEM_PROMPT}\n\n---\n${block}`;
     }
 
@@ -75,6 +96,25 @@ export async function POST(req: Request) {
     });
 
     const text = response.content[0]?.type === "text" ? response.content[0].text : "";
+
+    // ── Persist exchange to Firestore (fire-and-forget) ──────────────────────
+    if (userId && text) {
+      const lastUserMsg = [...anthropicMessages].reverse().find((m) => m.role === "user");
+      const userText = typeof lastUserMsg?.content === "string" ? lastUserMsg.content : "";
+      const subjectName =
+        abuData?.person?.name ||
+        meta?.userName ||
+        "Anónimo";
+
+      // Non-blocking — do not await
+      saveExchange(userId, {
+        user_message:       userText,
+        assistant_response: text,
+        event_type:         "chat",
+        subject_name:       subjectName,
+      }).then(() => summarizeIfNeeded(userId));
+    }
+
     return NextResponse.json({ response: text });
 
   } catch (err: any) {

@@ -290,12 +290,14 @@ export function buildActiveContext(params: {
 /**
  * Produce el string que va al system prompt (o como user context block) de Lilly.
  * lang está disponible para extensión futura (secciones localizadas).
+ * memoryContext: string pre-formateado de chat-memory.formatMemoryForPrompt() — opcional.
  */
 export function assembleContextBlock(
   natal:    NatalContext,
   timeline: BiographicalTimeline,
   active:   ActiveContext,
   _lang:    string,
+  memoryContext?: string,
 ): string {
   const lines: string[] = [];
   const SEP = "═══════════════════════════════════════";
@@ -435,6 +437,12 @@ export function assembleContextBlock(
   if (active.active_city) {
     const c = active.active_city;
     lines.push(`Ciudad activa: ${c.name} · HF: ${c.hf_score.toFixed(2)}`);
+  }
+
+  // ╔══ MEMORIA BIOGRÁFICA (si existe) ═══════════════════════════════════════╗
+  if (memoryContext) {
+    lines.push("");
+    lines.push(memoryContext);
   }
 
   return lines.join("\n");

@@ -234,9 +234,10 @@ export default function OracleChat() {
       // Show loading indicator immediately
       setIsLoading(true);
 
+      getAbuAuthHeaders({ 'Content-Type': 'application/json' }).then(authHeaders =>
       fetch('/api/lilly/screen-open', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders,
         body: JSON.stringify({
           name,
           sect,
@@ -273,7 +274,8 @@ export default function OracleChat() {
             content: '> LILLY_AI: Sin conexión.\n> Configura ANTHROPIC_API_KEY para activar la interpretación.',
           }]);
         })
-        .finally(() => setIsLoading(false));
+        .finally(() => setIsLoading(false))
+      );  // end getAbuAuthHeaders().then
     }
   }, [abuData, birthData, lang, isChartPage]);
 
@@ -325,9 +327,10 @@ export default function OracleChat() {
     if (!route) return;
 
     setIsLoading(true);
+    getAbuAuthHeaders({ 'Content-Type': 'application/json' }).then(authHeaders =>
     fetch(route, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders,
       body: JSON.stringify({
         ...payload,
         natalData: abuData,
@@ -356,7 +359,8 @@ export default function OracleChat() {
           },
         ]);
       })
-      .finally(() => setIsLoading(false));
+      .finally(() => setIsLoading(false))
+    );  // end getAbuAuthHeaders().then
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingLillyEvent]);
 
@@ -397,9 +401,10 @@ export default function OracleChat() {
         calculations: abuData
       };
 
+      const authHeaders = await getAbuAuthHeaders({ 'Content-Type': 'application/json' });
       const res = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders,
         body: JSON.stringify({
           messages: [...messages, newMsg],
           context: sessionContext,
