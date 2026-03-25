@@ -15,6 +15,20 @@
 - Stack en producción: Next.js + Python/FastAPI → Cloud Run (GCP) · Firebase Auth · Firestore · Alchemy webhook · Resend
 - Revisión inicial: `abu-oracle-app-00016-xqp`
 
+### Deploy a producción — comando canónico
+
+**Siempre usar Cloud Build** (no buildear local — disco C: limitado, Docker Desktop lento):
+
+```bash
+cd d:/projects/ai-oracle
+gcloud builds submit --config=cloudbuild-app.yaml --project=abu-oracle .
+```
+
+- Build + push + deploy en un solo comando (~5 min en E2_HIGHCPU_8)
+- `cloudbuild-app.yaml` en la raíz del repo — ya tiene todos los `--build-arg` NEXT_PUBLIC_* configurados
+- Preserva todas las env vars existentes en Cloud Run (no las sobreescribe)
+- Para el Abu Engine: `gcloud builds submit --config=cloudbuild-engine.yaml --project=abu-oracle .`
+
 ### Gantt de Tránsitos — sesión 2026-03-22 (E2E pass session 2)
 
 **`next_app/components/transits-tab.tsx` — reescritura completa**
