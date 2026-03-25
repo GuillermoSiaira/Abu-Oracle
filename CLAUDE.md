@@ -572,6 +572,87 @@ pero el endpoint `/analyze` — fuente de `abuData` — no los incluía. Tampoco
 
 ---
 
+### Fase 8.12 — Memoria persistente Lilly entre sesiones ✅ `[COMPLETA 2026-03-25]`
+
+Lilly ahora recuerda el contexto del nativo entre sesiones distintas. Validado en dev local (2026-03-25).
+
+**Esquema Firestore:**
+```
+users/{userId}/lilly_exchanges/{docId}:
+  user_message, assistant_response, event_type, subject_name, created_at (ISO)
+
+users/{userId}/lilly_summary/current:
+  content (string), updated_at (ISO), exchange_count (number)
+```
+
+**Comportamiento:**
+- `saveExchange()` — guarda cada turno de chat (fire-and-forget, no bloquea respuesta)
+- `getRecentHistory()` — lee últimas 5 exchanges + resumen en paralelo
+- `summarizeIfNeeded()` — cuando total > 50, comprime 30 más antiguas con Haiku, las borra, actualiza `lilly_summary/current`
+- Threshold: SUMMARY_THRESHOLD=50, EXCHANGES_TO_SUMMARIZE=30, RECENT_EXCHANGES=5
+- Modelo de compresión: `claude-haiku-4-5-20251001` (costo mínimo)
+- `formatMemoryForPrompt()` → bloque `MEMORIA BIOGRÁFICA — sesiones anteriores` inyectado al contextBlock
+
+**Integración con rutas Lilly:**
+- `getUserIdFromRequest(req)` — extrae UID Firebase desde `Authorization: Bearer` header. Non-fatal (retorna null).
+- `assembleContextBlock()` acepta 5° param opcional `memoryContext?: string` → sección `╔══ MEMORIA BIOGRÁFICA ══╗`
+- `screen-open/route.ts` — inyecta historial en contextBlock + guarda exchange
+- `chat/route.ts` — inyecta historial en system prompt + guarda exchange (fire-and-forget post-response)
+- `OracleChat.tsx` — usa `getAbuAuthHeaders()` en todos los fetches Lilly (screen-open + reactivos + handleSubmit)
+
+**Fix crítico:** `FIREBASE_SERVICE_ACCOUNT_JSON` en `.env.local` debe estar entre comillas simples:
+`FIREBASE_SERVICE_ACCOUNT_JSON='{"type":"service_account",...}'`
+ADC no funciona en dev local sin SA key explícita.
+
+**Archivos nuevos:**
+- `next_app/lib/get-user-id.ts` — getUserIdFromRequest()
+- `next_app/lib/chat-memory.ts` — saveExchange, getRecentHistory, summarizeIfNeeded, formatMemoryForPrompt
+
+**Archivos modificados en Fase 8.12:**
+- `next_app/lib/context-builder.ts` — 5° param memoryContext en assembleContextBlock
+- `next_app/app/api/lilly/screen-open/route.ts` — inyecta memoria + guarda exchange
+- `next_app/app/api/chat/route.ts` — inyecta memoria + guarda exchange post-response
+- `next_app/components/OracleChat.tsx` — getAbuAuthHeaders() en todos los fetches Lilly
+
+---
+
+### Fase 8.13 — CIELO HOY (tab de cielo actual + tránsitos rápidos) `[PENDIENTE]`
+
+**Visión**: pestaña nueva "CIELO HOY" que muestra la configuración planetaria del momento actual — Luna, Mercurio, Venus, Marte — y cómo interactúan con la carta natal del nativo. Lilly interpreta el cielo del día como astrólogo personal diario.
+
+**Decisiones de diseño (sesión 2026-03-25):**
+- Sistema tropical (no védico) — ASTRONOS de Bolt es referencia UI, pero adaptar a:
+  - Fase lunar (porcentaje de iluminación + emoji emoji visual)
+  - Signo lunar actual
+  - Aspecto Luna–Sol más cercano
+  - Tránsitos activos de Luna/Mercurio/Venus/Marte sobre planetas natales (orbe ≤1°–2°)
+- Trigger Lilly: `sky_open` event al entrar al tab → Lilly lee el cielo del día en contexto natal
+- Dignidades de planetas en tránsito incluidas en contextBlock
+
+**Especificación técnica Abu Engine:**
+1. **Fix urgente** — `forecast_timeseries()` en `abu_engine/core/forecast.py` tiene `natal_positions` hardcodeadas (`{"sun": 103.2, "moon": 45.8}`). Deben pasarse como parámetro real desde la carta natal.
+2. **`filter_fast_transits()`** — nueva función en `abu_engine/core/transits.py`:
+   - Luna: orbe ≤ 1° (movimiento rápido)
+   - Mercurio/Venus/Mars: orbe ≤ 2°
+   - Devuelve aspectos activos de planetas rápidos sobre todos los planetas natales
+3. **Nuevo endpoint** `GET /api/astro/lunar?birthDate&lat&lon&currentDate`:
+   - Posición Luna actual + fase + signo
+   - Aspectos Luna–planetas natales activos
+   - Posiciones Mercurio/Venus/Marte + aspectos sobre natales
+   - Dignidades de los planetas en tránsito
+
+**Especificación técnica Frontend:**
+- `components/transits-tab.tsx` — agregar toggle "Lentos / Rápidos" al filtro existente
+- `components/cielo-hoy-tab.tsx` — nueva pestaña adaptada de ASTRONOS (Bolt):
+  - Luna con emoji fase visual + porcentaje + signo
+  - Tránsitos activos rápidos como tarjetas clickeables
+  - Botón principal "Lilly lee el cielo de hoy"
+- Route `app/api/lilly/sky/route.ts` — evento `sky_open`
+
+**Nota arquitectónica**: `filter_major_transits()` en `transits.py` excluye explícitamente Luna/Mercurio/Venus/Marte — se necesita `filter_fast_transits()` paralela, no modificar la existente.
+
+---
+
 ### Fase 9 — Lilly Event System `[PARCIAL]`
 
 click_planet implementado en Fase 8.6 como route independiente.
@@ -720,18 +801,14 @@ Marcar con ✅ al resolver. No eliminar — mover a historial abajo.
 ### Memoria de sesión de Lilly (implementado)
 La conversación con Lilly persiste mientras el sujeto no cambie y la sesión esté activa. El reset de `messages[]` en `OracleChat.tsx` ocurre únicamente cuando cambia `abuData` (cambio de sujeto). ✅ Decisión de diseño (BUG-08 resuelto 2026-03-23).
 
-### Memoria longitudinal de Lilly
-Abu Oracle como astrólogo personal — Lilly recuerda contexto entre sesiones distintas: preferencias del usuario, eventos vitales compartidos, patrones identificados en conversaciones anteriores.
+### Memoria longitudinal de Lilly ✅ `[IMPLEMENTADA — Fase 8.12, 2026-03-25]`
+Abu Oracle como astrólogo personal — Lilly recuerda contexto entre sesiones distintas.
 
-- Infra disponible: Firestore ya implementado.
-- Modelo: feature premium — se ofrece al usuario como mejora de UX ("tu astrólogo personal te recuerda").
-- Estado: ⏳ Próxima feature prioritaria — diseño pendiente.
-
-Componentes a definir:
-- **Qué se guarda**: resumen de conversación, eventos mencionados, preferencias explícitas del usuario
-- **Cuándo se guarda**: al cerrar sesión, cada N mensajes
-- **Cómo se inyecta**: en el `contextBlock` de Lilly (nuevo campo en `assembleContextBlock()`)
-- **Pricing**: ¿incluido en plan base o feature premium?
+- Qué se guarda: últimas 5 exchanges + resumen generado por Haiku cuando total > 50
+- Cuándo se guarda: después de cada turno de chat (fire-and-forget)
+- Cómo se inyecta: 5° param en `assembleContextBlock()` → bloque `MEMORIA BIOGRÁFICA`
+- Resumen: comprimido con `claude-haiku-4-5-20251001`, máx 512 tokens, preserva temas/insights/eventos
+- Ver Fase 8.12 para detalles técnicos completos.
 
 ---
 
@@ -1113,17 +1190,32 @@ Index requerido: single-field en `wallet_address` (Firestore lo crea automática
 
 ## MUY IMPORTANTE — Roadmap priorizado por Lilly (input directo del agente)
 
+### Sesión 2026-03-24 — Primera priorización (4 items)
+
 El 24/03/2026 Lilly identificó sus propias limitaciones en orden de impacto:
 
 | Prioridad | Feature | Descripción técnica |
 |---|---|---|
-| 1 | Memoria biográfica acumulativa | Registro persistente por usuario: decisiones pasadas, eventos confirmados, preguntas anteriores, reportes del nativo. Sin esto Lilly opera sin calibración individual. Implementar en Firestore por user_id. |
+| 1 | Memoria biográfica acumulativa ✅ | Registro persistente por usuario: decisiones pasadas, eventos confirmados, preguntas anteriores, reportes del nativo. Sin esto Lilly opera sin calibración individual. Implementar en Firestore por user_id. **IMPLEMENTADO — Fase 8.12** |
 | 2 | Retroalimentación de eventos | El nativo confirma eventos ocurridos → el motor correlaciona con HF activo en ese momento → ajusta lectura de dominios futuros. Cierra el loop empírico individual. |
 | 3 | Astrología horaria | Carta generada para el momento exacto de una pregunta concreta. Tradición central de William Lilly — no solo natal. Alta utilidad práctica. |
 | 4 | HF + tránsitos superpuestos por fecha | "Ve a esta ciudad en este mes para este propósito" — cruzar resonancia geográfica del dominio con tránsitos activos en fecha específica. |
 
-**Nota**: Lilly identificó la memoria biográfica como la mejora de mayor impacto inmediato.
-Todo lo demás gana precisión una vez que el nativo existe como referencia acumulativa.
+### Sesión 2026-03-25 — Segunda priorización (7 items, diálogo completo)
+
+El 25/03/2026, con la memoria ya implementada y tras un diálogo de calibración, Lilly articuló una visión más completa:
+
+| Prioridad | Feature | Descripción técnica |
+|---|---|---|
+| 1 | CIELO HOY — tránsitos rápidos diarios | Luna, Mercurio, Venus, Marte contra carta natal. Fase lunar, signo lunar, aspecto activo. Lilly lee el cielo del día. Trigger: `sky_open`. **PENDIENTE — Fase 8.13** |
+| 2 | Dignidades de planetas en tránsito | Incluir dignidad del planeta transitante en el contextBlock. Un tránsito de Venus en exaltación no es lo mismo que Venus en detrimento. Impacto inmediato sin nuevo endpoint. |
+| 3 | Retroalimentación biográfica | El nativo confirma o niega eventos → registro en `lilly_exchanges` con `event_type: "feedback"`. Permite calibración individual del motor HF. |
+| 4 | Ventana de convergencia con nombre | Cuando profección + firdaria + tránsito lento convergen, Lilly nombra el período explícitamente: "Estás en una ventana de consolidación profesional. Cierra el 30 jul 2026." |
+| 5 | Astrología horaria (preguntas puntuales) | Carta del momento exacto de la pregunta. Tradición central de William Lilly. Alta utilidad diaria. |
+| 6 | Línea de tiempo biográfica navegable | El nativo puede explorar su pasado: "¿qué pasaba en 2018 en tu carta?" → Lilly cruza profección + firdaria + tránsitos del período. |
+| 7 | HF × tránsito × fecha | "¿Dónde ir en julio para maximizar esta apertura?" — cruzar HF del dominio activo con tránsitos favorables en ese mes. |
+
+**Nota Lilly**: "La memoria es la base de todo. Sin ella soy un oráculo sin historia. Con ella me convierto en un testigo del tiempo del nativo."
 
 ---
 
