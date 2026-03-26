@@ -28,6 +28,30 @@ function _getSign(lon: number): string {
   return _SIGNS[Math.floor(((lon % 360) + 360) % 360 / 30)];
 }
 
+/** Reconstruye longitud eclíptica desde signo + grado en signo. */
+function _lonFromSignDeg(sign: string, deg: number): number {
+  const idx = _SIGNS.indexOf(sign);
+  return (idx < 0 ? 0 : idx) * 30 + deg;
+}
+
+const _PHASE_NAMES = [
+  "Nueva", "Creciente Cóncava", "Cuarto Creciente", "Creciente Gibosa",
+  "Llena", "Menguante Gibosa", "Cuarto Menguante", "Menguante Cóncava",
+];
+
+/** Devuelve nombre y porcentaje de la fase lunar natal (elongación Sol→Luna). */
+function _natalLunarPhase(planets: NatalContext["planets"]): { name: string; pct: string } | null {
+  const sun  = planets.find(p => p.name === "Sun");
+  const moon = planets.find(p => p.name === "Moon");
+  if (!sun || !moon) return null;
+  const sunLon  = _lonFromSignDeg(sun.sign, sun.deg);
+  const moonLon = _lonFromSignDeg(moon.sign, moon.deg);
+  const elongation = ((moonLon - sunLon) % 360 + 360) % 360;
+  const phaseIdx   = Math.floor((elongation / 360) * 8) % 8;
+  const pct        = (elongation / 360 * 100).toFixed(1);
+  return { name: _PHASE_NAMES[phaseIdx], pct };
+}
+
 /**
  * Detecta convergencia temporal: profección + firdaria + tránsito lento activo
  * cierran en una ventana de 30 días.
@@ -376,6 +400,13 @@ export function assembleContextBlock(
     );
   }
   lines.push("");
+
+  // Fase lunar natal
+  const lunarPhase = _natalLunarPhase(natal.planets);
+  if (lunarPhase) {
+    lines.push(`Fase lunar natal: ${lunarPhase.name} (${lunarPhase.pct}% del ciclo)`);
+    lines.push("");
+  }
 
   // Aspectos natales (solo si el endpoint los devuelve)
   if (natal.aspects.length > 0) {
