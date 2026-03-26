@@ -64,6 +64,19 @@ La pestaña Tránsitos fue reemplazada por un Gantt interactivo. Los datos viene
 | Bug casas↔signo | `zodiac-wheel.tsx` | Bloque `SIGNOS` derivado de `houseCusps` reales (antes usaba `ZODIAC_SIGNS` fijo en 0°/30°/60°…) |
 | max_tokens técnicas | `lilly/technique/route.ts` | `lot`/`sect`/`profection`/`firdaria` → 2048 tokens |
 
+### Fix anillo de signos — sesión 2026-03-25
+
+**Bug**: el anillo de signos zodiacales estaba derivado de las cúspides de casas (`houseCusps`). Esto causaba que los sectores tuvieran tamaños irregulares y los planetas aparecieran en el signo visualmente incorrecto (ej: Sol/Luna en Cáncer Casa 5 aparecían dentro del sector Géminis).
+
+**Causa raíz**: en una sesión anterior se reemplazó el anillo fijo por uno derivado de `houseCusps` para "anclar" el signo al ascendente. Eso rompió la invariante fundamental: los signos zodiacales son posiciones absolutas en la eclíptica, nunca dependen de las casas.
+
+**Fix** (`zodiac-wheel.tsx`, commit `32cb753`):
+- Se agregó constante `ZODIAC_ORDER` con los 12 signos en orden
+- El anillo de signos usa segmentos fijos de 30° cada uno (`i * 30` a `i * 30 + 30`)
+- `polarToCartesian` aplica el `rotationOffset` correctamente → en modo "Ascendente arriba" todo rota junto manteniendo las relaciones correctas
+
+**Invariante a preservar**: el anillo de signos NUNCA debe derivarse de `houseCusps`. Las casas y los signos son sistemas independientes que se superponen.
+
 ---
 
 ### ⚠️ PENDIENTE DE DEPLOY A PRODUCCIÓN (commit `8092fdf` + sesión 2026-03-22)
