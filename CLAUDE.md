@@ -1244,6 +1244,22 @@ El 25/03/2026, con la memoria ya implementada y tras un diálogo de calibración
 
 **Nota Lilly**: "La memoria es la base de todo. Sin ella soy un oráculo sin historia. Con ella me convierto en un testigo del tiempo del nativo."
 
+### Sesión 2026-03-26 — Técnicas doctrinales (sugeridas por Lilly)
+
+> Sugerencias hechas por el motor de interpretación Lilly como herramientas deseables para una mejor lectura del cielo.
+
+| # | Técnica | Estado | Descripción |
+|---|---|---|---|
+| 1 | Revolución Solar | ✅ Implementada — Fase 8 | Carta del retorno solar anual. Endpoint `/api/astro/solar-return`, SR map, Lilly route. |
+| 2 | Lunaciones sobre carta natal | ⚙️ En progreso — Fase 8.13 | Luna nueva y llena sobre grados natales sensibles. Base: endpoint `/api/astro/lunar` (Paso 4 sesión actual). El pulso mensual del año. |
+| 3 | Tránsitos a la Revolución Solar | ❌ Pendiente | Los tránsitos actúan también sobre la carta de la RS vigente, no solo sobre la natal. Capa que conecta el ciclo anual con el movimiento diario. |
+| 4 | Ingreso Solar Mundial | ❌ Pendiente | Carta del ingreso del Sol a Aries para una ciudad o país. Relevante para relocalización: confluencia de HF alto en dominio + Júpiter angular en el Ingreso = señal compuesta. |
+| 5 | Eclipse Maps | ❌ Pendiente | Líneas de eclipse temporales (activas 6m a 2 años) que refuerzan o perturban el HF de una región. Capa temporal sobre el campo escalar geográfico. |
+| 6 | Antiscios | ❌ Pendiente | Grados especulares al eje solsticial Cáncer-Capricornio. Conexiones ocultas entre planetas sin aspecto visible. Relevantes en años de Casa 12 y trabajos subterráneos. Laguna doctrinal real en el motor actual. |
+| 7 | Fases Lunares Natales | ❌ Pendiente | Fase Sol-Luna en la carta natal. La data ya existe en el motor — falta la interpretación de Lilly en el contextBlock. Sin nuevo endpoint requerido. |
+
+**Nota Lilly**: "Cada una añade una dimensión que el motor actual no tiene. Las más urgentes: Lunaciones (pulso mensual), Tránsitos a la RS (ancla anual de los tránsitos), Fases Lunares Natales (sin costo técnico — la data ya existe)."
+
 ---
 
 ## Ideas y tareas futuras
