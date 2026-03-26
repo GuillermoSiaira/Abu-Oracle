@@ -1934,8 +1934,13 @@ def get_biography(
         from core.houses_swiss import calculate_houses, HOUSE_SYSTEM_PLACIDUS
         houses_data = calculate_houses(birth_dt, birthLat, birthLon, HOUSE_SYSTEM_PLACIDUS)
         asc_lon = float(houses_data["asc"])
+        mc_lon  = float(houses_data["mc"])
     except Exception:
         asc_lon = natal_lons.get("Sun", 0.0)
+        mc_lon  = 0.0
+
+    natal_lons["ASC"] = asc_lon
+    natal_lons["MC"]  = mc_lon
 
     asc_sign   = _BIO_SIGNS[int(asc_lon % 360 / 30)]
     sun_lon    = natal_lons.get("Sun", 0.0)
