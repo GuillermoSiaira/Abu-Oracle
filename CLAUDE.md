@@ -657,6 +657,50 @@ ADC no funciona en dev local sin SA key explícita.
 
 ---
 
+### Fase 8.14 — Calidad de contexto Lilly ✅ `[COMPLETA — sesión 2026-03-26]`
+
+**6 commits · Deploy en producción (Engine + App)**
+
+**PASO 1** ✅ — ASC y MC en tránsitos biography (commit `efcb111`)
+- `natal_lons["ASC"] = asc_lon` + `natal_lons["MC"] = mc_lon` en `/api/astro/biography`
+- Los tres scanners (slow/fast/lunar) ahora detectan tránsitos sobre los ángulos natales
+- `mc_lon` desde `houses_data["mc"]`; fallback `mc_lon=0.0` en caso de error
+
+**PASO 2** ✅ — Dignidad del planeta transitante en click_transit (commit `2d0923a`)
+- `_transitDignity(planet, sign)` en `lilly/transit/route.ts` — tabla estática tradicional (domicilio/exaltación/detrimento/caída/peregrine)
+- Campo `transit_planet_dignity` inyectado en `triggerData` → serializado en contextBlock
+
+**PASO 3** ✅ — Ventana de convergencia temporal en contextBlock (commit `e841033`)
+- `_detectConvergence(timeline)` en `context-builder.ts` — lógica determinista
+- Criterio: |profección.date_end − firdaria.date_end| ≤ 30 días + ≥1 tránsito lento activo
+- Bloque `VENTANA DE CONVERGENCIA` inyectado automáticamente en todas las routes Lilly
+
+**PASO 4** ✅ — Fase lunar natal en contextBlock (commit `14d8810`)
+- `_natalLunarPhase(planets)` en `context-builder.ts` — 8 fases desde elongación Sol→Luna
+- Línea `Fase lunar natal: {nombre} ({pct}%)` tras PLANETAS, sin endpoint adicional
+
+**PASO 5** — Sin cambios. Todas las secciones de Técnicas Persas ya tenían `onClick` → `click_technique` desde sesiones anteriores.
+
+**PASO 6** ✅ — Rate limit 50 llamadas/día por usuario (commit `d2846ed`)
+- `next_app/lib/usage-limiter.ts` — `checkAndIncrementDailyUsage(userId)` + `applyRateLimit(req)`
+- Transacción atómica Firestore en `users/{uid}/usage/daily {date, lilly_calls}`
+- Integrado en 7 routes: screen-open, planet, technique, domain, city, transit, chat
+- Fail-open en errores de storage; unauthenticated requests no reciben rate limit
+
+**Archivos modificados:**
+- `abu_engine/main.py` — ASC/MC en natal_lons
+- `next_app/lib/context-builder.ts` — _detectConvergence + _natalLunarPhase + _lonFromSignDeg
+- `next_app/lib/usage-limiter.ts` — NUEVO
+- `next_app/app/api/lilly/transit/route.ts` — _transitDignity + applyRateLimit
+- `next_app/app/api/lilly/planet/route.ts` — applyRateLimit
+- `next_app/app/api/lilly/technique/route.ts` — applyRateLimit
+- `next_app/app/api/lilly/domain/route.ts` — applyRateLimit
+- `next_app/app/api/lilly/city/route.ts` — applyRateLimit
+- `next_app/app/api/lilly/screen-open/route.ts` — checkAndIncrementDailyUsage
+- `next_app/app/api/chat/route.ts` — checkAndIncrementDailyUsage
+
+---
+
 ### Fase 8.13 — CIELO HOY — backend + Gantt planetas rápidos `[PARCIALMENTE COMPLETA — sesión 2026-03-26]`
 
 **Visión**: pestaña nueva "CIELO HOY" que muestra la configuración planetaria del momento actual — Luna, Mercurio, Venus, Marte — y cómo interactúan con la carta natal del nativo. Lilly interpreta el cielo del día como astrólogo personal diario.
@@ -1256,9 +1300,9 @@ El 25/03/2026, con la memoria ya implementada y tras un diálogo de calibración
 | Prioridad | Feature | Descripción técnica |
 |---|---|---|
 | 1 | CIELO HOY — tránsitos rápidos diarios | Backend completo (3 scanners + /api/astro/lunar + Gantt filtro speed_class). Pendiente: frontend cielo-hoy-tab.tsx + route sky_open. **PARCIAL — Fase 8.13** |
-| 2 | Dignidades de planetas en tránsito | Incluir dignidad del planeta transitante en el contextBlock. Un tránsito de Venus en exaltación no es lo mismo que Venus en detrimento. Impacto inmediato sin nuevo endpoint. |
+| 2 | Dignidades de planetas en tránsito ✅ | Implementado Fase 8.14 — `transit_planet_dignity` en contextBlock de click_transit. |
 | 3 | Retroalimentación biográfica | El nativo confirma o niega eventos → registro en `lilly_exchanges` con `event_type: "feedback"`. Permite calibración individual del motor HF. |
-| 4 | Ventana de convergencia con nombre | Cuando profección + firdaria + tránsito lento convergen, Lilly nombra el período explícitamente: "Estás en una ventana de consolidación profesional. Cierra el 30 jul 2026." |
+| 4 | Ventana de convergencia con nombre ✅ | Implementado Fase 8.14 — `_detectConvergence()` en context-builder.ts, bloque automático en todas las routes. |
 | 5 | Astrología horaria (preguntas puntuales) | Carta del momento exacto de la pregunta. Tradición central de William Lilly. Alta utilidad diaria. |
 | 6 | Línea de tiempo biográfica navegable | El nativo puede explorar su pasado: "¿qué pasaba en 2018 en tu carta?" → Lilly cruza profección + firdaria + tránsitos del período. |
 | 7 | HF × tránsito × fecha | "¿Dónde ir en julio para maximizar esta apertura?" — cruzar HF del dominio activo con tránsitos favorables en ese mes. |
@@ -1277,7 +1321,7 @@ El 25/03/2026, con la memoria ya implementada y tras un diálogo de calibración
 | 4 | Ingreso Solar Mundial | ❌ Pendiente | Carta del ingreso del Sol a Aries para una ciudad o país. Relevante para relocalización: confluencia de HF alto en dominio + Júpiter angular en el Ingreso = señal compuesta. |
 | 5 | Eclipse Maps | ❌ Pendiente | Líneas de eclipse temporales (activas 6m a 2 años) que refuerzan o perturban el HF de una región. Capa temporal sobre el campo escalar geográfico. |
 | 6 | Antiscios | ❌ Pendiente | Grados especulares al eje solsticial Cáncer-Capricornio. Conexiones ocultas entre planetas sin aspecto visible. Relevantes en años de Casa 12 y trabajos subterráneos. Laguna doctrinal real en el motor actual. |
-| 7 | Fases Lunares Natales | ❌ Pendiente | Fase Sol-Luna en la carta natal. La data ya existe en el motor — falta la interpretación de Lilly en el contextBlock. Sin nuevo endpoint requerido. |
+| 7 | Fases Lunares Natales ✅ | Implementado Fase 8.14 — `_natalLunarPhase()` en context-builder.ts, línea tras PLANETAS en contextBlock. Sin endpoint adicional. |
 
 **Nota Lilly**: "Cada una añade una dimensión que el motor actual no tiene. Las más urgentes: Lunaciones (pulso mensual), Tránsitos a la RS (ancla anual de los tránsitos), Fases Lunares Natales (sin costo técnico — la data ya existe)."
 
