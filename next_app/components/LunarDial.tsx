@@ -54,8 +54,24 @@ export function LunarDial({ data, lang }: { data: LunarData; lang: string }) {
 
   const sep = data.phase.separation
   const largeArc = sep > 180 ? 1 : 0
-  // CCW arc (sweepFlag=0) from Sun to Moon = direction of increasing ecliptic longitude
+  // sweepFlag=0 → CCW in SVG coords = direction of increasing ecliptic longitude (levógiro)
   const arcD = `M ${sunPos.x.toFixed(2)} ${sunPos.y.toFixed(2)} A ${r} ${r} 0 ${largeArc} 0 ${moonPos.x.toFixed(2)} ${moonPos.y.toFixed(2)}`
+  const arcCol = phaseArcColor(sep)
+
+  // Illumination fraction: 0 = new moon, 1 = full moon
+  const illum = (1 - Math.cos(sep * Math.PI / 180)) / 2
+
+  // Unit vector from Moon toward Sun (screen space)
+  const dx = sunPos.x - moonPos.x
+  const dy = sunPos.y - moonPos.y
+  const d  = Math.sqrt(dx * dx + dy * dy)
+  const nx = d > 0.001 ? dx / d : 1
+  const ny = d > 0.001 ? dy / d : 0
+
+  // Glow center: slightly inside the Moon circle, toward the Sun
+  const mr = 9.5
+  const glowCx = moonPos.x + nx * mr * 0.55
+  const glowCy = moonPos.y + ny * mr * 0.55
 
   const localPhase = PHASE_NAMES[data.phase.name]?.[lang]
     ?? PHASE_NAMES[data.phase.name]?.en
@@ -64,40 +80,71 @@ export function LunarDial({ data, lang }: { data: LunarData; lang: string }) {
   return (
     <div className="flex flex-col items-center gap-1">
       <svg viewBox="0 0 180 180" width="148" height="148">
+        <defs>
+          {/* Arrow marker for CCW direction on arc */}
+          <marker
+            id="arcArrow"
+            markerWidth="5" markerHeight="5"
+            refX="4" refY="2.5"
+            orient="auto"
+          >
+            <path d="M0,0 L0,5 L5,2.5 z" fill={arcCol} fillOpacity="0.85" />
+          </marker>
+
+          {/* Radial gradient for illuminated limb of Moon */}
+          <radialGradient
+            id="moonIllum"
+            cx={glowCx} cy={glowCy} r={mr * 1.6}
+            gradientUnits="userSpaceOnUse"
+          >
+            <stop offset="0%"   stopColor="rgb(220,228,255)" stopOpacity={0.6 * illum} />
+            <stop offset="55%"  stopColor="rgb(200,210,255)" stopOpacity={0.25 * illum} />
+            <stop offset="100%" stopColor="rgb(0,0,0)"       stopOpacity="0" />
+          </radialGradient>
+        </defs>
+
         {/* Background halo */}
         <circle cx={cx} cy={cy} r={74} fill="rgba(10,10,18,0.7)" stroke="rgba(50,50,70,0.25)" strokeWidth={1} />
 
         {/* Orbit ring */}
         <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(80,80,110,0.3)" strokeWidth={0.75} />
 
-        {/* Phase arc — only when not at exactly new or full */}
-        {sep > 3 && sep < 357 && (
-          <path d={arcD} fill="none" stroke={phaseArcColor(sep)} strokeWidth={2.5} strokeLinecap="round" />
+        {/* Phase arc with directional arrowhead — only when not at degenerate phase */}
+        {sep > 4 && sep < 356 && (
+          <path
+            d={arcD}
+            fill="none"
+            stroke={arcCol}
+            strokeWidth={2.5}
+            strokeLinecap="round"
+            markerEnd="url(#arcArrow)"
+          />
         )}
 
         {/* Center ring */}
         <circle cx={cx} cy={cy} r={15} fill="rgba(10,10,18,0.95)" stroke="rgba(70,70,95,0.4)" strokeWidth={0.75} />
         <text
           x={cx} y={cy + 4}
-          textAnchor="middle"
-          fontSize={9}
-          fill="rgba(160,140,85,0.55)"
-          fontFamily="monospace"
+          textAnchor="middle" fontSize={9}
+          fill="rgba(160,140,85,0.55)" fontFamily="monospace"
         >
           {Math.round(sep)}°
         </text>
 
         {/* Sun */}
-        <circle cx={sunPos.x} cy={sunPos.y} r={9.5}
+        <circle cx={sunPos.x} cy={sunPos.y} r={mr}
           fill="rgba(251,191,36,0.1)" stroke="rgba(251,191,36,0.6)" strokeWidth={1.5} />
         <text x={sunPos.x} y={sunPos.y + 4}
           textAnchor="middle" fontSize={11} fill="rgba(251,191,36,0.9)">
           ☉
         </text>
 
-        {/* Moon */}
-        <circle cx={moonPos.x} cy={moonPos.y} r={9.5}
-          fill="rgba(148,163,184,0.07)" stroke="rgba(148,163,184,0.5)" strokeWidth={1.5} />
+        {/* Moon — base + illuminated glow overlay */}
+        <circle cx={moonPos.x} cy={moonPos.y} r={mr}
+          fill="rgba(148,163,184,0.07)" stroke="rgba(148,163,184,0.45)" strokeWidth={1.5} />
+        {/* Illuminated limb glow (scales with phase) */}
+        <circle cx={moonPos.x} cy={moonPos.y} r={mr}
+          fill="url(#moonIllum)" stroke="none" />
         <text x={moonPos.x} y={moonPos.y + 4}
           textAnchor="middle" fontSize={11} fill="rgba(148,163,184,0.85)">
           ☽

@@ -222,13 +222,17 @@ export function PersianTechniquesTab() {
   // ---------------------------
   const allCycles = Array.isArray(life_cycles?.events) ? life_cycles!.events : [];
   const today = new Date().toISOString().slice(0, 10);
+  // Include events up to 3 months ago — catches active cycles whose exact date just passed
+  const lookbackDate = new Date();
+  lookbackDate.setMonth(lookbackDate.getMonth() - 3);
+  const lookback = lookbackDate.toISOString().slice(0, 10);
   const rawFuture = allCycles
-    .filter((c: any) => c.approx >= today)
+    .filter((c: any) => c.approx >= lookback)
     .sort((a: any, b: any) => a.approx.localeCompare(b.approx));
   const rawPast = allCycles
-    .filter((c: any) => c.approx < today)
+    .filter((c: any) => c.approx < lookback)
     .sort((a: any, b: any) => b.approx.localeCompare(a.approx))
-    .slice(0, 8);
+    .slice(0, 6);
 
   const futureCycles = groupCloseCycles(rawFuture).slice(0, 12);
   const pastCycles = groupCloseCycles(rawPast.slice().reverse()).reverse();
@@ -388,6 +392,7 @@ export function PersianTechniquesTab() {
                   <div className="text-[9px] text-amber-400/40 uppercase tracking-widest mb-1.5">{t.persianCyclesUpcoming}</div>
                   {futureCycles.map((ev: any, idx: number) => {
                     const c = cycleColors(ev.angle);
+                    const isActive = ev.approx < today;
                     return (
                       <button
                         key={`f-${idx}`}
@@ -397,8 +402,11 @@ export function PersianTechniquesTab() {
                         <div className="flex items-center gap-1.5 min-w-0">
                           <span className={`text-[11px] font-medium ${c.planet}`}>{ev.planet}</span>
                           <span className={`text-[9px] px-1 py-px rounded border ${c.badge} ${c.badgeBg}`}>{ev.cycle.replace(ev.planet + " ", "")}</span>
+                          {isActive && (
+                            <span className="text-[8px] px-1 py-px rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">●</span>
+                          )}
                         </div>
-                        <span className="text-[10px] text-slate-500 font-mono shrink-0 ml-1">
+                        <span className={`text-[10px] font-mono shrink-0 ml-1 ${isActive ? "text-emerald-400/60" : "text-slate-500"}`}>
                           {ev.approx.slice(0, 7)}{ev.approxEnd ? `–${ev.approxEnd.slice(2, 7)}` : ""}
                         </span>
                       </button>
