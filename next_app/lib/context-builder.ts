@@ -28,6 +28,46 @@ function _getSign(lon: number): string {
   return _SIGNS[Math.floor(((lon % 360) + 360) % 360 / 30)];
 }
 
+/**
+ * Detecta convergencia temporal: profección + firdaria + tránsito lento activo
+ * cierran en una ventana de 30 días.
+ * Devuelve el bloque de texto para Lilly, o null si no hay convergencia.
+ */
+function _detectConvergence(timeline: BiographicalTimeline): string | null {
+  const activeProf = timeline.profections.find(p => p.is_active);
+  const activeFird = timeline.firdaria.find(f => f.is_active);
+  if (!activeProf || !activeFird) return null;
+
+  const profEnd  = new Date(activeProf.date_end).getTime();
+  const firdEnd  = new Date(activeFird.date_end).getTime();
+  const diff = Math.abs(profEnd - firdEnd) / (1000 * 60 * 60 * 24);
+  if (diff > 30) return null;
+
+  const activeSlowTransits = timeline.transits_window.filter(
+    t => t.is_active && (t.speed_class === "slow" || !t.speed_class)
+  );
+  if (activeSlowTransits.length === 0) return null;
+
+  const windowStart = new Date(Math.min(profEnd, firdEnd)).toISOString().slice(0, 10);
+  const windowEnd   = new Date(Math.max(profEnd, firdEnd)).toISOString().slice(0, 10);
+  const transitDesc = activeSlowTransits
+    .slice(0, 2)
+    .map(t => `${t.transit_planet} ${t.aspect} ${t.natal_planet}`)
+    .join(", ");
+
+  const activeIdx = timeline.profections.findIndex(p => p.is_active);
+  const nextProf  = timeline.profections[activeIdx + 1];
+  const nextHouse = nextProf ? `Casa ${nextProf.house}` : "nueva casa";
+
+  const lines = [
+    "VENTANA DE CONVERGENCIA",
+    `${windowStart} — ${windowEnd}`,
+    `Cambio de profección a ${nextHouse} · Cierre Firdaria ${activeFird.minor_planet}/${activeFird.major_planet} · ${transitDesc}`,
+    "Tres técnicas convergen en este período.",
+  ];
+  return lines.join("\n");
+}
+
 function _getDegInSign(lon: number): number {
   return ((lon % 360) + 360) % 360 % 30;
 }
@@ -415,6 +455,13 @@ export function assembleContextBlock(
         `- ${t.transit_planet} ${t.aspect} ${t.natal_planet} natal [exacto: ${t.exact_date}]${active}`
       );
     }
+    lines.push("");
+  }
+
+  // Ventana de convergencia (si aplica)
+  const convergence = _detectConvergence(timeline);
+  if (convergence) {
+    lines.push(convergence);
     lines.push("");
   }
 
