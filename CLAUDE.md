@@ -79,6 +79,20 @@ La pestaña Tránsitos fue reemplazada por un Gantt interactivo. Los datos viene
 
 ---
 
+### Fixes UI + Dark Theme — sesión 2026-03-26
+
+**Formulario Home — dark theme** (commit `4b7ad6c`)
+- `birth-data-panel.tsx`: todos los inputs de `bg-white` a `bg-slate-800/60`, texto `text-slate-100`, bordes `border-slate-700/60`, foco en amber tenue
+- Inputs disabled: `bg-gray-200` → `bg-slate-700/30 text-slate-400`
+- Form container: `bg-card/border-gray-100` → `bg-slate-900/60/border-slate-700/40`
+- Labels: `text-gray-700` → `text-slate-300`; hints: `text-gray-500` → `text-slate-500`
+- Badge “recordado”: `bg-amber-100/text-amber-700` → `bg-amber-500/15/text-amber-400`
+- Proyección futura: `bg-amber-50/border-amber-100` → `bg-amber-500/5/border-amber-500/20`
+- Error block: `bg-red-50/text-red-700` → `bg-red-900/20/text-red-400`
+- `city-autocomplete.tsx`: input + dropdown + items migrados al mismo dark theme
+
+---
+
 ### ⚠️ PENDIENTE DE DEPLOY A PRODUCCIÓN (commit `8092fdf` + sesión 2026-03-22)
 
 **No deployar parcialmente. Deploy conjunto cuando E2E pass esté completo.**
@@ -643,40 +657,47 @@ ADC no funciona en dev local sin SA key explícita.
 
 ---
 
-### Fase 8.13 — CIELO HOY (tab de cielo actual + tránsitos rápidos) `[PENDIENTE]`
+### Fase 8.13 — CIELO HOY — backend + Gantt planetas rápidos `[PARCIALMENTE COMPLETA — sesión 2026-03-26]`
 
 **Visión**: pestaña nueva "CIELO HOY" que muestra la configuración planetaria del momento actual — Luna, Mercurio, Venus, Marte — y cómo interactúan con la carta natal del nativo. Lilly interpreta el cielo del día como astrólogo personal diario.
 
-**Decisiones de diseño (sesión 2026-03-25):**
-- Sistema tropical (no védico) — ASTRONOS de Bolt es referencia UI, pero adaptar a:
-  - Fase lunar (porcentaje de iluminación + emoji emoji visual)
-  - Signo lunar actual
-  - Aspecto Luna–Sol más cercano
-  - Tránsitos activos de Luna/Mercurio/Venus/Marte sobre planetas natales (orbe ≤1°–2°)
-- Trigger Lilly: `sky_open` event al entrar al tab → Lilly lee el cielo del día en contexto natal
-- Dignidades de planetas en tránsito incluidas en contextBlock
+**Backend ✅ COMPLETO (sesión 2026-03-26):**
 
-**Especificación técnica Abu Engine:**
-1. **Fix urgente** — `forecast_timeseries()` en `abu_engine/core/forecast.py` tiene `natal_positions` hardcodeadas (`{"sun": 103.2, "moon": 45.8}`). Deben pasarse como parámetro real desde la carta natal.
-2. **`filter_fast_transits()`** — nueva función en `abu_engine/core/transits.py`:
-   - Luna: orbe ≤ 1° (movimiento rápido)
-   - Mercurio/Venus/Mars: orbe ≤ 2°
-   - Devuelve aspectos activos de planetas rápidos sobre todos los planetas natales
-3. **Nuevo endpoint** `GET /api/astro/lunar?birthDate&lat&lon&currentDate`:
-   - Posición Luna actual + fase + signo
-   - Aspectos Luna–planetas natales activos
-   - Posiciones Mercurio/Venus/Marte + aspectos sobre natales
-   - Dignidades de los planetas en tránsito
+**Fix 1** ✅ — `forecast_timeseries()` natal_positions hardcodeadas (commit `1046cdc`)
+- `natal_positions: dict | None = None` como parámetro; si `None` → `get_planet_positions(birth_dt, lat, lon)`
+- Aspecto loop manual reemplazado por `calculate_transits()` con orbes 6° (elimina duplicación)
+- Caller en `main.py` ahora computa `_natal = _get_natal_pos(birth_dt, lat, lon)` y lo pasa
 
-**Especificación técnica Frontend:**
-- `components/transits-tab.tsx` — agregar toggle "Lentos / Rápidos" al filtro existente
-- `components/cielo-hoy-tab.tsx` — nueva pestaña adaptada de ASTRONOS (Bolt):
-  - Luna con emoji fase visual + porcentaje + signo
-  - Tránsitos activos rápidos como tarjetas clickeables
-  - Botón principal "Lilly lee el cielo de hoy"
+**Fix 2** ✅ — Tres scanners en `/api/astro/biography` (commit `cb02c37`)
+- `_BIO_FAST_BODIES`: Sol/Mercurio/Venus/Marte (step=1d, ventana=3m, orbe=2°)
+- `_BIO_LUNAR_BODY`: Luna (step=1d, ventana=7d, orbe=1°)
+- `_BIO_ALL_BODIES`: unión de slow+fast+lunar → helpers usan el dict unificado
+- `_bio_run_scanner()` extraído como helper de módulo — llamado 3 veces con distintos params
+- Campo `speed_class: "slow" | "fast" | "lunar"` en cada objeto de `transits_window`
+- `filter_fast_transits()` nueva función en `transits.py`
+- Verificado: slow=59, fast=183, lunar=8 en response de biography
+
+**Fix 3** ✅ — `GET /api/astro/lunar` (commit `98b2b39`)
+- `abu_engine/core/lunar.py` nuevo módulo: `calculate_lunar_data(birth_dt, lat, lon, query_dt?)`
+- Devuelve: sol/luna (lon/signo/grado), fase (separación/nombre/%), aspecto Sol-Luna, next_new_moon, next_full_moon
+- `sun_moon_aspect` via `calculate_transits()` (no duplicación de lógica)
+- Fix `_find_next_lunation(target=0.0)`: false zero crossing en elongación=180° corregido (commit `8be134f`)
+  - Para target=0 con elongación < 180°, avanza jd inicial hasta pasar los 180° a 13.18°/día
+  - Verificado: New Moon→2026-04-17 Aries, Full Moon→2026-04-02 Libra ✅
+
+**Gantt Tránsitos ✅ COMPLETO (sesión 2026-03-26, commit `8be134f`):**
+- `SPEED_CLASSES_BY_WINDOW`: >6m→slow; ≤6m→slow+fast; ≤0.5m→slow+fast+lunar
+- Botón `±1s` (1 semana) agregado a los botones de ventana
+- `visibleTransits` filtra por `activeSpeedClasses` (fallback `"slow"` para objetos sin campo)
+- `speed_class?: string` agregado al tipo `BiographicalTimeline.transits_window`
+- Footer y contador dinámicos según clases activas
+
+**Pendiente (Frontend CIELO HOY):**
+- `components/cielo-hoy-tab.tsx` — nueva pestaña: fase lunar visual + tarjetas tránsitos rápidos + botón "Lilly lee el cielo de hoy"
 - Route `app/api/lilly/sky/route.ts` — evento `sky_open`
+- Trigger Lilly: `sky_open` al entrar al tab
 
-**Nota arquitectónica**: `filter_major_transits()` en `transits.py` excluye explícitamente Luna/Mercurio/Venus/Marte — se necesita `filter_fast_transits()` paralela, no modificar la existente.
+**Nota arquitectónica**: `filter_major_transits()` en `transits.py` excluye explícitamente Luna/Mercurio/Venus/Marte — `filter_fast_transits()` es la función paralela, no modificar la existente.
 
 ---
 
@@ -1234,7 +1255,7 @@ El 25/03/2026, con la memoria ya implementada y tras un diálogo de calibración
 
 | Prioridad | Feature | Descripción técnica |
 |---|---|---|
-| 1 | CIELO HOY — tránsitos rápidos diarios | Luna, Mercurio, Venus, Marte contra carta natal. Fase lunar, signo lunar, aspecto activo. Lilly lee el cielo del día. Trigger: `sky_open`. **PENDIENTE — Fase 8.13** |
+| 1 | CIELO HOY — tránsitos rápidos diarios | Backend completo (3 scanners + /api/astro/lunar + Gantt filtro speed_class). Pendiente: frontend cielo-hoy-tab.tsx + route sky_open. **PARCIAL — Fase 8.13** |
 | 2 | Dignidades de planetas en tránsito | Incluir dignidad del planeta transitante en el contextBlock. Un tránsito de Venus en exaltación no es lo mismo que Venus en detrimento. Impacto inmediato sin nuevo endpoint. |
 | 3 | Retroalimentación biográfica | El nativo confirma o niega eventos → registro en `lilly_exchanges` con `event_type: "feedback"`. Permite calibración individual del motor HF. |
 | 4 | Ventana de convergencia con nombre | Cuando profección + firdaria + tránsito lento convergen, Lilly nombra el período explícitamente: "Estás en una ventana de consolidación profesional. Cierra el 30 jul 2026." |
@@ -1251,7 +1272,7 @@ El 25/03/2026, con la memoria ya implementada y tras un diálogo de calibración
 | # | Técnica | Estado | Descripción |
 |---|---|---|---|
 | 1 | Revolución Solar | ✅ Implementada — Fase 8 | Carta del retorno solar anual. Endpoint `/api/astro/solar-return`, SR map, Lilly route. |
-| 2 | Lunaciones sobre carta natal | ⚙️ En progreso — Fase 8.13 | Luna nueva y llena sobre grados natales sensibles. Base: endpoint `/api/astro/lunar` (Paso 4 sesión actual). El pulso mensual del año. |
+| 2 | Lunaciones sobre carta natal | ✅ Backend implementado — Fase 8.13 | Luna nueva y llena sobre grados natales sensibles. Base: endpoint `/api/astro/lunar` (Paso 4 sesión actual). El pulso mensual del año. |
 | 3 | Tránsitos a la Revolución Solar | ❌ Pendiente | Los tránsitos actúan también sobre la carta de la RS vigente, no solo sobre la natal. Capa que conecta el ciclo anual con el movimiento diario. |
 | 4 | Ingreso Solar Mundial | ❌ Pendiente | Carta del ingreso del Sol a Aries para una ciudad o país. Relevante para relocalización: confluencia de HF alto en dominio + Júpiter angular en el Ingreso = señal compuesta. |
 | 5 | Eclipse Maps | ❌ Pendiente | Líneas de eclipse temporales (activas 6m a 2 años) que refuerzan o perturban el HF de una región. Capa temporal sobre el campo escalar geográfico. |
