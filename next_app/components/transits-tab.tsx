@@ -29,6 +29,27 @@ const PLANET_SYMBOLS: Record<string, string> = {
   "North Node":"☊", "South Node":"☋", ASC:"AC", MC:"MC",
 };
 
+const PLANET_LABELS: Record<string, Record<string, string>> = {
+  Sun:      { es:"Sol",      en:"Sun",      pt:"Sol",      fr:"Soleil"  },
+  Moon:     { es:"Luna",     en:"Moon",     pt:"Lua",      fr:"Lune"    },
+  Mercury:  { es:"Mercurio", en:"Mercury",  pt:"Mercúrio", fr:"Mercure" },
+  Venus:    { es:"Venus",    en:"Venus",    pt:"Vênus",    fr:"Vénus"   },
+  Mars:     { es:"Marte",    en:"Mars",     pt:"Marte",    fr:"Mars"    },
+  Jupiter:  { es:"Júpiter",  en:"Jupiter",  pt:"Júpiter",  fr:"Jupiter" },
+  Saturn:   { es:"Saturno",  en:"Saturn",   pt:"Saturno",  fr:"Saturne" },
+  Uranus:   { es:"Urano",    en:"Uranus",   pt:"Urano",    fr:"Uranus"  },
+  Neptune:  { es:"Neptuno",  en:"Neptune",  pt:"Netuno",   fr:"Neptune" },
+  Pluto:    { es:"Plutón",   en:"Pluto",    pt:"Plutão",   fr:"Pluton"  },
+  ASC:      { es:"ASC",      en:"ASC",      pt:"ASC",      fr:"ASC"     },
+  MC:       { es:"MC",       en:"MC",       pt:"MC",       fr:"MC"      },
+  "North Node": { es:"N.Node", en:"N.Node", pt:"N.Node",   fr:"N.Nœud" },
+  "South Node": { es:"S.Node", en:"S.Node", pt:"S.Node",   fr:"N.Desc" },
+};
+
+function planetLabel(name: string, lang: string): string {
+  return PLANET_LABELS[name]?.[lang] ?? PLANET_LABELS[name]?.["en"] ?? name;
+}
+
 const PLANET_ORDER = ["Pluto","Neptune","Uranus","Saturn","Jupiter","Mars","Sun","Venus","Mercury","Moon"];
 const MONTHS_ES    = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
 
@@ -360,16 +381,24 @@ export function TransitsTab() {
                     <div key={rowId} className="flex items-center h-8">
 
                       {/* Label column */}
-                      <div className="w-[90px] shrink-0 px-2 flex items-center gap-1 z-10">
-                        {i === 0 ? (
-                          <span className="text-amber-400 font-semibold">{sym}</span>
-                        ) : (
-                          <span className="w-[14px]" />
-                        )}
-                        <span className="ml-auto flex items-center gap-0.5 text-slate-400">
-                          <span>{natSym}</span>
+                      <div className="w-[150px] shrink-0 px-2 flex items-center justify-between gap-1 z-10">
+                        {/* Transit planet: symbol + name — first row of group only */}
+                        <div className="flex items-center gap-1 w-[68px] shrink-0 overflow-hidden">
+                          {i === 0 ? (
+                            <>
+                              <span className="text-amber-400 font-semibold shrink-0">{sym}</span>
+                              <span className="text-[10px] text-amber-400/55 truncate">{planetLabel(planet, lang)}</span>
+                            </>
+                          ) : (
+                            <span className="w-full" />
+                          )}
+                        </div>
+                        {/* Natal planet: symbol + abbreviated name + aspect symbol */}
+                        <div className="flex items-center gap-0.5 text-slate-400 shrink-0">
+                          <span className="text-[11px]">{natSym}</span>
+                          <span className="text-[9px] text-slate-500 max-w-[30px] truncate">{planetLabel(t.natal_planet, lang)}</span>
                           <span className={`opacity-80 ${meta.color}`}>{meta.symbol}</span>
-                        </span>
+                        </div>
                       </div>
 
                       {/* Bar area */}
