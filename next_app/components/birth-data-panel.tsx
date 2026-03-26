@@ -116,23 +116,23 @@ export default function BirthDataPanel() {
   }
 
   const inputClasses =
-    "w-full bg-white text-gray-950 border border-gray-300 rounded-md px-3 py-2 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all";
+    "w-full bg-slate-800/60 text-slate-100 border border-slate-700/60 rounded-md px-3 py-2 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-amber-500/60 focus:border-amber-500/50 transition-all";
   const disabledInputClasses =
-    "w-full bg-gray-200 text-gray-900 border border-gray-300 rounded-md px-3 py-2 font-medium cursor-not-allowed";
+    "w-full bg-slate-700/30 text-slate-400 border border-slate-700/40 rounded-md px-3 py-2 font-medium cursor-not-allowed";
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-6 bg-card p-6 rounded-xl shadow-md border border-gray-100"
+      className="space-y-6 bg-slate-900/60 p-6 rounded-xl shadow-md border border-slate-700/40"
     >
       {/* NOMBRE */}
       <div className="space-y-1">
         <div className="flex items-center gap-2">
-          <label className="block text-sm font-semibold text-gray-700">
+          <label className="block text-sm font-semibold text-slate-300">
             Tu nombre
           </label>
           {userName && (
-            <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">
+            <span className="text-xs bg-amber-500/15 text-amber-400 px-2 py-0.5 rounded-full font-medium">
               recordado
             </span>
           )}
@@ -145,7 +145,7 @@ export default function BirthDataPanel() {
           onChange={(e) => setNameInput(e.target.value)}
           autoComplete="given-name"
         />
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-slate-500">
           Abu recordará tu nombre entre sesiones.
         </p>
       </div>
@@ -153,7 +153,7 @@ export default function BirthDataPanel() {
       {/* FECHA + HUSO HORARIO */}
       <div className="space-y-3">
         <div className="space-y-1">
-          <label className="block text-sm font-semibold text-gray-700">
+          <label className="block text-sm font-semibold text-slate-300">
             Fecha y hora de nacimiento <span className="text-xs font-normal text-gray-500">(hora local)</span>
           </label>
           <input
@@ -166,7 +166,7 @@ export default function BirthDataPanel() {
         </div>
 
         <div className="space-y-1">
-          <label className="block text-sm font-semibold text-gray-700">
+          <label className="block text-sm font-semibold text-slate-300">
             Huso horario (UTC offset)
           </label>
           <div className="flex items-center gap-3">
@@ -179,12 +179,12 @@ export default function BirthDataPanel() {
               value={utcOffset}
               onChange={(e) => setUtcOffset(parseFloat(e.target.value))}
             />
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-slate-500">
               {utcOffset >= 0 ? `UTC+${utcOffset}` : `UTC${utcOffset}`}
               {" · "} Ej: Argentina = −3, España = +1, NYC = −5
             </span>
           </div>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-slate-500">
             Usá el huso horario del lugar de nacimiento en el momento del evento.
           </p>
         </div>
@@ -210,13 +210,13 @@ export default function BirthDataPanel() {
       {/* LAT/LON NACIMIENTO */}
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1">
-          <label className="block text-sm font-medium text-gray-600">
+          <label className="block text-sm font-medium text-slate-400">
             Latitud natal
           </label>
           <input type="number" step="0.0001" className={disabledInputClasses} value={birthLat} disabled />
         </div>
         <div className="space-y-1">
-          <label className="block text-sm font-medium text-gray-600">
+          <label className="block text-sm font-medium text-slate-400">
             Longitud natal
           </label>
           <input type="number" step="0.0001" className={disabledInputClasses} value={birthLon} disabled />
@@ -234,13 +234,13 @@ export default function BirthDataPanel() {
             setResidenceLon(String(lon));
           }}
         />
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-slate-500">
           Se usa para calcular tus tránsitos actuales. Por defecto igual a ciudad natal.
         </p>
       </div>
 
       {/* PROYECCIÓN FUTURA — toggle */}
-      <div className="border-t border-gray-200 pt-4">
+      <div className="border-t border-slate-700/40 pt-4">
         <button
           type="button"
           onClick={() => setShowFuture((v) => !v)}
@@ -254,7 +254,7 @@ export default function BirthDataPanel() {
         </p>
 
         {showFuture && (
-          <div className="mt-4 space-y-4 p-4 bg-amber-50 rounded-lg border border-amber-100">
+          <div className="mt-4 space-y-4 p-4 bg-amber-500/5 rounded-lg border border-amber-500/20">
             <CityAutocomplete
               label="Ciudad objetivo"
               placeholder="¿A dónde querés mudarte?"
@@ -266,7 +266,7 @@ export default function BirthDataPanel() {
             />
 
             <div className="space-y-1">
-              <label className="block text-sm font-semibold text-gray-700">
+              <label className="block text-sm font-semibold text-slate-300">
                 Fecha objetivo
               </label>
               <input
@@ -275,7 +275,7 @@ export default function BirthDataPanel() {
                 value={futureDate}
                 onChange={(e) => setFutureDate(e.target.value)}
               />
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-slate-500">
                 Fecha para la que querés calcular el HF transitorio en esa ciudad.
               </p>
             </div>
@@ -284,8 +284,8 @@ export default function BirthDataPanel() {
       </div>
 
       {localError && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-          <p className="text-red-700 text-sm font-medium flex items-center gap-2">
+        <div className="p-3 bg-red-900/20 border border-red-500/30 rounded-md">
+          <p className="text-red-400 text-sm font-medium flex items-center gap-2">
             ⚠️ {localError}
           </p>
         </div>

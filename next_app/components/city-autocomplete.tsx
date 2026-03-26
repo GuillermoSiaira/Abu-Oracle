@@ -76,12 +76,12 @@ export default function CityAutocomplete({ onSelect, label = "Ciudad", placehold
 
   return (
     <div ref={containerRef} className="relative space-y-1">
-      <label className="block text-sm font-semibold text-gray-700">{label}</label>
+      <label className="block text-sm font-semibold text-slate-300">{label}</label>
 
       <input
         type="text"
         placeholder={placeholder}
-        className="w-full bg-white text-gray-950 border border-gray-300 rounded-md px-3 py-2 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
+        className="w-full bg-slate-800/60 text-slate-100 border border-slate-700/60 rounded-md px-3 py-2 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-amber-500/60 focus:border-amber-500/50 transition-all"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         onFocus={() => {
@@ -90,11 +90,11 @@ export default function CityAutocomplete({ onSelect, label = "Ciudad", placehold
       />
 
       {showList && results.length > 0 && (
-        <ul className="absolute w-full bg-white border border-gray-200 rounded-md shadow-xl z-50 max-h-48 overflow-y-auto mt-1">
+        <ul className="absolute w-full bg-slate-800 border border-slate-700/60 rounded-md shadow-xl z-50 max-h-48 overflow-y-auto mt-1">
           {results.map((c, i) => (
             <li
               key={i}
-              className="px-3 py-2 cursor-pointer text-gray-900 hover:bg-amber-50 transition-colors"
+              className="px-3 py-2 cursor-pointer text-slate-200 hover:bg-amber-500/10 hover:text-amber-300 transition-colors"
               onClick={() => handleSelect(c)}
             >
               {c.city}, {c.country}
