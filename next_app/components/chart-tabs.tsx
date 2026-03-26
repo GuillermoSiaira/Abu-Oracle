@@ -12,11 +12,10 @@ import { PersianTechniquesTab } from './persian-techniques-tab'
 import { TransitsTab } from './transits-tab'
 import { RelocationTab } from './relocation-tab'
 import { useAppStore } from '@/lib/store'
-import { UI, LANG_OPTIONS } from '@/lib/i18n'
-import { Languages } from 'lucide-react'
+import { UI } from '@/lib/i18n'
 
 export function ChartTabs() {
-  const { abuData, includeTransits, lang, setLang } = useAppStore()
+  const { abuData, includeTransits, lang } = useAppStore()
   const t = UI[lang]
 
   if (!abuData) {
@@ -41,21 +40,6 @@ export function ChartTabs() {
           <TabsTrigger value="relocation">{t.tabRelocation}</TabsTrigger>
         </TabsList>
 
-        {/* Language selector */}
-        <div className="relative shrink-0">
-          <select
-            value={lang}
-            onChange={(e) => setLang(e.target.value as typeof lang)}
-            className="appearance-none bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-lg pl-2 pr-6 py-2 focus:outline-none focus:border-amber-500/50 cursor-pointer"
-          >
-            {LANG_OPTIONS.map((l) => (
-              <option key={l.code} value={l.code}>
-                {l.flag} {l.label}
-              </option>
-            ))}
-          </select>
-          <Languages className="w-3 h-3 text-slate-400 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-        </div>
       </div>
 
       <TabsContent value="chart" className="space-y-4">
