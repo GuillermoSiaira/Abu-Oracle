@@ -242,7 +242,7 @@ export function TransitsTab() {
 
         {/* ── Firdaria overlay — z:-1 keeps it behind rows but above container bg ── */}
         <div className="absolute inset-0 flex pointer-events-none overflow-hidden" style={{ zIndex: -1 }}>
-          <div className="w-[90px] shrink-0" />
+          <div className="w-[150px] shrink-0" />
           <div className="flex-1 relative" ref={barAreaRef}>
             {/* Major bands */}
             {majorPeriods.map((m) => {
@@ -323,7 +323,7 @@ export function TransitsTab() {
           className="flex shrink-0 border-b border-slate-700/40 bg-slate-900/60 rounded-t-xl"
           style={{ height: 56, position: "relative", zIndex: 10 }}
         >
-          <div className="w-[90px] shrink-0" />
+          <div className="w-[150px] shrink-0" />
           <div className="flex-1 relative">
             {monthLabels.map((l, i) => (
               <span
