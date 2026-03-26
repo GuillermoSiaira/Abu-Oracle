@@ -10,7 +10,7 @@ from contextlib import asynccontextmanager
 import requests
 import json
 from pathlib import Path
-from core.forecast import forecast_for_locations, forecast_timeseries, detect_peaks
+from core.forecast import forecast_for_locations, forecast_timeseries, detect_peaks, get_planet_positions as _get_natal_pos
 from core.life_cycles import forecast_life_cycles
 from core.chart import chart_json, ChartDTO, solar_return_chart, EphemerisSingleton
 from core.extended_calc import (
@@ -422,7 +422,9 @@ def forecast_timeseries_endpoint(
         end_dt = datetime.fromisoformat(end.replace("Z", "+00:00"))
     except Exception:
         raise HTTPException(status_code=422, detail="Invalid date format")
-    result = forecast_timeseries(birth_dt, lat, lon, start_dt, end_dt, step, horizon)
+    _natal = _get_natal_pos(birth_dt, lat, lon)
+    result = forecast_timeseries(birth_dt, lat, lon, start_dt, end_dt, step, horizon,
+                                  natal_positions=_natal)
     return result
 
 @app.get(

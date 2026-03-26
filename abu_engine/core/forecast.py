@@ -2,6 +2,7 @@
 
 from core.coords import get_planet_positions
 from core.aspects import aspect_between
+from core.transits import calculate_transits as _calc_transits
 from core.scoring import compute_score
 from datetime import datetime, timedelta
 from typing import List, Dict, Any
@@ -73,7 +74,7 @@ def get_planet_positions(date_utc, lat, lon):
 
 
 def forecast_for_locations(date_utc, lat, lon):
-    natal_positions = {"sun": 103.2, "moon": 45.8}
+    natal_positions = {"sun": 103.2, "moon": 45.8}  # TODO: fix natal_positions — requiere birth_dt como parámetro adicional
     current_positions = get_planet_positions(date_utc, lat, lon)
     aspects = []
     for natal_name, natal_lon in natal_positions.items():
@@ -89,7 +90,8 @@ def forecast_for_locations(date_utc, lat, lon):
 _MAX_FORECAST_DAYS = 90
 
 
-def forecast_timeseries(birth_dt, lat, lon, start_dt, end_dt, step='1d', horizon='year'):
+def forecast_timeseries(birth_dt, lat, lon, start_dt, end_dt, step='1d', horizon='year',
+                        natal_positions: dict | None = None):
     """
     Calcula F(t) cada step usando posiciones vectorizadas (batch skyfield).
     Rango máximo: _MAX_FORECAST_DAYS días para evitar timeout.
@@ -114,7 +116,8 @@ def forecast_timeseries(birth_dt, lat, lon, start_dt, end_dt, step='1d', horizon
     if not times:
         return {"timeseries": [], "peaks": []}
 
-    natal_positions = {"sun": 103.2, "moon": 45.8}  # Simulación — sustituir con posiciones reales del birth_dt
+    if natal_positions is None:
+        natal_positions = get_planet_positions(birth_dt, lat, lon)
 
     # Vectorized batch computation — one skyfield call per planet across all dates
     all_positions = get_planet_positions_batch(times, lat, lon)
@@ -122,12 +125,12 @@ def forecast_timeseries(birth_dt, lat, lon, start_dt, end_dt, step='1d', horizon
     series = []
     for i, t in enumerate(times):
         current_positions = all_positions[i]
-        aspects = []
-        for natal_name, natal_lon in natal_positions.items():
-            for planet, lon_val in current_positions.items():
-                asp, diff = aspect_between(lon_val, natal_lon, orb=6)
-                if asp:
-                    aspects.append({"planet": planet, "type": asp, "to": natal_name, "orb_deg": diff})
+        natal_list   = [{"name": k, "longitude": v} for k, v in natal_positions.items()]
+        transit_list = [{"name": k, "longitude": v, "speed": 0} for k, v in current_positions.items()]
+        _custom_orbs = {asp: 6.0 for asp in ["conjunction", "sextile", "square", "trine", "opposition"]}
+        raw_transits = _calc_transits(natal_list, transit_list, orbs=_custom_orbs)
+        aspects = [{"planet": t["transit_planet"], "type": t["aspect"],
+                    "to": t["natal_planet"], "orb_deg": t["orb"]} for t in raw_transits]
         score = compute_score(aspects)
         series.append({"t": t.strftime("%Y-%m-%d"), "F": round(score, 4)})
 
