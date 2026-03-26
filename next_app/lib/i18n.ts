@@ -71,6 +71,14 @@ export const UI: Record<Lang, {
   persianLotFortuna: string;
   persianLotSpirit: string;
   persianLotLord: string;
+  persianCyclesUpcoming: string;
+  persianCyclesRecent: string;
+  persianTooltipSect: string;
+  persianTooltipProfection: string;
+  persianTooltipFirdaria: string;
+  persianTooltipLots: string;
+  persianTooltipLunar: string;
+  persianTooltipCycles: string;
   // Relocation shared
   relTitle: string;
   relSubtitle: string;
@@ -217,6 +225,14 @@ export const UI: Record<Lang, {
     persianLotFortuna: "Parte de Fortuna",
     persianLotSpirit: "Parte del Espíritu",
     persianLotLord: "Señor",
+    persianCyclesUpcoming: "Próximos",
+    persianCyclesRecent: "Recientes",
+    persianTooltipSect: "La carta es diurna si el Sol está sobre el horizonte al nacer, nocturna si está bajo él. Define qué planetas benéficos y maléficos actúan con más fuerza.",
+    persianTooltipProfection: "Técnica helenística que activa una casa distinta cada año de vida. La casa activa y su señor gobiernan los temas del año.",
+    persianTooltipFirdaria: "Sistema persa de períodos planetarios. Cada planeta gobierna un período de años con su propia calidad e intensidad.",
+    persianTooltipLots: "Puntos matemáticos calculados desde las posiciones de Sol, Luna y ASC. Revelan áreas específicas de la vida.",
+    persianTooltipLunar: "Posición actual de la Luna y sus aspectos a la carta natal. El pulso diario del campo.",
+    persianTooltipCycles: "Retornos y oposiciones de planetas lentos — momentos de cierre y apertura de ciclos de largo plazo.",
   },
   en: {
     tabChart: "Birth Chart",
@@ -317,6 +333,14 @@ export const UI: Record<Lang, {
     persianLotFortuna: "Part of Fortune",
     persianLotSpirit: "Part of Spirit",
     persianLotLord: "Lord",
+    persianCyclesUpcoming: "Upcoming",
+    persianCyclesRecent: "Recent",
+    persianTooltipSect: "The chart is diurnal if the Sun is above the horizon at birth, nocturnal if below. Defines which benefic and malefic planets act with greater force.",
+    persianTooltipProfection: "Hellenistic technique that activates a different house each year of life. The active house and its lord govern the themes of the year.",
+    persianTooltipFirdaria: "Persian system of planetary periods. Each planet governs a period of years with its own quality and intensity.",
+    persianTooltipLots: "Mathematical points calculated from the positions of Sun, Moon and ASC. Reveal specific areas of life.",
+    persianTooltipLunar: "Current Moon position and its aspects to the natal chart. The daily pulse of the field.",
+    persianTooltipCycles: "Returns and oppositions of slow planets — moments of closure and opening of long-term cycles.",
   },
   pt: {
     tabChart: "Carta Natal",
@@ -417,6 +441,14 @@ export const UI: Record<Lang, {
     persianLotFortuna: "Parte da Fortuna",
     persianLotSpirit: "Parte do Espírito",
     persianLotLord: "Senhor",
+    persianCyclesUpcoming: "Próximos",
+    persianCyclesRecent: "Recentes",
+    persianTooltipSect: "O tema é diurno se o Sol está acima do horizonte no nascimento, noturno se está abaixo. Define quais planetas benéficos e maléficos atuam com mais força.",
+    persianTooltipProfection: "Técnica helenística que ativa uma casa diferente a cada ano de vida. A casa ativa e seu senhor governam os temas do ano.",
+    persianTooltipFirdaria: "Sistema persa de períodos planetários. Cada planeta governa um período de anos com sua própria qualidade e intensidade.",
+    persianTooltipLots: "Pontos matemáticos calculados a partir das posições do Sol, Lua e ASC. Revelam áreas específicas da vida.",
+    persianTooltipLunar: "Posição atual da Lua e seus aspectos com a carta natal. O pulso diário do campo.",
+    persianTooltipCycles: "Retornos e oposições de planetas lentos — momentos de fechamento e abertura de ciclos de longo prazo.",
   },
   fr: {
     tabChart: "Thème Natal",
@@ -517,6 +549,14 @@ export const UI: Record<Lang, {
     persianLotFortuna: "Partie de Fortune",
     persianLotSpirit: "Partie de l'Esprit",
     persianLotLord: "Seigneur",
+    persianCyclesUpcoming: "À venir",
+    persianCyclesRecent: "Récents",
+    persianTooltipSect: "Le thème est diurne si le Soleil est au-dessus de l'horizon à la naissance, nocturne si en dessous. Définit quels planètes bénéfiques et maléfiques agissent avec plus de force.",
+    persianTooltipProfection: "Technique hellénistique activant une maison différente chaque année de vie. La maison active et son seigneur gouvernent les thèmes de l'année.",
+    persianTooltipFirdaria: "Système perse de périodes planétaires. Chaque planète gouverne une période d'années avec sa propre qualité et intensité.",
+    persianTooltipLots: "Points mathématiques calculés depuis les positions du Soleil, de la Lune et de l'ASC. Révèlent des domaines spécifiques de la vie.",
+    persianTooltipLunar: "Position actuelle de la Lune et ses aspects avec le thème natal. Le pouls quotidien du champ.",
+    persianTooltipCycles: "Retours et oppositions des planètes lentes — moments de fermeture et d'ouverture de cycles à long terme.",
   },
 };
 
