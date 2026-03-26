@@ -75,6 +75,12 @@ const SIGN_NAMES_ES: Record<string, string> = {
   Sagittarius: 'SAGIT', Capricorn: 'CAPRIC', Aquarius: 'ACUARIO', Pisces: 'PISCIS',
 };
 
+// Orden fijo del zodíaco — Aries siempre en 0°, no cambia con orientación ni casas
+const ZODIAC_ORDER = [
+  'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
+  'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces',
+];
+
 const PLANET_SYMBOLS: Record<string, string> = {
   Sun: "☉",
   Moon: "☽",
@@ -267,20 +273,18 @@ export function ZodiacWheel({
           opacity="0.8"
         />
 
-        {/* SIGNOS — derivados de cúspides reales */}
-        {houseCusps.map((h, i) => {
-          const nextCusp = houseCusps[(i + 1) % 12]?.cusp ?? h.cusp + 30;
-          const span = ((nextCusp - h.cusp + 360) % 360);
-          const midAngle = h.cusp + span / 2;
+        {/* SIGNOS — anillo fijo: Aries=0°, Tauro=30°, ... siempre */}
+        {ZODIAC_ORDER.map((signName, i) => {
+          const startAngle = i * 30;
+          const midAngle   = startAngle + 15;
 
-          const divStart = polarToCartesian(h.cusp, outerRadius);
-          const divEnd   = polarToCartesian(h.cusp, houseRadius);
-
+          const divStart  = polarToCartesian(startAngle, outerRadius);
+          const divEnd    = polarToCartesian(startAngle, houseRadius);
           const symbolPos = polarToCartesian(midAngle, (outerRadius + houseRadius) / 2);
           const namePos   = polarToCartesian(midAngle, houseRadius - 20);
 
           return (
-            <g key={`sign-${h.number}`}>
+            <g key={`sign-${signName}`}>
               <line
                 x1={divStart.x} y1={divStart.y}
                 x2={divEnd.x}   y2={divEnd.y}
@@ -292,14 +296,14 @@ export function ZodiacWheel({
                 fill="#D4AF37" fontSize="28" fontWeight="bold"
                 filter="url(#glow)"
               >
-                {SIGN_SYMBOLS[h.sign] ?? '?'}
+                {SIGN_SYMBOLS[signName] ?? '?'}
               </text>
               <text
                 x={namePos.x} y={namePos.y}
                 textAnchor="middle" dominantBaseline="middle"
                 fill="#D4AF37" fontSize="10" opacity="0.7"
               >
-                {SIGN_NAMES_ES[h.sign] ?? h.sign.toUpperCase()}
+                {SIGN_NAMES_ES[signName] ?? signName.toUpperCase()}
               </text>
             </g>
           );
