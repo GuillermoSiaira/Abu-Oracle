@@ -11,6 +11,7 @@ import requests
 import json
 from pathlib import Path
 from core.forecast import forecast_for_locations, forecast_timeseries, detect_peaks, get_planet_positions as _get_natal_pos
+from core.lunar import calculate_lunar_data
 from core.life_cycles import forecast_life_cycles
 from core.chart import chart_json, ChartDTO, solar_return_chart, EphemerisSingleton
 from core.extended_calc import (
@@ -2258,6 +2259,26 @@ def _build_transit_planets(lat: float, lon: float, dt: datetime) -> list:
         }
         for p in transit_chart.planets
     ]
+
+
+@app.get("/api/astro/lunar", response_model=None)
+def lunar_endpoint(
+    user: dict = Depends(verify_token),
+    birthDate: str = Query(..., description="Fecha de nacimiento ISO UTC"),
+    lat: float = Query(..., description="Latitud natal"),
+    lon: float = Query(..., description="Longitud natal"),
+    dt: Optional[str] = Query(None, description="Momento de consulta ISO UTC; si None → ahora"),
+):
+    """Fase lunar actual, aspecto Sol-Luna y próximas lunaciones para un nativo."""
+    try:
+        birth_dt = datetime.fromisoformat(birthDate.replace("Z", "+00:00"))
+        query_dt = datetime.fromisoformat(dt.replace("Z", "+00:00")) if dt else None
+    except Exception:
+        raise HTTPException(status_code=422, detail="Invalid date format")
+    try:
+        return calculate_lunar_data(birth_dt, lat, lon, query_dt)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get(
