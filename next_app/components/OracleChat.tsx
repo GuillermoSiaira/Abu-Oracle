@@ -137,7 +137,7 @@ export default function OracleChat() {
   const isChartPage = pathname === '/chart';
 
   const scrollRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   /* -----------------------------------------------------
      SCREEN_OPEN — LILLY INITIAL ORIENTATION
@@ -383,6 +383,7 @@ export default function OracleChat() {
 
     const userText = input.trim();
     setInput("");
+    if (inputRef.current) inputRef.current.style.height = "auto";
     setIsLoading(true);
 
     const newMsg = { id: Date.now(), role: 'user', content: userText };
@@ -510,12 +511,24 @@ export default function OracleChat() {
         onSubmit={handleSubmit}
         className="p-3 bg-[#050505] border-t border-slate-800 shrink-0 flex gap-2"
       >
-        <input
+        <textarea
           ref={inputRef}
           value={input}
-          onChange={(e) => setInput(e.target.value)}
+          rows={1}
+          onChange={(e) => {
+            setInput(e.target.value);
+            e.target.style.height = "auto";
+            e.target.style.height = `${Math.min(e.target.scrollHeight, 160)}px`;
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              if (input.trim() && !isLoading) handleSubmit(e as any);
+            }
+          }}
           placeholder="Enter command or query..."
-          className="flex-1 bg-slate-900/30 border border-slate-800 rounded-sm px-3 py-2 text-sm text-green-400 focus:outline-none focus:border-green-600/50 placeholder-slate-700 font-mono"
+          className="flex-1 bg-slate-900/30 border border-slate-800 rounded-sm px-3 py-2 text-sm text-green-400 focus:outline-none focus:border-green-600/50 placeholder-slate-700 font-mono resize-none overflow-y-auto"
+          style={{ minHeight: "40px", maxHeight: "160px" }}
           disabled={isLoading}
         />
         <button

@@ -210,7 +210,12 @@ export function PersianTechniquesTab() {
 
         {/* Sect */}
         <button onClick={handleSectClick} className="px-4 py-3 text-left hover:bg-amber-500/5 transition-colors">
-          <div className="text-[10px] text-amber-400/50 uppercase tracking-widest mb-1">{t.persianSect}</div>
+          <div className="relative group text-[10px] text-amber-400/50 uppercase tracking-widest mb-1">
+            {t.persianSect}
+            <div className="absolute left-0 top-full mt-1 z-50 hidden group-hover:block w-56 bg-slate-900 border border-slate-700 rounded p-2 text-[11px] text-slate-300 normal-case tracking-normal leading-relaxed shadow-xl pointer-events-none font-sans">
+              La carta es diurna si el Sol está sobre el horizonte al nacer, nocturna si está bajo él. Define qué planetas benéficos y maléficos actúan con más fuerza.
+            </div>
+          </div>
           <div className="text-sm font-medium text-white">
             {sect === "diurnal" ? "☀ " + (t.persianSectDiurnal ?? "Diurna") : "☽ " + (t.persianSectNocturnal ?? "Nocturna")}
           </div>
@@ -221,7 +226,12 @@ export function PersianTechniquesTab() {
 
         {/* Profección */}
         <button onClick={handleProfectionClick} className="px-4 py-3 text-left hover:bg-amber-500/5 transition-colors">
-          <div className="text-[10px] text-amber-400/50 uppercase tracking-widest mb-1">{t.persianProfection}</div>
+          <div className="relative group text-[10px] text-amber-400/50 uppercase tracking-widest mb-1">
+            {t.persianProfection}
+            <div className="absolute left-0 top-full mt-1 z-50 hidden group-hover:block w-56 bg-slate-900 border border-slate-700 rounded p-2 text-[11px] text-slate-300 normal-case tracking-normal leading-relaxed shadow-xl pointer-events-none font-sans">
+              Técnica helenística que activa una casa distinta cada año de vida. La casa activa y su señor gobiernan los temas del año.
+            </div>
+          </div>
           <div className="text-sm font-medium text-white">
             {t.persianHouseLabel} {profectionHouse ?? "—"} · {profectionSign ?? "—"}
           </div>
@@ -233,11 +243,14 @@ export function PersianTechniquesTab() {
 
         {/* Firdaria */}
         <button onClick={handleFirdariaClick} className="px-4 py-3 text-left hover:bg-amber-500/5 transition-colors">
-          <div className="text-[10px] text-amber-400/50 uppercase tracking-widest mb-1">
+          <div className="relative group text-[10px] text-amber-400/50 uppercase tracking-widest mb-1">
             {t.persianFirdaria}
             {isHistorical && (
               <span className="ml-1 normal-case text-[8px] text-slate-600 border border-slate-800 px-1 rounded">hist</span>
             )}
+            <div className="absolute left-0 top-full mt-1 z-50 hidden group-hover:block w-56 bg-slate-900 border border-slate-700 rounded p-2 text-[11px] text-slate-300 normal-case tracking-normal leading-relaxed shadow-xl pointer-events-none font-sans">
+              Sistema persa de períodos planetarios. Cada planeta gobierna un período de años con su propia calidad e intensidad.
+            </div>
           </div>
           {firdariaValid ? (
             <>
@@ -262,7 +275,12 @@ export function PersianTechniquesTab() {
 
         {/* Partes Arábicas */}
         <div className="border border-amber-400/20 rounded-lg p-3">
-          <div className="text-[10px] text-amber-400/50 uppercase tracking-widest mb-2">{t.persianLotsTitle}</div>
+          <div className="relative group text-[10px] text-amber-400/50 uppercase tracking-widest mb-2">
+            {t.persianLotsTitle}
+            <div className="absolute left-0 top-full mt-1 z-50 hidden group-hover:block w-56 bg-slate-900 border border-slate-700 rounded p-2 text-[11px] text-slate-300 normal-case tracking-normal leading-relaxed shadow-xl pointer-events-none font-sans">
+              Puntos matemáticos calculados desde las posiciones de Sol, Luna y ASC. Revelan áreas específicas de la vida.
+            </div>
+          </div>
           {[lotFortuna, lotSpirit].filter(Boolean).map((part: any) => (
             <button
               key={part.name}
@@ -287,7 +305,12 @@ export function PersianTechniquesTab() {
 
         {/* Tránsitos Lunares */}
         <div className="border border-amber-400/20 rounded-lg p-3">
-          <div className="text-[10px] text-amber-400/50 uppercase tracking-widest mb-2">{t.persianLunarTransits}</div>
+          <div className="relative group text-[10px] text-amber-400/50 uppercase tracking-widest mb-2">
+            {t.persianLunarTransits}
+            <div className="absolute left-0 top-full mt-1 z-50 hidden group-hover:block w-56 bg-slate-900 border border-slate-700 rounded p-2 text-[11px] text-slate-300 normal-case tracking-normal leading-relaxed shadow-xl pointer-events-none font-sans">
+              Posición actual de la Luna y sus aspectos a la carta natal. El pulso diario del campo.
+            </div>
+          </div>
           {!lunar ? (
             <p className="text-[11px] text-gray-500">{t.persianNoLunar}</p>
           ) : (
@@ -326,7 +349,12 @@ export function PersianTechniquesTab() {
 
       {/* BLOQUE INFERIOR — Ciclos Planetarios */}
       <div className="border border-amber-400/20 rounded-lg p-3">
-        <div className="text-[10px] text-amber-400/50 uppercase tracking-widest mb-2">{t.persianCycles}</div>
+        <div className="relative group text-[10px] text-amber-400/50 uppercase tracking-widest mb-2">
+          {t.persianCycles}
+          <div className="absolute left-0 top-full mt-1 z-50 hidden group-hover:block w-56 bg-slate-900 border border-slate-700 rounded p-2 text-[11px] text-slate-300 normal-case tracking-normal leading-relaxed shadow-xl pointer-events-none font-sans">
+            Retornos y oposiciones de planetas lentos — momentos de cierre y apertura de ciclos de largo plazo.
+          </div>
+        </div>
         {allCycles.length === 0 ? (
           <p className="text-[11px] text-gray-500">{t.persianNoEvents}</p>
         ) : (
