@@ -79,6 +79,7 @@ export const UI: Record<Lang, {
   persianTooltipLots: string;
   persianTooltipLunar: string;
   persianTooltipCycles: string;
+  persianLunarDialTitle: string;
   // Relocation shared
   relTitle: string;
   relSubtitle: string;
@@ -233,6 +234,7 @@ export const UI: Record<Lang, {
     persianTooltipLots: "Puntos matemáticos calculados desde las posiciones de Sol, Luna y ASC. Revelan áreas específicas de la vida.",
     persianTooltipLunar: "Posición actual de la Luna y sus aspectos a la carta natal. El pulso diario del campo.",
     persianTooltipCycles: "Retornos y oposiciones de planetas lentos — momentos de cierre y apertura de ciclos de largo plazo.",
+    persianLunarDialTitle: "Fase Lunar",
   },
   en: {
     tabChart: "Birth Chart",
@@ -341,6 +343,7 @@ export const UI: Record<Lang, {
     persianTooltipLots: "Mathematical points calculated from the positions of Sun, Moon and ASC. Reveal specific areas of life.",
     persianTooltipLunar: "Current Moon position and its aspects to the natal chart. The daily pulse of the field.",
     persianTooltipCycles: "Returns and oppositions of slow planets — moments of closure and opening of long-term cycles.",
+    persianLunarDialTitle: "Lunar Phase",
   },
   pt: {
     tabChart: "Carta Natal",
@@ -449,6 +452,7 @@ export const UI: Record<Lang, {
     persianTooltipLots: "Pontos matemáticos calculados a partir das posições do Sol, Lua e ASC. Revelam áreas específicas da vida.",
     persianTooltipLunar: "Posição atual da Lua e seus aspectos com a carta natal. O pulso diário do campo.",
     persianTooltipCycles: "Retornos e oposições de planetas lentos — momentos de fechamento e abertura de ciclos de longo prazo.",
+    persianLunarDialTitle: "Fase Lunar",
   },
   fr: {
     tabChart: "Thème Natal",
@@ -557,6 +561,7 @@ export const UI: Record<Lang, {
     persianTooltipLots: "Points mathématiques calculés depuis les positions du Soleil, de la Lune et de l'ASC. Révèlent des domaines spécifiques de la vie.",
     persianTooltipLunar: "Position actuelle de la Lune et ses aspects avec le thème natal. Le pouls quotidien du champ.",
     persianTooltipCycles: "Retours et oppositions des planètes lentes — moments de fermeture et d'ouverture de cycles à long terme.",
+    persianLunarDialTitle: "Phase Lunaire",
   },
 };
 

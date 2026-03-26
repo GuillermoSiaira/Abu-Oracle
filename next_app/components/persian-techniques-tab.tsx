@@ -1,7 +1,11 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useAppStore } from "@/lib/store";
 import { UI } from "@/lib/i18n";
+import { LunarDial, type LunarData } from "@/components/LunarDial";
+import { ABU_BASE_URL } from "@/services/abu";
+import { getAbuAuthHeaders } from "@/lib/abu-auth";
 
 function getSignFromLongitude(long: number): string {
   const signs = [
@@ -94,6 +98,22 @@ export function PersianTechniquesTab() {
   const birthData = useAppStore((s) => s.birthData);
   const setPendingLillyEvent = useAppStore((s) => s.setPendingLillyEvent);
   const t = UI[lang as keyof typeof UI] ?? UI.es;
+
+  const [lunarData, setLunarData] = useState<LunarData | null>(null);
+
+  useEffect(() => {
+    if (!birthData?.birthDate || birthData.lat == null || birthData.lon == null) return;
+    getAbuAuthHeaders().then((headers) => {
+      const url = new URL(`${ABU_BASE_URL}/api/astro/lunar`);
+      url.searchParams.set("birthDate", birthData.birthDate);
+      url.searchParams.set("lat", String(birthData.lat));
+      url.searchParams.set("lon", String(birthData.lon));
+      fetch(url.toString(), { headers })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((data) => { if (data) setLunarData(data as LunarData); })
+        .catch(() => {});
+    });
+  }, [birthData?.birthDate, birthData?.lat, birthData?.lon]);
 
   if (isLoading) return <div className="p-6 text-slate-500 text-sm">{t.persianSect}…</div>;
   if (!abuData) return <div className="p-6 text-slate-500 text-sm">{t.persianNoData}</div>;
@@ -279,7 +299,7 @@ export function PersianTechniquesTab() {
 
       </div>
 
-      {/* BLOQUE MEDIO — Partes Arábicas / Tránsitos Lunares */}
+      {/* BLOQUE MEDIO — Partes Arábicas / Dial Lunar */}
       <div className="grid grid-cols-2 gap-3">
 
         {/* Partes Arábicas */}
@@ -306,6 +326,23 @@ export function PersianTechniquesTab() {
             <p className="text-[11px] text-slate-600">{t.persianNoData}</p>
           )}
         </div>
+
+        {/* Dial Lunar */}
+        <div className="border border-amber-400/15 rounded-lg p-3 flex flex-col">
+          <SectionTitle label={t.persianLunarDialTitle} tooltip={t.persianTooltipLunar} className="mb-2" />
+          {lunarData ? (
+            <LunarDial data={lunarData} lang={lang} />
+          ) : (
+            <div className="flex-1 flex items-center justify-center text-[11px] text-slate-600 py-8">
+              {t.persianNoLunar}
+            </div>
+          )}
+        </div>
+
+      </div>
+
+      {/* BLOQUE INFERIOR — Tránsitos Lunares / Ciclos Planetarios */}
+      <div className="grid grid-cols-2 gap-3">
 
         {/* Tránsitos Lunares */}
         <div className="border border-amber-400/15 rounded-lg p-3">
@@ -339,63 +376,63 @@ export function PersianTechniquesTab() {
           )}
         </div>
 
-      </div>
+        {/* Ciclos Planetarios */}
+        <div className="border border-amber-400/15 rounded-lg p-3">
+          <SectionTitle label={t.persianCycles} tooltip={t.persianTooltipCycles} className="mb-3" />
+          {allCycles.length === 0 ? (
+            <p className="text-[11px] text-slate-600">{t.persianNoEvents}</p>
+          ) : (
+            <>
+              {futureCycles.length > 0 && (
+                <div className="mb-2">
+                  <div className="text-[9px] text-amber-400/40 uppercase tracking-widest mb-1.5">{t.persianCyclesUpcoming}</div>
+                  {futureCycles.map((ev: any, idx: number) => {
+                    const c = cycleColors(ev.angle);
+                    return (
+                      <button
+                        key={`f-${idx}`}
+                        onClick={() => dispatchCycle(ev)}
+                        className="w-full flex items-center justify-between py-1 px-1 rounded hover:bg-white/3 border border-transparent hover:border-white/5 transition-colors"
+                      >
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className={`text-[11px] font-medium ${c.planet}`}>{ev.planet}</span>
+                          <span className={`text-[9px] px-1 py-px rounded border ${c.badge} ${c.badgeBg}`}>{ev.cycle.replace(ev.planet + " ", "")}</span>
+                        </div>
+                        <span className="text-[10px] text-slate-500 font-mono shrink-0 ml-1">
+                          {ev.approx.slice(0, 7)}{ev.approxEnd ? `–${ev.approxEnd.slice(2, 7)}` : ""}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              {pastCycles.length > 0 && (
+                <div>
+                  <div className="text-[9px] text-slate-600 uppercase tracking-widest mb-1.5 border-t border-white/5 pt-2">{t.persianCyclesRecent}</div>
+                  {pastCycles.map((ev: any, idx: number) => {
+                    const c = cycleColors(ev.angle);
+                    return (
+                      <button
+                        key={`p-${idx}`}
+                        onClick={() => dispatchCycle(ev)}
+                        className="w-full flex items-center justify-between py-1 px-1 rounded hover:bg-white/3 border border-transparent hover:border-white/5 transition-colors opacity-50 hover:opacity-70"
+                      >
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className={`text-[11px] ${c.planet}`}>{ev.planet}</span>
+                          <span className="text-[9px] text-slate-600">{ev.cycle.replace(ev.planet + " ", "")}</span>
+                        </div>
+                        <span className="text-[10px] text-slate-600 font-mono shrink-0 ml-1">
+                          {ev.approx.slice(0, 7)}{ev.approxEnd ? `–${ev.approxEnd.slice(2, 7)}` : ""}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </>
+          )}
+        </div>
 
-      {/* BLOQUE INFERIOR — Ciclos Planetarios */}
-      <div className="border border-amber-400/15 rounded-lg p-3">
-        <SectionTitle label={t.persianCycles} tooltip={t.persianTooltipCycles} className="mb-3" />
-        {allCycles.length === 0 ? (
-          <p className="text-[11px] text-slate-600">{t.persianNoEvents}</p>
-        ) : (
-          <>
-            {futureCycles.length > 0 && (
-              <div className="mb-3">
-                <div className="text-[9px] text-amber-400/40 uppercase tracking-widest mb-1.5">{t.persianCyclesUpcoming}</div>
-                {futureCycles.map((ev: any, idx: number) => {
-                  const c = cycleColors(ev.angle);
-                  return (
-                    <button
-                      key={`f-${idx}`}
-                      onClick={() => dispatchCycle(ev)}
-                      className="w-full flex items-center justify-between py-1.5 px-1 rounded hover:bg-white/3 border border-transparent hover:border-white/5 transition-colors"
-                    >
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span className={`text-xs font-medium ${c.planet}`}>{ev.planet}</span>
-                        <span className={`text-[10px] px-1.5 py-px rounded border ${c.badge} ${c.badgeBg}`}>{ev.cycle.replace(ev.planet + " ", "")}</span>
-                      </div>
-                      <span className="text-[11px] text-slate-500 font-mono shrink-0 ml-2">
-                        {ev.approx.slice(0, 7)}{ev.approxEnd ? ` – ${ev.approxEnd.slice(0, 7)}` : ""}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-            {pastCycles.length > 0 && (
-              <div>
-                <div className="text-[9px] text-slate-600 uppercase tracking-widest mb-1.5 border-t border-white/5 pt-2">{t.persianCyclesRecent}</div>
-                {pastCycles.map((ev: any, idx: number) => {
-                  const c = cycleColors(ev.angle);
-                  return (
-                    <button
-                      key={`p-${idx}`}
-                      onClick={() => dispatchCycle(ev)}
-                      className="w-full flex items-center justify-between py-1.5 px-1 rounded hover:bg-white/3 border border-transparent hover:border-white/5 transition-colors opacity-50 hover:opacity-70 transition-opacity"
-                    >
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span className={`text-xs ${c.planet}`}>{ev.planet}</span>
-                        <span className="text-[10px] text-slate-600">{ev.cycle.replace(ev.planet + " ", "")}</span>
-                      </div>
-                      <span className="text-[11px] text-slate-600 font-mono shrink-0 ml-2">
-                        {ev.approx.slice(0, 7)}{ev.approxEnd ? ` – ${ev.approxEnd.slice(0, 7)}` : ""}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </>
-        )}
       </div>
 
     </div>
