@@ -701,6 +701,72 @@ ADC no funciona en dev local sin SA key explícita.
 
 ---
 
+### Fase 8.15 — UI Polish: Técnicas Persas + Gantt + Dial Lunar ✅ `[COMPLETA — sesión 2026-03-27]`
+
+**8 commits · Solo frontend/Next.js · Sin cambios en Abu Engine**
+
+**Fix 1** ✅ — OracleChat: textarea auto-expand (commit `1a92c62`)
+- `<input>` → `<textarea>` con `rows=1`, `min-height 40px`, `max-height 160px`
+- `onChange`: `height = "auto"` → `height = scrollHeight` (capped a 160px)
+- `onKeyDown`: Enter envía, Shift+Enter inserta newline
+- Reset de altura al enviar
+
+**Fix 2** ✅ — Tooltips doctrinales en Técnicas Persas (commit `1a92c62` + `9775a1b`)
+- Nuevo componente `SectionTitle`: label + ⓘ + tooltip absoluto con Tailwind `group/group-hover`
+- Estilo tooltip: borde izquierdo amber, fondo oscuro, sombra 2xl, texto 11px
+- 8 keys nuevas en `lib/i18n.ts` (4 idiomas): `persianTooltipSect/Profection/Firdaria/Lots/Lunar/Cycles` + `persianCyclesUpcoming/Recent`
+- Tooltip texto completamente i18n — reacciona al cambio de idioma global
+
+**Fix 3** ✅ — Ciclos Planetarios: agrupación + estética (commit `9775a1b`)
+- `groupCloseCycles()`: fusiona pasadas retrógradas del mismo ciclo dentro de 18 meses → muestra rango YYYY-MM–YY-MM
+- `cycleColors(angle)`: amber=Retorno, sky=Oposición, orange=Cuadratura
+- Secciones "Próximos" / "Recientes" con separador visual
+
+**Fix 4** ✅ — Nombres de planetas en columna del Gantt (commit `927fbb3`)
+- `PLANET_LABELS`: record 14 cuerpos × 4 idiomas en `transits-tab.tsx`
+- Columna etiqueta expandida `w-[90px]` → `w-[150px]`
+- Layout: izq = símbolo + nombre del planeta transitante (solo primera fila del grupo); der = símbolo + nombre natal + símbolo de aspecto
+
+**Fix 5** ✅ — Alineación spacers Gantt (commit `6fcfc41`)
+- Spacer del overlay Firdaria y del header del eje de meses sincronizados a `w-[150px]`
+- Eliminaba superposición del label "Firdaria Mayor" con el primer planeta
+
+**Fix 6** ✅ — Selector de idioma redundante eliminado de `chart-tabs.tsx` (commit `6ba26d0`)
+- El selector global en `Navigation.tsx` es suficiente — la copia en el tab era innecesaria
+
+**Fix 7** ✅ — Dial Lunar SVG en Técnicas Persas (commit `a20fac9`)
+- Nuevo `components/LunarDial.tsx`: SVG 180×180, dial con ☉/☽ en sus longitudes eclípticas reales (0° Aries=derecha, levógiro)
+- Arco de fase coloreado: amber (creciente) / blanco (luna llena) / índigo (menguante) / tenue (nueva)
+- Centro: separación en grados; debajo: nombre de fase i18n via `PHASE_NAMES` (8 fases × 4 idiomas), porcentaje
+- Próximas lunaciones: fecha, signo, casa natal
+- `persian-techniques-tab.tsx`: `useEffect` fetcha `/api/astro/lunar` al montar (deps: birthDate/lat/lon)
+- Key `persianLunarDialTitle` agregada a i18n.ts (4 idiomas)
+- **Nuevo layout Técnicas Persas**: top 3-col (Sect/Profección/Firdaria) · medio 2-col (Partes Arábicas | Dial Lunar) · inferior 2-col (Tránsitos Lunares | Ciclos Planetarios)
+
+**Fix 8** ✅ — Dial Lunar: flecha CCW + glow iluminado (commit `2e059f2`)
+- `markerEnd="url(#arcArrow)"` con `orient="auto"` → flecha apunta en dirección levógira
+- Radial gradient `moonIllum` en limbo iluminado de la Luna, intensidad = `(1-cos(sep))/2`
+  - Luna Nueva: 0% · Cuartos: 50% · Luna Llena: máximo (azul-blanco)
+  - Gradiente orientado hacia el Sol en coordenadas de pantalla
+
+**Fix 9** ✅ — Arco se detiene antes del círculo de la Luna (commit `12519e9`)
+- `ARROW_CLEAR_DEG = arcsin((mr+5)/r) ≈ 13°` — recorta el endpoint del arco
+- La flecha apunta hacia la Luna sin tapar el glow del limbo iluminado
+
+**Fix 10** ✅ — Ciclos: lookback 3 meses (commit `2e059f2`)
+- Filtro extendido de `approx >= today` a `approx >= today - 3 meses`
+- Ciclos cuya fecha exacta acaba de pasar (ej: Retorno Júpiter) siguen apareciendo en "Próximos" con badge ● verde "activo"
+
+**Archivos modificados en sesión 2026-03-27:**
+- `next_app/components/OracleChat.tsx` — textarea auto-expand
+- `next_app/components/persian-techniques-tab.tsx` — SectionTitle + tooltips + ciclos + fetch lunar + layout 2-col inferior
+- `next_app/components/transits-tab.tsx` — PLANET_LABELS i18n + columna 150px + spacers
+- `next_app/components/chart-tabs.tsx` — selector idioma eliminado
+- `next_app/components/LunarDial.tsx` — NUEVO: SVG dial lunar completo
+- `next_app/lib/i18n.ts` — 9 keys nuevas (persianTooltip* + persianCyclesUpcoming/Recent + persianLunarDialTitle)
+
+---
+
 ### Fase 8.13 — CIELO HOY — backend + Gantt planetas rápidos `[PARCIALMENTE COMPLETA — sesión 2026-03-26]`
 
 **Visión**: pestaña nueva "CIELO HOY" que muestra la configuración planetaria del momento actual — Luna, Mercurio, Venus, Marte — y cómo interactúan con la carta natal del nativo. Lilly interpreta el cielo del día como astrólogo personal diario.
