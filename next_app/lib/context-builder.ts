@@ -125,6 +125,7 @@ export interface BiographicalTimeline {
     ingress_date:   string
     egress_date:    string
     is_active:      boolean
+    speed_class?:   string
   }>
 }
 

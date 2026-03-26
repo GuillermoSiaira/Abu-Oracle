@@ -32,6 +32,13 @@ const PLANET_SYMBOLS: Record<string, string> = {
 const PLANET_ORDER = ["Pluto","Neptune","Uranus","Saturn","Jupiter","Mars","Sun","Venus","Mercury","Moon"];
 const MONTHS_ES    = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
 
+// Speed classes visible per window size (wider window → less noise)
+const SPEED_CLASSES_BY_WINDOW: { maxMonths: number; classes: string[] }[] = [
+  { maxMonths: 0.5, classes: ["slow", "fast", "lunar"] }, // ≤ ~2 semanas
+  { maxMonths: 6,   classes: ["slow", "fast"] },          // ≤ 6 meses
+  { maxMonths: 99,  classes: ["slow"] },                  // > 6 meses
+];
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function daysBetween(a: Date, b: Date): number {
@@ -59,6 +66,7 @@ export function TransitsTab() {
 
   const [windowMonths, setWindowMonths]   = useState(18);
   const [onlyActive, setOnlyActive]       = useState(false);
+  const activeSpeedClasses = SPEED_CLASSES_BY_WINDOW.find((r) => windowMonths <= r.maxMonths)?.classes ?? ["slow"];
   const [barAreaPx, setBarAreaPx]         = useState(0);
 
   interface TooltipState {
@@ -122,8 +130,9 @@ export function TransitsTab() {
     return s <= ganttEnd && e >= ganttStart;
   });
 
-  // ── Group transits by planet (respecting onlyActive filter) ──────────────
-  const visibleTransits = onlyActive ? transits.filter((t) => t.is_active) : transits;
+  // ── Group transits by planet (respecting onlyActive + speed_class filters) ─
+  const visibleTransits = (onlyActive ? transits.filter((t) => t.is_active) : transits)
+    .filter((t) => activeSpeedClasses.includes((t as any).speed_class ?? "slow"));
   const grouped = new Map<string, typeof transits>();
   for (const t of visibleTransits) {
     if (!grouped.has(t.transit_planet)) grouped.set(t.transit_planet, []);
@@ -175,7 +184,7 @@ export function TransitsTab() {
       {/* ── Controls ────────────────────────────────────────────────────── */}
       <div className="flex items-center gap-2 flex-wrap">
         <span className="text-slate-400 font-semibold">Ventana:</span>
-        {([6, 12, 18] as const).map((m) => (
+        {([0.25, 6, 12, 18] as const).map((m) => (
           <button
             key={m}
             onClick={() => setWindowMonths(m)}
@@ -185,7 +194,7 @@ export function TransitsTab() {
                 : "bg-slate-700/40 text-slate-400 border-slate-700/60 hover:border-slate-500/70"
             }`}
           >
-            ± {m}m
+            {m === 0.25 ? "± 1s" : `± ${m}m`}
           </button>
         ))}
         <button
@@ -199,7 +208,11 @@ export function TransitsTab() {
           <span className={`w-1.5 h-1.5 rounded-full ${onlyActive ? "bg-emerald-400" : "bg-slate-500"}`} />
           Solo activos {activeCount > 0 && `(${activeCount})`}
         </button>
-        <span className="text-slate-600">{visibleTransits.length}/{transits.length} · planetas lentos</span>
+        <span className="text-slate-600">
+          {visibleTransits.length}/{transits.length} ·{" "}
+          {activeSpeedClasses.includes("lunar") ? "lentos+rápidos+luna" :
+           activeSpeedClasses.includes("fast")  ? "lentos+rápidos" : "planetas lentos"}
+        </span>
       </div>
 
       {/* ── Gantt chart ─────────────────────────────────────────────────── */}
@@ -426,7 +439,11 @@ export function TransitsTab() {
       </div>
 
       <p className="text-center text-slate-600 pt-1">
-        Planetas lentos · Júpiter · Saturno · Urano · Neptuno · Plutón · haz click en una barra para consultar a Lilly
+        {activeSpeedClasses.includes("lunar")
+          ? "Lentos · Rápidos · Luna · haz click en una barra para consultar a Lilly"
+          : activeSpeedClasses.includes("fast")
+          ? "Planetas rápidos + lentos · Sol · Mercurio · Venus · Marte · Júpiter→Plutón · haz click para Lilly"
+          : "Planetas lentos · Júpiter · Saturno · Urano · Neptuno · Plutón · haz click en una barra para consultar a Lilly"}
       </p>
 
       {/* ── Firdaria tooltip ─────────────────────────────────────────────── */}

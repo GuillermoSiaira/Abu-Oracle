@@ -69,6 +69,15 @@ def _find_next_lunation(dt: datetime, target: float) -> datetime:
     step = 0.25  # días (6 horas)
     jd = _to_jd(dt) + 0.5  # +12h para saltear posición actual
 
+    # Para target=0 (Luna Nueva), signed_dist tiene un falso cruce de cero en
+    # elongation=180° (Luna Llena) porque (180-0)%360=180 cruza el umbral.
+    # Si la elongación actual es < 180°, saltamos hasta pasarla.
+    if target == 0.0:
+        e_now = _elongation(jd)
+        if e_now < 180.0:
+            # días hasta 180° a velocidad media 13.18°/día + 1 día de margen
+            jd += (180.0 - e_now) / 13.18 + 1.0
+
     def signed_dist(jd_x: float) -> float:
         e = _elongation(jd_x)
         d = (e - target) % 360.0
