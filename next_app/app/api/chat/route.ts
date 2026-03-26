@@ -14,6 +14,7 @@ import {
   saveExchange,
   summarizeIfNeeded,
 } from "@/lib/chat-memory";
+import { checkAndIncrementDailyUsage, LIMIT_MESSAGE } from "@/lib/usage-limiter";
 
 export const dynamic = "force-dynamic";
 
@@ -36,9 +37,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No messages provided" }, { status: 400 });
     }
 
-    // ── Auth + memory ────────────────────────────────────────────────────────
+    // ── Auth + rate limit + memory ───────────────────────────────────────────
     const userId = await getUserIdFromRequest(reqClone);
     console.log("[chat-memory] userId:", userId);
+    if (userId) {
+      const allowed = await checkAndIncrementDailyUsage(userId);
+      if (!allowed) {
+        return NextResponse.json({ response: LIMIT_MESSAGE });
+      }
+    }
     const memoryCtx = userId ? await getRecentHistory(userId) : null;
     const memoryBlock = memoryCtx ? formatMemoryForPrompt(memoryCtx) : '';
 

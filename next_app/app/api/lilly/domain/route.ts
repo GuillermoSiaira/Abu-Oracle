@@ -7,6 +7,7 @@ import {
   assembleContextBlock,
   type BiographicalTimeline,
 } from '../../../../lib/context-builder';
+import { applyRateLimit } from '../../../../lib/usage-limiter';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,6 +24,9 @@ export async function POST(req: Request) {
   }
 
   try {
+    const limitResponse = await applyRateLimit(req);
+    if (limitResponse) return limitResponse;
+
     const body = await req.json();
     const {
       domain,

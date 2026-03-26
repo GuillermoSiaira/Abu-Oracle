@@ -9,6 +9,7 @@ import {
 } from '../../../../lib/context-builder';
 import { getUserIdFromRequest } from '../../../../lib/get-user-id';
 import { getRecentHistory, formatMemoryForPrompt } from '../../../../lib/chat-memory';
+import { checkAndIncrementDailyUsage, LIMIT_MESSAGE } from '../../../../lib/usage-limiter';
 
 export const dynamic = 'force-dynamic';
 
@@ -57,8 +58,14 @@ export async function POST(req: Request) {
       messages,
     } = body;
 
-    // ── Memoria biográfica (si el usuario está autenticado) ──────────────────
+    // ── Rate limit + memoria biográfica (si el usuario está autenticado) ─────
     const userId = await getUserIdFromRequest(req);
+    if (userId) {
+      const allowed = await checkAndIncrementDailyUsage(userId);
+      if (!allowed) {
+        return NextResponse.json({ response: LIMIT_MESSAGE, suggestions: [] });
+      }
+    }
     const memoryCtx = userId ? await getRecentHistory(userId) : null;
     const memoryBlock = memoryCtx ? formatMemoryForPrompt(memoryCtx) : '';
 
