@@ -10,7 +10,7 @@
 
 - URL: `https://app.abu-oracle.com`
 - Landing: `https://abu-oracle.com`
-- Modelo de acceso: Genesis Member — 100 slots · 500 USDC · acceso de por vida
+- Modelo de acceso: Genesis Member — 100 slots · 100 USDC · acceso de por vida
 - Pago: USDC en Arbitrum One → Safe wallet `0x95CEaBdf0fE31610b8A0B09DDC0708A7Ed625c82`
 - Stack en producción: Next.js + Python/FastAPI → Cloud Run (GCP) · Firebase Auth · Firestore · Alchemy webhook · Resend
 - Revisión inicial: `abu-oracle-app-00016-xqp`
@@ -846,7 +846,7 @@ Horizonte: agente autónomo on-chain (ERC-8004) que opere, cobre,
 entregue acceso y reinvierta en infraestructura sin intervención humana.
 
 ### Pricing Genesis (activo)
-- 100 slots · 500 USDC · acceso de por vida
+- 100 slots · 100 USDC · acceso de por vida
 - Safe multisig: 0x95CEaBdf0fE31610b8A0B09DDC0708A7Ed625c82
 
 ### Ideas post-lanzamiento
@@ -1206,13 +1206,13 @@ export default {
 
 ### Avance confirmado (2026-03-18) — Flujo de pago crypto completo (sesión actual)
 
-**Decisión de arquitectura:** pago en **500 USDC** (Arbitrum One), no ETH. Alchemy reporta ERC-20 con `asset: "USDC"` y `value: 500`.
+**Decisión de arquitectura:** pago en **100 USDC** (Arbitrum One), no ETH. Alchemy reporta ERC-20 con `asset: "USDC"` y `value: 100`.
 
 **Flujo end-to-end:**
 ```
 Landing → Step 1 (email) → Step 2 (MetaMask connect) → Step 3 (USDC transfer)
   → POST /api/collect-email → Firestore pending_payments { email, wallet_address, status: "pending" }
-  → usdc.transfer(SAFE_WALLET, 500_000_000) firmado en MetaMask
+  → usdc.transfer(SAFE_WALLET, 100_000_000) firmado en MetaMask
   → tx.wait(1) → Step 4: countdown 3s → redirect app.abu-oracle.com
 
 Alchemy webhook (asíncrono):
@@ -1250,7 +1250,7 @@ Index requerido: single-field en `wallet_address` (Firestore lo crea automática
 **Constantes de pago (hardcodeadas en landing):**
 - USDC contract Arbitrum: `0xaf88d065e77c8cC2239327C5EDb3A432268e5831`
 - Safe wallet destino: `0x95CEaBdf0fE31610b8A0B09DDC0708A7Ed625c82`
-- Monto: `500 * 1000000` (6 decimales)
+- Monto: `100 * 1000000` (6 decimales)
 - chainId Arbitrum One: `42161` (`0xa4b1`)
 
 ### Avance confirmado (2026-03-20) — Rediseño landing + Corpus publicado
