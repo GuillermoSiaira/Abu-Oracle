@@ -1662,6 +1662,16 @@ _BIO_SLOW_BODIES = {
     "Neptune": "neptune barycenter",
     "Pluto":   "pluto barycenter",
 }
+_BIO_FAST_BODIES = {
+    "Sun":     "sun",
+    "Mercury": "mercury barycenter",
+    "Venus":   "venus barycenter",
+    "Mars":    "mars barycenter",
+}
+_BIO_LUNAR_BODY = {
+    "Moon": "moon",
+}
+_BIO_ALL_BODIES = {**_BIO_SLOW_BODIES, **_BIO_FAST_BODIES, **_BIO_LUNAR_BODY}
 _BIO_ASPECTS = {
     "conjunction": 0, "sextile": 60, "square": 90, "trine": 120, "opposition": 180,
 }
@@ -1690,10 +1700,10 @@ def _bio_orb(lon_transit: float, lon_natal: float, angle: int) -> float:
     return abs(diff - angle)
 
 def _bio_scan_batch(planet: str, scan_dates: list) -> list:
-    """Posiciones vectorizadas de un planeta lento para todas las scan_dates (1 llamada skyfield)."""
+    """Posiciones vectorizadas de un planeta para todas las scan_dates (1 llamada skyfield)."""
     eph = EphemerisSingleton()
     ts  = _bio_get_ts()
-    sky = _BIO_SLOW_BODIES.get(planet)
+    sky = _BIO_ALL_BODIES.get(planet)
     if not sky:
         return [None] * len(scan_dates)
     t_arr = ts.from_datetimes(scan_dates)
@@ -1702,10 +1712,10 @@ def _bio_scan_batch(planet: str, scan_dates: list) -> list:
     return [float(v) % 360 for v in lon_arr.degrees]
 
 def _bio_planet_lon(dt: datetime, planet: str) -> Optional[float]:
-    """Longitud eclíptica de un planeta lento para una fecha puntual."""
+    """Longitud eclíptica de un planeta para una fecha puntual."""
     eph = EphemerisSingleton()
     ts  = _bio_get_ts()
-    sky = _BIO_SLOW_BODIES.get(planet)
+    sky = _BIO_ALL_BODIES.get(planet)
     if not sky:
         return None
     try:
@@ -1766,6 +1776,81 @@ def _bio_ternary_exact(
         else:
             lo = m1
     return lo + timedelta(seconds=(hi - lo).total_seconds() / 2)
+
+
+def _bio_windows(indices: List[int]) -> List[tuple]:
+    """Agrupa índices consecutivos en ventanas (gap > 2 = ventanas separadas)."""
+    if not indices:
+        return []
+    idx = sorted(set(indices))
+    wins, ws, wp = [], idx[0], idx[0]
+    for ix in idx[1:]:
+        if ix - wp > 2:
+            wins.append((ws, wp))
+            ws = ix
+        wp = ix
+    wins.append((ws, wp))
+    return wins
+
+
+def _bio_run_scanner(
+    bodies: dict,
+    scan_dates: List[datetime],
+    natal_lons: Dict[str, float],
+    max_orb: float,
+    from_dt_utc: datetime,
+    speed_class: str,
+) -> List[Dict[str, Any]]:
+    """
+    Detecta tránsitos de los planetas en `bodies` sobre natal_lons.
+    Usa _bio_scan_batch (vectorizado), _bio_bisect (ingress/egress),
+    _bio_ternary_exact (fecha exacta). Retorna lista con speed_class.
+    """
+    planet_lons = {pl: _bio_scan_batch(pl, scan_dates) for pl in bodies}
+    detections: Dict[tuple, List[int]] = {}
+    for t_pl, lons in planet_lons.items():
+        for i, t_lon in enumerate(lons):
+            if t_lon is None:
+                continue
+            for n_name, n_lon in natal_lons.items():
+                for asp_name, asp_angle in _BIO_ASPECTS.items():
+                    if _bio_orb(t_lon, n_lon, asp_angle) <= max_orb:
+                        detections.setdefault((t_pl, n_name, asp_name), []).append(i)
+
+    results = []
+    for (t_pl, n_name, asp_name), idx_list in detections.items():
+        asp_angle = _BIO_ASPECTS[asp_name]
+        n_lon_val = natal_lons.get(n_name)
+        if n_lon_val is None:
+            continue
+        for (wi_s, wi_e) in _bio_windows(idx_list):
+            dt_first = scan_dates[wi_s]
+            dt_last  = scan_dates[wi_e]
+            ingress_dt = _bio_bisect(
+                lo=scan_dates[wi_s - 1], hi=dt_first,
+                planet=t_pl, n_lon=n_lon_val, asp_angle=asp_angle,
+                boundary=max_orb, lo_inside=False,
+            ) if wi_s > 0 else dt_first
+            egress_dt = _bio_bisect(
+                lo=dt_last, hi=scan_dates[wi_e + 1],
+                planet=t_pl, n_lon=n_lon_val, asp_angle=asp_angle,
+                boundary=max_orb, lo_inside=True,
+            ) if wi_e < len(scan_dates) - 1 else dt_last
+            exact_dt = _bio_ternary_exact(
+                lo=ingress_dt, hi=egress_dt,
+                planet=t_pl, n_lon=n_lon_val, asp_angle=asp_angle,
+            )
+            results.append({
+                "transit_planet": t_pl,
+                "natal_planet":   n_name,
+                "aspect":         asp_name,
+                "exact_date":     exact_dt.date().isoformat(),
+                "ingress_date":   ingress_dt.date().isoformat(),
+                "egress_date":    egress_dt.date().isoformat(),
+                "is_active":      ingress_dt <= from_dt_utc <= egress_dt,
+                "speed_class":    speed_class,
+            })
+    return results
 
 
 @app.get(
@@ -1919,102 +2004,43 @@ def get_biography(
     except Exception as e:
         firdaria = [{"error": str(e)}]
 
-    # ── Tránsitos lentos ±window_months meses ────────────────────────────────
+    # ── Tránsitos: tres scanners (lentos, rápidos, lunar) ──────────────────────
     transits_window: List[Dict[str, Any]] = []
     try:
-        MAX_ORB    = 2.0
-        STEP_DAYS  = 14
-        total_days = int(window_months * 30.44)
-
-        scan_start = from_dt - timedelta(days=total_days)
-        scan_end   = from_dt + timedelta(days=total_days)
-
-        scan_dates: List[datetime] = []
-        d = scan_start
-        while d <= scan_end:
-            scan_dates.append(d)
-            d += timedelta(days=STEP_DAYS)
-
-        # Posiciones vectorizadas: 5 llamadas skyfield (una por planeta lento)
-        slow_lons: Dict[str, List] = {
-            pl: _bio_scan_batch(pl, scan_dates)
-            for pl in _BIO_SLOW_BODIES
-        }
-
-        # Planetas natales relevantes (excluir nodos)
         SKIP_NATAL = {"North Node", "South Node"}
-        natal_list = [(nm, ln) for nm, ln in natal_lons.items() if nm not in SKIP_NATAL]
+        natal_filt = {nm: ln for nm, ln in natal_lons.items() if nm not in SKIP_NATAL}
 
-        # Detectar step indices con orbe ≤ MAX_ORB
-        detections: Dict[tuple, List[int]] = {}
-        for t_pl, lons in slow_lons.items():
-            for i, t_lon in enumerate(lons):
-                if t_lon is None:
-                    continue
-                for n_name, n_lon in natal_list:
-                    for asp_name, asp_angle in _BIO_ASPECTS.items():
-                        if _bio_orb(t_lon, n_lon, asp_angle) <= MAX_ORB:
-                            detections.setdefault((t_pl, n_name, asp_name), []).append(i)
+        # Lentos: Júpiter→Plutón · step=14d · ventana=18m · orbe=2°
+        slow_days = int(window_months * 30.44)
+        slow_dates: List[datetime] = []
+        d = from_dt - timedelta(days=slow_days)
+        while d <= from_dt + timedelta(days=slow_days):
+            slow_dates.append(d)
+            d += timedelta(days=14)
+        transits_window += _bio_run_scanner(
+            _BIO_SLOW_BODIES, slow_dates, natal_filt, 2.0, from_dt_utc, "slow"
+        )
 
-        # Agrupar índices consecutivos en ventanas (gap > 2 pasos = ventanas separadas)
-        def _windows(indices: List[int]) -> List[tuple]:
-            if not indices:
-                return []
-            idx = sorted(set(indices))
-            wins, ws, wp = [], idx[0], idx[0]
-            for ix in idx[1:]:
-                if ix - wp > 2:
-                    wins.append((ws, wp))
-                    ws = ix
-                wp = ix
-            wins.append((ws, wp))
-            return wins
+        # Rápidos: Sol/Mercurio/Venus/Marte · step=1d · ventana=3m · orbe=2°
+        fast_days = int(3 * 30.44)
+        fast_dates: List[datetime] = []
+        d = from_dt - timedelta(days=fast_days)
+        while d <= from_dt + timedelta(days=fast_days):
+            fast_dates.append(d)
+            d += timedelta(days=1)
+        transits_window += _bio_run_scanner(
+            _BIO_FAST_BODIES, fast_dates, natal_filt, 2.0, from_dt_utc, "fast"
+        )
 
-        for (t_pl, n_name, asp_name), idx_list in detections.items():
-            asp_angle = _BIO_ASPECTS[asp_name]
-            n_lon     = natal_lons.get(n_name)
-            if n_lon is None:
-                continue
-
-            for (wi_s, wi_e) in _windows(idx_list):
-                dt_first = scan_dates[wi_s]
-                dt_last  = scan_dates[wi_e]
-
-                # Ingress: búsqueda binaria entre paso-anterior y primer paso dentro
-                if wi_s > 0:
-                    ingress_dt = _bio_bisect(
-                        lo=scan_dates[wi_s - 1], hi=dt_first,
-                        planet=t_pl, n_lon=n_lon, asp_angle=asp_angle,
-                        boundary=MAX_ORB, lo_inside=False,
-                    )
-                else:
-                    ingress_dt = dt_first
-
-                # Egress: búsqueda binaria entre último paso dentro y paso-siguiente
-                if wi_e < len(scan_dates) - 1:
-                    egress_dt = _bio_bisect(
-                        lo=dt_last, hi=scan_dates[wi_e + 1],
-                        planet=t_pl, n_lon=n_lon, asp_angle=asp_angle,
-                        boundary=MAX_ORB, lo_inside=True,
-                    )
-                else:
-                    egress_dt = dt_last
-
-                # Exact date: ternary search para orbe mínimo
-                exact_dt = _bio_ternary_exact(
-                    lo=ingress_dt, hi=egress_dt,
-                    planet=t_pl, n_lon=n_lon, asp_angle=asp_angle,
-                )
-
-                transits_window.append({
-                    "transit_planet": t_pl,
-                    "natal_planet":   n_name,
-                    "aspect":         asp_name,
-                    "exact_date":     exact_dt.date().isoformat(),
-                    "ingress_date":   ingress_dt.date().isoformat(),
-                    "egress_date":    egress_dt.date().isoformat(),
-                    "is_active":      ingress_dt <= from_dt_utc <= egress_dt,
-                })
+        # Lunar: Luna · step=1d · ventana=7d · orbe=1°
+        lunar_dates: List[datetime] = []
+        d = from_dt - timedelta(days=7)
+        while d <= from_dt + timedelta(days=7):
+            lunar_dates.append(d)
+            d += timedelta(days=1)
+        transits_window += _bio_run_scanner(
+            _BIO_LUNAR_BODY, lunar_dates, natal_filt, 1.0, from_dt_utc, "lunar"
+        )
 
         transits_window.sort(key=lambda x: x["exact_date"])
 

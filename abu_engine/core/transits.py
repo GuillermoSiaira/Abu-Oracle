@@ -140,6 +140,44 @@ def filter_major_transits(
     return filtered
 
 
+def filter_fast_transits(
+    transits: List[Dict],
+    orb_threshold: float | None = None
+) -> List[Dict]:
+    """
+    Variante de filter_major_transits() para planetas rapidos.
+    Orbes por planeta:
+      Sol       <= 2.0 grados
+      Luna      <= 1.0 grados
+      Mercurio  <= 2.0 grados
+      Venus     <= 2.0 grados
+      Marte     <= 2.0 grados
+    Retorna solo transitos de estos cinco planetas dentro de sus orbes.
+    Uso primario: endpoint /api/astro/lunar (Paso 4).
+    IMPORTANTE: espera objetos con campo `orb` (float) — compatible con output
+    de calculate_transits(). NO compatible con objetos de transits_window del
+    biography endpoint, que tienen ingress_date/egress_date pero no `orb`.
+    """
+    FAST_ORB = {
+        "Sun":     2.0,
+        "Moon":    1.0,
+        "Mercury": 2.0,
+        "Venus":   2.0,
+        "Mars":    2.0,
+    }
+    filtered = []
+    for t in transits:
+        planet = t.get("transit_planet", "")
+        max_orb = FAST_ORB.get(planet)
+        if max_orb is None:
+            continue
+        if orb_threshold is not None:
+            max_orb = min(max_orb, orb_threshold)
+        if t.get("orb", 999) <= max_orb:
+            filtered.append(t)
+    return filtered
+
+
 def format_transit_description(transit: Dict) -> str:
     """
     Genera una descripción legible del tránsito.
