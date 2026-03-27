@@ -802,7 +802,7 @@ ADC no funciona en dev local sin SA key explícita.
 
 ---
 
-### Fase 8.13 — CIELO HOY — backend + Gantt planetas rápidos `[PARCIALMENTE COMPLETA — sesión 2026-03-26]`
+### Fase 8.13 — CIELO HOY ✅ `[COMPLETA — sesión 2026-03-27]`
 
 **Visión**: pestaña nueva "CIELO HOY" que muestra la configuración planetaria del momento actual — Luna, Mercurio, Venus, Marte — y cómo interactúan con la carta natal del nativo. Lilly interpreta el cielo del día como astrólogo personal diario.
 
@@ -837,10 +837,12 @@ ADC no funciona en dev local sin SA key explícita.
 - `speed_class?: string` agregado al tipo `BiographicalTimeline.transits_window`
 - Footer y contador dinámicos según clases activas
 
-**Pendiente (Frontend CIELO HOY):**
-- `components/cielo-hoy-tab.tsx` — nueva pestaña: fase lunar visual + tarjetas tránsitos rápidos + botón "Lilly lee el cielo de hoy"
-- Route `app/api/lilly/sky/route.ts` — evento `sky_open`
-- Trigger Lilly: `sky_open` al entrar al tab
+**Frontend ✅ COMPLETO (sesión 2026-03-27, commit `f42ccaf`):**
+- `components/cielo-hoy-tab.tsx` — LunarDial + tarjetas tránsitos fast|lunar activos + auto-trigger sky_open + botón re-trigger
+- `app/api/lilly/sky/route.ts` — evento sky_open, max_tokens 1536, filtra tránsitos fast|lunar activos del timeline
+- `lib/i18n.ts` — tabSky + 4 keys cieloHoy* en 4 idiomas
+- `components/OracleChat.tsx` — sky_open en routeMap + label 'Cielo Hoy' en deriveLabel
+- `components/chart-tabs.tsx` — tab sky agregado, grid-cols-5 con includeTransits
 
 **Nota arquitectónica**: `filter_major_transits()` en `transits.py` excluye explícitamente Luna/Mercurio/Venus/Marte — `filter_fast_transits()` es la función paralela, no modificar la existente.
 
@@ -1400,7 +1402,7 @@ El 25/03/2026, con la memoria ya implementada y tras un diálogo de calibración
 
 | Prioridad | Feature | Descripción técnica |
 |---|---|---|
-| 1 | CIELO HOY — tránsitos rápidos diarios | Backend completo (3 scanners + /api/astro/lunar + Gantt filtro speed_class). Pendiente: frontend cielo-hoy-tab.tsx + route sky_open. **PARCIAL — Fase 8.13** |
+| 1 | CIELO HOY — tránsitos rápidos diarios ✅ | Completo — backend + frontend + sky_open. **COMPLETA — Fase 8.13, commit f42ccaf** |
 | 2 | Dignidades de planetas en tránsito ✅ | Implementado Fase 8.14 — `transit_planet_dignity` en contextBlock de click_transit. |
 | 3 | Retroalimentación biográfica | El nativo confirma o niega eventos → registro en `lilly_exchanges` con `event_type: "feedback"`. Permite calibración individual del motor HF. |
 | 4 | Ventana de convergencia con nombre ✅ | Implementado Fase 8.14 — `_detectConvergence()` en context-builder.ts, bloque automático en todas las routes. |
