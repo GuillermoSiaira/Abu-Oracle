@@ -7,7 +7,7 @@ import { getAdminDb } from "@/lib/firebase-admin";
 // Config
 // ---------------------------------------------------------------------------
 const SAFE_WALLET = "0x95CEaBdf0fE31610b8A0B09DDC0708A7Ed625c82".toLowerCase();
-const GENESIS_PRICE_USDC = parseFloat(process.env.GENESIS_PRICE_USDC ?? "500");
+const GENESIS_PRICE_USDC = parseFloat(process.env.GENESIS_PRICE_USDC ?? "100");
 
 // ---------------------------------------------------------------------------
 // HMAC verification — Alchemy signs with the raw body bytes
@@ -30,7 +30,7 @@ function verifyAlchemySignature(rawBody: string, signature: string, secret: stri
 interface AlchemyActivity {
   fromAddress: string;
   toAddress: string;
-  value: number; // token units already converted by Alchemy (e.g. 500 for 500 USDC)
+  value: number; // token units already converted by Alchemy (e.g. 100 for 100 USDC)
   hash: string;
   asset: string; // "USDC", "ETH", etc.
   category: string; // "token", "external", etc.
