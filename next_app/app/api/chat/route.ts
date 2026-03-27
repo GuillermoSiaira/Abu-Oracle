@@ -32,7 +32,7 @@ export async function POST(req: Request) {
     // Clone request so we can read body AND headers (getUserIdFromRequest reads headers)
     const reqClone = req.clone();
     const body = await req.json();
-    const { messages, context, session_id, timeline } = body;
+    const { messages, context, session_id, timeline, lang: bodyLang } = body;
 
     if (!messages?.length) {
       return NextResponse.json({ error: "No messages provided" }, { status: 400 });
@@ -55,7 +55,7 @@ export async function POST(req: Request) {
     const meta      = context?.meta;
     // Adapt meta shape { date, city } → buildNatalContext shape { birthDate, city }
     const birthData = meta ? { birthDate: meta.date, city: meta.city, utcOffset: meta.utcOffset } : undefined;
-    const lang: string = abuData?.lang ?? "es";
+    const lang: string = bodyLang ?? "es";
 
     // ── Fetch lunar data from Abu Engine (non-fatal) ─────────────────────────
     let lunarBlock = '';

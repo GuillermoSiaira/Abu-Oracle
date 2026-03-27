@@ -411,6 +411,7 @@ export default function OracleChat() {
           context: sessionContext,
           session_id: "sidebar-session-v1",
           timeline: timeline ?? undefined,
+          lang,
         })
       });
 

@@ -409,7 +409,7 @@ export function assembleContextBlock(
   natal:    NatalContext,
   timeline: BiographicalTimeline,
   active:   ActiveContext,
-  _lang:    string,
+  lang:     string,
   memoryContext?: string,
   lunarContext?:  string,
 ): string {
@@ -560,6 +560,7 @@ export function assembleContextBlock(
   lines.push(SEP);
   lines.push(`Vista: ${active.active_tab}`);
   lines.push(`Trigger: ${active.last_event_type}`);
+  lines.push(`Idioma de respuesta: ${lang}`);
 
   // Campos del trigger_data (uno por línea, omitir nulos y vacíos)
   for (const [key, value] of Object.entries(active.trigger_data)) {
