@@ -11,6 +11,7 @@ import { NatalChartTab } from './natal-chart-tab'
 import { PersianTechniquesTab } from './persian-techniques-tab'
 import { TransitsTab } from './transits-tab'
 import { RelocationTab } from './relocation-tab'
+import { CieloHoyTab } from './cielo-hoy-tab'
 import { useAppStore } from '@/lib/store'
 import { UI } from '@/lib/i18n'
 
@@ -26,7 +27,7 @@ export function ChartTabs() {
     )
   }
 
-  const gridCols = includeTransits ? "grid-cols-4" : "grid-cols-3"
+  const gridCols = includeTransits ? "grid-cols-5" : "grid-cols-4"
 
   return (
     <Tabs defaultValue="chart" className="w-full">
@@ -38,6 +39,7 @@ export function ChartTabs() {
             <TabsTrigger value="transits">{t.tabTransits}</TabsTrigger>
           )}
           <TabsTrigger value="relocation">{t.tabRelocation}</TabsTrigger>
+          <TabsTrigger value="sky">{t.tabSky}</TabsTrigger>
         </TabsList>
 
       </div>
@@ -58,6 +60,10 @@ export function ChartTabs() {
 
       <TabsContent value="relocation" className="space-y-4">
         <RelocationTab />
+      </TabsContent>
+
+      <TabsContent value="sky" className="space-y-4">
+        <CieloHoyTab />
       </TabsContent>
     </Tabs>
   )

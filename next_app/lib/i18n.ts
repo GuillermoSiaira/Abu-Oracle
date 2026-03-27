@@ -13,6 +13,7 @@ export const UI: Record<Lang, {
   tabPersian: string;
   tabTransits: string;
   tabRelocation: string;
+  tabSky: string;
   // TechnicalPanel
   tpSysArch: string;
   tpCoreKernel: string;
@@ -80,6 +81,11 @@ export const UI: Record<Lang, {
   persianTooltipLunar: string;
   persianTooltipCycles: string;
   persianLunarDialTitle: string;
+  // Cielo Hoy tab
+  cieloHoyTitle: string;
+  cieloHoyTransitsTitle: string;
+  cieloHoyLillyButton: string;
+  cieloHoyNoTransits: string;
   // Relocation shared
   relTitle: string;
   relSubtitle: string;
@@ -160,6 +166,7 @@ export const UI: Record<Lang, {
     tabPersian: "Técnicas Persas",
     tabTransits: "Tránsitos",
     tabRelocation: "Mapa HF",
+    tabSky: "Cielo Hoy",
     relTitle: "Relocalización HF",
     relSubtitle: "Campo de Armonía geográfica — Demo con 10 sujetos notables",
     natal: "HF Natal",
@@ -289,12 +296,17 @@ export const UI: Record<Lang, {
     persianTooltipLunar: "Posición actual de la Luna y sus aspectos a la carta natal. El pulso diario del campo.",
     persianTooltipCycles: "Retornos y oposiciones de planetas lentos — momentos de cierre y apertura de ciclos de largo plazo.",
     persianLunarDialTitle: "Fase Lunar",
+    cieloHoyTitle: "El cielo ahora",
+    cieloHoyTransitsTitle: "Tránsitos activos hoy",
+    cieloHoyLillyButton: "Lilly, ¿qué dice el cielo hoy?",
+    cieloHoyNoTransits: "Sin tránsitos rápidos activos en este momento",
   },
   en: {
     tabChart: "Birth Chart",
     tabPersian: "Persian Techniques",
     tabTransits: "Transits",
     tabRelocation: "HF Map",
+    tabSky: "Sky Today",
     relTitle: "HF Relocation",
     relSubtitle: "Geographic Harmony Field — Demo with 10 notable subjects",
     natal: "Natal HF",
@@ -424,12 +436,17 @@ export const UI: Record<Lang, {
     persianTooltipLunar: "Current Moon position and its aspects to the natal chart. The daily pulse of the field.",
     persianTooltipCycles: "Returns and oppositions of slow planets — moments of closure and opening of long-term cycles.",
     persianLunarDialTitle: "Lunar Phase",
+    cieloHoyTitle: "The sky now",
+    cieloHoyTransitsTitle: "Active transits today",
+    cieloHoyLillyButton: "Lilly, what does the sky say today?",
+    cieloHoyNoTransits: "No fast transits active at this moment",
   },
   pt: {
     tabChart: "Carta Natal",
     tabPersian: "Técnicas Persas",
     tabTransits: "Trânsitos",
     tabRelocation: "Mapa HF",
+    tabSky: "Céu Hoje",
     relTitle: "Relocalização HF",
     relSubtitle: "Campo de Harmonia geográfica — Demo com 10 sujeitos notáveis",
     natal: "HF Natal",
@@ -559,12 +576,17 @@ export const UI: Record<Lang, {
     persianTooltipLunar: "Posição atual da Lua e seus aspectos com a carta natal. O pulso diário do campo.",
     persianTooltipCycles: "Retornos e oposições de planetas lentos — momentos de fechamento e abertura de ciclos de longo prazo.",
     persianLunarDialTitle: "Fase Lunar",
+    cieloHoyTitle: "O céu agora",
+    cieloHoyTransitsTitle: "Trânsitos ativos hoje",
+    cieloHoyLillyButton: "Lilly, o que diz o céu hoje?",
+    cieloHoyNoTransits: "Sem trânsitos rápidos ativos neste momento",
   },
   fr: {
     tabChart: "Thème Natal",
     tabPersian: "Techniques Persanes",
     tabTransits: "Transits",
     tabRelocation: "Carte HF",
+    tabSky: "Ciel Aujourd'hui",
     relTitle: "Relocalisation HF",
     relSubtitle: "Champ d'Harmonie géographique — Démo avec 10 sujets notables",
     natal: "HF Natal",
@@ -694,6 +716,10 @@ export const UI: Record<Lang, {
     persianTooltipLunar: "Position actuelle de la Lune et ses aspects avec le thème natal. Le pouls quotidien du champ.",
     persianTooltipCycles: "Retours et oppositions des planètes lentes — moments de fermeture et d'ouverture de cycles à long terme.",
     persianLunarDialTitle: "Phase Lunaire",
+    cieloHoyTitle: "Le ciel maintenant",
+    cieloHoyTransitsTitle: "Transits actifs aujourd'hui",
+    cieloHoyLillyButton: "Lilly, que dit le ciel aujourd'hui ?",
+    cieloHoyNoTransits: "Aucun transit rapide actif en ce moment",
   },
 };
 

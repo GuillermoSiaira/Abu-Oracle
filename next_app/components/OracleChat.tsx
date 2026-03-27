@@ -311,6 +311,7 @@ export default function OracleChat() {
       if (t === 'click_transit') return `${p?.transit_planet ?? 'Tránsito'} en ${p?.transit_sign ?? ''}`;
 
       if (t === 'city_select') return p?.city_name || 'Ciudad';
+      if (t === 'sky_open') return 'Cielo Hoy';
       return t;
     };
     setLastLillyEvent({ type, label: deriveLabel(type, payload) });
@@ -322,6 +323,7 @@ export default function OracleChat() {
       sr_domain_select: '/api/lilly/solar-return',
       click_transit: '/api/lilly/transit',
       city_select: '/api/lilly/city',
+      sky_open: '/api/lilly/sky',
     };
     const route = routeMap[type];
     if (!route) return;
