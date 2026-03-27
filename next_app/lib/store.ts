@@ -148,6 +148,7 @@
       lillyData: state.lillyData,
       chatHistory: state.chatHistory,
       birthData: state.birthData,
+      lang: state.lang,
     }
 
     try {
@@ -175,7 +176,7 @@
 
       includeTransits: true,
       transitDate: null,
-      lang: "es",
+      lang: (persisted as any).lang ?? "es",
 
       userName: loadUserName(),
       isDemo: false,

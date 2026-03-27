@@ -583,5 +583,10 @@ export function assembleContextBlock(
     lines.push(memoryContext);
   }
 
+  // ╔══ INSTRUCCIÓN FINAL DE IDIOMA ══════════════════════════════════════════╗
+  // Al final del bloque — mayor peso sobre memoria y historial previo.
+  lines.push("");
+  lines.push(`RESPOND ONLY IN: ${lang.toUpperCase()}. This overrides any language used in previous conversation or biographical memory.`);
+
   return lines.join("\n");
 }
