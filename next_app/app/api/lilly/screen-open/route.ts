@@ -5,6 +5,7 @@ import {
   buildNatalContext,
   buildActiveContext,
   assembleContextBlock,
+  formatLunarContext,
   type BiographicalTimeline,
 } from '../../../../lib/context-builder';
 import { getUserIdFromRequest } from '../../../../lib/get-user-id';
@@ -69,6 +70,30 @@ export async function POST(req: Request) {
     const memoryCtx = userId ? await getRecentHistory(userId) : null;
     const memoryBlock = memoryCtx ? formatMemoryForPrompt(memoryCtx) : '';
 
+    // ── Fetch lunar data from Abu Engine (non-fatal, forwarding auth header) ─
+    let lunarBlock = '';
+    const abuUrl = process.env.ABU_ENGINE_URL || process.env.NEXT_PUBLIC_ABU_URL || '';
+    const bDate = birthData?.birthDate;
+    const bLat  = birthData?.lat;
+    const bLon  = birthData?.lon;
+    if (abuUrl && bDate && bLat != null && bLon != null) {
+      try {
+        const authHeader = req.headers.get('Authorization');
+        const lunarUrl = new URL(`${abuUrl}/api/astro/lunar`);
+        lunarUrl.searchParams.set('birthDate', bDate);
+        lunarUrl.searchParams.set('lat',       String(bLat));
+        lunarUrl.searchParams.set('lon',       String(bLon));
+        const lunarRes = await fetch(lunarUrl.toString(), {
+          headers: authHeader ? { Authorization: authHeader } : {},
+        });
+        if (lunarRes.ok) {
+          lunarBlock = formatLunarContext(await lunarRes.json());
+        }
+      } catch {
+        // non-fatal — Lilly procede sin sección CIELO ACTUAL
+      }
+    }
+
     const natal  = buildNatalContext(natalData, birthData);
     const active = buildActiveContext({
       currentDate:   new Date().toISOString(),
@@ -79,7 +104,7 @@ export async function POST(req: Request) {
       triggerData:   { name, sect, sect_master },
     });
     const block =
-      assembleContextBlock(natal, timeline ?? EMPTY_TIMELINE, active, lang ?? 'es', memoryBlock || undefined)
+      assembleContextBlock(natal, timeline ?? EMPTY_TIMELINE, active, lang ?? 'es', memoryBlock || undefined, lunarBlock || undefined)
       + '\n\n' + SUGGESTIONS_SUFFIX;
 
     const history: Anthropic.MessageParam[] = (messages ?? [])

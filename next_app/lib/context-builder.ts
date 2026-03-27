@@ -207,6 +207,54 @@ export interface ActiveContext {
   trigger_data:    Record<string, unknown>
 }
 
+// ── formatLunarContext ────────────────────────────────────────────────────────
+
+/**
+ * Formatea datos del endpoint /api/astro/lunar para inyección en contextBlock.
+ * Omite líneas cuyos valores sean null/undefined — never injects empty fields.
+ */
+export function formatLunarContext(lunarData: any): string {
+  if (!lunarData) return '';
+  const lines: string[] = [];
+
+  const fmtDate = (iso: string): string => (iso ?? '').slice(0, 10);
+  const fmtHouse = (sign: string, house: number | null | undefined): string =>
+    house ? `${sign} · Casa ${house} natal` : sign;
+
+  const phase = lunarData.phase;
+  if (phase?.name) {
+    lines.push(
+      `Fase lunar actual: ${phase.name} (${Number(phase.pct ?? 0).toFixed(0)}% del ciclo)`
+    );
+  }
+
+  const nm = lunarData.next_new_moon;
+  if (nm?.dt && nm?.sign) {
+    lines.push(`Próxima Luna Nueva: ${fmtDate(nm.dt)} · ${fmtHouse(nm.sign, nm.natal_house)}`);
+  }
+
+  const fm = lunarData.next_full_moon;
+  if (fm?.dt && fm?.sign) {
+    lines.push(`Próxima Luna Llena: ${fmtDate(fm.dt)} · ${fmtHouse(fm.sign, fm.natal_house)}`);
+  }
+
+  const se = lunarData.next_solar_eclipse;
+  if (se?.dt && se?.sign) {
+    lines.push(
+      `Próximo Eclipse Solar: ${fmtDate(se.dt)} · ${se.type} · ${fmtHouse(se.sign, se.natal_house)}`
+    );
+  }
+
+  const le = lunarData.next_lunar_eclipse;
+  if (le?.dt && le?.sign) {
+    lines.push(
+      `Próximo Eclipse Lunar: ${fmtDate(le.dt)} · ${le.type} · ${fmtHouse(le.sign, le.natal_house)}`
+    );
+  }
+
+  return lines.join('\n');
+}
+
 // ── buildNatalContext ─────────────────────────────────────────────────────────
 
 /**
@@ -363,6 +411,7 @@ export function assembleContextBlock(
   active:   ActiveContext,
   _lang:    string,
   memoryContext?: string,
+  lunarContext?:  string,
 ): string {
   const lines: string[] = [];
   const SEP = "═══════════════════════════════════════";
@@ -493,6 +542,15 @@ export function assembleContextBlock(
   const convergence = _detectConvergence(timeline);
   if (convergence) {
     lines.push(convergence);
+    lines.push("");
+  }
+
+  // ╔══ CIELO ACTUAL (fase lunar, lunaciones, eclipses) ══════════════════════╗
+  if (lunarContext) {
+    lines.push(SEP);
+    lines.push("CIELO ACTUAL");
+    lines.push(SEP);
+    lines.push(lunarContext);
     lines.push("");
   }
 
