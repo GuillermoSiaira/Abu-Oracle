@@ -3,6 +3,9 @@
 > Fecha: 2026-03-17
 > Estado: Aprobado para implementación
 
+> ⚠️ Última revisión: 2026-03-27. Procesador de pagos: Paddle (no Lemon Squeezy).
+> Schema Firestore extendido en Fases 8.12+. Ver DATABASE_STRUCTURE.md para schema completo.
+
 ---
 
 ## Situación actual
@@ -58,13 +61,36 @@ Document ID: firebase_uid
   uid: string,              // Firebase UID
   email: string,
   api_key: string,          // UUID generado al registrar — para acceso API directo
-  plan: "genesis" | "free",
+  plan: "genesis" | "monthly" | "annual" | "free",
   quota_used: number,       // requests usados este mes
   quota_limit: number,      // genesis = 10000, free = 100
   created_at: timestamp,
   genesis_member: boolean,
-  payment_verified: boolean // true cuando se confirma el pago
+  payment_verified: boolean, // true cuando se confirma el pago
+
+  // Campos de suscripción Paddle (monthly/annual)
+  paddle_subscription_id?: string,
+  paddle_customer_id?: string,
+  subscription_status?: "active" | "cancelled" | "past_due",
+  subscription_renews_at?: timestamp,
 }
+
+// Subcollecciones de memoria Lilly (Fase 8.12)
+// users/{uid}/lilly_exchanges/{docId}
+// {
+//   user_message: string,
+//   assistant_response: string,
+//   event_type: string,
+//   subject_name: string,
+//   created_at: string  // ISO
+// }
+//
+// users/{uid}/lilly_summary/current
+// {
+//   content: string,        // resumen comprimido por Haiku
+//   updated_at: string,     // ISO
+//   exchange_count: number
+// }
 ```
 
 ---
@@ -72,7 +98,7 @@ Document ID: firebase_uid
 ## Flujo de registro Genesis Member
 
 ```
-1. Usuario paga → Lemon Squeezy webhook → POST /api/webhook/payment
+1. Usuario paga → Paddle webhook → POST /api/webhook/payment
 2. Backend crea usuario en Firebase Auth (email)
 3. Backend crea documento en Firestore con plan="genesis", quota_limit=10000
 4. Backend genera api_key (UUID)
@@ -159,7 +185,7 @@ Usuario visita /chart
 
 ```typescript
 // next_app/app/api/webhook/payment/route.ts
-// Recibe: POST de Lemon Squeezy cuando se completa un pago
+// Recibe: POST de Paddle cuando se completa un pago
 // Verifica: firma HMAC del webhook
 // Crea: usuario en Firebase Auth + Firestore
 // Envía: email de bienvenida con credenciales
@@ -211,7 +237,7 @@ Cupo Genesis: acceso de por vida · todas las features futuras incluidas.
 9. Enviar Bearer token real desde frontend a endpoints protegidos
 
 ⏳ Pendiente comercial/ops:
-10. Webhook de pago (Lemon Squeezy)
+10. Webhook de pago (Paddle)
 11. Creación automática de usuario post-pago
 12. Email de bienvenida con Resend
 13. Testing end-to-end (pago → usuario → login → carta)
@@ -236,7 +262,7 @@ NEXT_PUBLIC_FIREBASE_API_KEY=...
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=abu-oracle.firebaseapp.com
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=abu-oracle
 RESEND_API_KEY=...
-LEMON_SQUEEZY_WEBHOOK_SECRET=...
+PADDLE_WEBHOOK_SECRET=...
 ```
 
 ---
