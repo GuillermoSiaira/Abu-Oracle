@@ -128,6 +128,8 @@ export default function OracleChat() {
   const initialized = useRef(false);
   // Detecta cambio de sujeto para resetear el chat
   const prevAbuRef = useRef<any>(undefined);
+  // Detecta cambio de idioma para re-disparar screen_open en el nuevo idioma
+  const initializedLangRef = useRef<string>('');
 
   // Store global (NO asumir tipos internos)
   // @ts-ignore
@@ -158,8 +160,24 @@ export default function OracleChat() {
     prevAbuRef.current = abuData;
 
     const isComplete = (d: any) => Array.isArray(d?.chart?.planets) && d.chart.planets.length > 0;
+
+    // Si el idioma cambió mientras el chat ya estaba inicializado → resetear para
+    // re-disparar screen_open en el nuevo idioma (el usuario espera respuesta en ese idioma)
+    if (
+      initialized.current &&
+      initializedLangRef.current !== '' &&
+      initializedLangRef.current !== lang &&
+      isChartPage && isComplete(abuData) && birthData
+    ) {
+      initialized.current = false;
+      setMessages([]);
+      setLastLillyEvent(null);
+      setLillySuggestions(null);
+    }
+
     if (!initialized.current && isChartPage && isComplete(abuData) && birthData) {
       initialized.current = true;
+      initializedLangRef.current = lang;
 
       // --- Fetch biography (timeline) — una vez por sujeto ---
       const bDate = (birthData as any).birthDate;
