@@ -767,6 +767,40 @@ ADC no funciona en dev local sin SA key explícita.
 
 ---
 
+### Fase 8.16 — Eclipses en endpoint lunar + Lilly lunar context ✅ `[COMPLETA — sesión 2026-03-27]`
+
+**4 commits · Abu Engine + Next.js**
+
+**PASO 1** ✅ — Eclipses en `/api/astro/lunar` (commit `7ba1ca0`)
+- `abu_engine/core/lunar.py`: constantes `_SE_ECL_*` desde `swephexp.h` (bitmasks Swiss Ephemeris)
+- `_solar_eclipse_type(retval)`: total / annular / hybrid / partial desde bitmask
+- `_lunar_eclipse_type(retval)`: total / partial / penumbral desde bitmask
+- `_find_next_solar_eclipse()`: `swe.sol_eclipse_when_glob()` → `{ dt, type, lon, sign, natal_house }`
+- `_find_next_lunar_eclipse()`: `swe.lun_eclipse_when()` → `{ dt, type, lon, sign, natal_house }`
+- Ambas funciones non-fatal (`try/except` → `None` si swe falla)
+- `calculate_lunar_data()` devuelve `next_solar_eclipse` + `next_lunar_eclipse`
+- Verificado en Docker: Solar 12-ago-2026 total Leo H6 · Lunar 28-ago-2026 partial Piscis H1
+
+**PASO 2** ✅ — Eclipses en `LunarDial.tsx` (commit `71f6735`)
+- `LunarData` interface: `next_solar_eclipse?` + `next_lunar_eclipse?` (opcionales, retrocompatible)
+- Labels i18n `NEXT_SOLAR` + `NEXT_LUNAR` en 4 idiomas
+- Filas condicionales bajo lunaciones: ☉ `text-red-400/60` para solar · ☽ `text-indigo-400/60` para lunar
+- Mismo flex layout que las filas Nueva/Llena — solo se renderizan si el campo no es null
+
+**PASO 3** ✅ — CIELO ACTUAL en contextBlock de Lilly (commits `5a79069` + `8ac5b7f`)
+- `next_app/lib/context-builder.ts`: `formatLunarContext(lunarData)` exportada — formatea response del endpoint a texto (null-safe, omite campos vacíos). Sección `CIELO ACTUAL` como 6to param opcional de `assembleContextBlock()`, inyectada entre LÍNEA DE TIEMPO y CONTEXTO ACTIVO
+- `screen-open/route.ts`: fetch server-side a `/api/astro/lunar` con `Authorization` header forwarded. `ABU_ENGINE_URL || NEXT_PUBLIC_ABU_URL` como fallback. Non-fatal.
+- `chat/route.ts`: mismo patrón de fetch usando `meta.lat` / `meta.lon` (shape del chat). Lilly ahora conoce eclipses en el chat libre.
+
+**Archivos modificados:**
+- `abu_engine/core/lunar.py` — eclipse functions + constantes bitmask
+- `next_app/components/LunarDial.tsx` — display eclipses
+- `next_app/lib/context-builder.ts` — formatLunarContext + lunarContext param
+- `next_app/app/api/lilly/screen-open/route.ts` — fetch lunar server-side
+- `next_app/app/api/chat/route.ts` — fetch lunar en chat libre
+
+---
+
 ### Fase 8.13 — CIELO HOY — backend + Gantt planetas rápidos `[PARCIALMENTE COMPLETA — sesión 2026-03-26]`
 
 **Visión**: pestaña nueva "CIELO HOY" que muestra la configuración planetaria del momento actual — Luna, Mercurio, Venus, Marte — y cómo interactúan con la carta natal del nativo. Lilly interpreta el cielo del día como astrólogo personal diario.
