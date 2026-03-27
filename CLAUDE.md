@@ -187,6 +187,7 @@ Raíz del repo: `D:\projects\ai-oracle`
 | `CLAUDE.md` | Siempre — estado del proyecto y plan de desarrollo |
 | `ARCHITECTURE.md` | Tareas que tocan la integración Abu↔Lilly, el Event System, el Context Builder o los endpoints que Lilly consume |
 | `AXIOMATICS_OF_HEAVENS_v0_4.md` | Tareas que tocan scoring, dominios, HF o cualquier decisión doctrinal |
+| `COST_OPTIMIZATION.md` | Estrategia de optimización de costos API, proyecciones de margen por plan, roadmap de implementación. Leer antes de cualquier tarea que agregue llamadas a Anthropic. |
 
 ---
 
