@@ -34,11 +34,11 @@ Precios Sonnet 4.6: input $3.00/1M tok · cache write $3.75/1M · cache read $0.
 
 ## Plan de optimización — estado
 
-### Fase A — Caching mínimo ⏳ EN PROGRESO
-- `LILLY_SYSTEM_PROMPT` con `cache_control: ephemeral` en las 8 routes
-- Implementación: `system` de string plano → array de bloques
-- Ahorro: ~25% del costo de input
-- Riesgo: bajo — cambio quirúrgico, sin tocar lógica
+### Fase A — Caching mínimo ✅ COMPLETA (commit aedfe1a · 2026-03-27)
+- `LILLY_SYSTEM_PROMPT` cacheado con `cache_control: ephemeral` en las 8 routes
+- En `/api/chat`: segundo bloque cacheado con `assembleContextBlock` output cuando `abuData` disponible
+- Nota: el segundo bloque contiene `memoryBlock` y `lunarBlock` — dinámicos por usuario/momento. Cache hit garantizado solo en primer bloque. Ahorro real del segundo bloque menor al teórico pero presente en sesiones largas.
+- Implementación: `system` de string plano → array de bloques en todas las routes
 
 ### Fase B — Haiku en routes simples ⏳ PENDIENTE
 Candidatos confirmados:
