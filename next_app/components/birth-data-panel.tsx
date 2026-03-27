@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/lib/store";
+import { UI } from "@/lib/i18n";
 import { runAbuAnalyze } from "@/services/abu";
 import CityAutocomplete from "./city-autocomplete";
 
@@ -16,7 +17,9 @@ export default function BirthDataPanel() {
     setError,
     userName,
     setUserName,
+    lang,
   } = useAppStore();
+  const t = UI[lang];
 
   const [nameInput, setNameInput] = useState(userName);
   const [birthDate, setBirthDate] = useState("");
@@ -63,7 +66,7 @@ export default function BirthDataPanel() {
     setError(null);
 
     if (!birthDate || !birthLat || !birthLon) {
-      setLocalError("Selecciona una ciudad de nacimiento y una fecha.");
+      setLocalError(t.formErrorRequired);
       return;
     }
 
@@ -109,7 +112,7 @@ export default function BirthDataPanel() {
     } catch (err: any) {
       console.error(err);
       setError(err.message || "Error inesperado.");
-      setLocalError("Ocurrió un error. Inténtalo nuevamente.");
+      setLocalError(t.formErrorGeneric);
     } finally {
       setIsLoading(false);
     }
@@ -129,24 +132,24 @@ export default function BirthDataPanel() {
       <div className="space-y-1">
         <div className="flex items-center gap-2">
           <label className="block text-sm font-semibold text-slate-300">
-            Tu nombre
+            {t.formName}
           </label>
           {userName && (
             <span className="text-xs bg-amber-500/15 text-amber-400 px-2 py-0.5 rounded-full font-medium">
-              recordado
+              {t.formNameRemembered}
             </span>
           )}
         </div>
         <input
           type="text"
-          placeholder="¿Cómo te llamás?"
+          placeholder={t.formNamePlaceholder}
           className={inputClasses}
           value={nameInput}
           onChange={(e) => setNameInput(e.target.value)}
           autoComplete="given-name"
         />
         <p className="text-xs text-slate-500">
-          Abu recordará tu nombre entre sesiones.
+          {t.formNameHint}
         </p>
       </div>
 
@@ -154,7 +157,7 @@ export default function BirthDataPanel() {
       <div className="space-y-3">
         <div className="space-y-1">
           <label className="block text-sm font-semibold text-slate-300">
-            Fecha y hora de nacimiento <span className="text-xs font-normal text-gray-500">(hora local)</span>
+            {t.formDate} <span className="text-xs font-normal text-gray-500">{t.formDateLocal}</span>
           </label>
           <input
             type="datetime-local"
@@ -167,7 +170,7 @@ export default function BirthDataPanel() {
 
         <div className="space-y-1">
           <label className="block text-sm font-semibold text-slate-300">
-            Huso horario (UTC offset)
+            {t.formTimezone}
           </label>
           <div className="flex items-center gap-3">
             <input
@@ -181,19 +184,19 @@ export default function BirthDataPanel() {
             />
             <span className="text-sm text-slate-500">
               {utcOffset >= 0 ? `UTC+${utcOffset}` : `UTC${utcOffset}`}
-              {" · "} Ej: Argentina = −3, España = +1, NYC = −5
+              {" · "} {t.formTimezoneExample}
             </span>
           </div>
           <p className="text-xs text-slate-500">
-            Usá el huso horario del lugar de nacimiento en el momento del evento.
+            {t.formTimezoneHint}
           </p>
         </div>
       </div>
 
       {/* CIUDAD DE NACIMIENTO */}
       <CityAutocomplete
-        label="Ciudad de nacimiento"
-        placeholder="Ingresa tu ciudad natal"
+        label={t.formBirthCity}
+        placeholder={t.formBirthCityPlaceholder}
         onSelect={({ city, lat, lon }) => {
           setBirthCity(city);
           setBirthLat(String(lat));
@@ -211,13 +214,13 @@ export default function BirthDataPanel() {
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1">
           <label className="block text-sm font-medium text-slate-400">
-            Latitud natal
+            {t.formBirthLat}
           </label>
           <input type="number" step="0.0001" className={disabledInputClasses} value={birthLat} disabled />
         </div>
         <div className="space-y-1">
           <label className="block text-sm font-medium text-slate-400">
-            Longitud natal
+            {t.formBirthLon}
           </label>
           <input type="number" step="0.0001" className={disabledInputClasses} value={birthLon} disabled />
         </div>
@@ -226,8 +229,8 @@ export default function BirthDataPanel() {
       {/* CIUDAD DE RESIDENCIA ACTUAL */}
       <div className="space-y-1">
         <CityAutocomplete
-          label="Ciudad de residencia actual"
-          placeholder="¿Dónde vivís actualmente?"
+          label={t.formResidenceCity}
+          placeholder={t.formResidenceCityPlaceholder}
           onSelect={({ city, lat, lon }) => {
             setResidenceCity(city);
             setResidenceLat(String(lat));
@@ -235,7 +238,7 @@ export default function BirthDataPanel() {
           }}
         />
         <p className="text-xs text-slate-500">
-          Se usa para calcular tus tránsitos actuales. Por defecto igual a ciudad natal.
+          {t.formResidenceCityHint}
         </p>
       </div>
 
@@ -247,17 +250,17 @@ export default function BirthDataPanel() {
           className="flex items-center gap-2 text-sm font-semibold text-amber-600 hover:text-amber-700 transition-colors"
         >
           <span>{showFuture ? "▼" : "▶"}</span>
-          Proyección futura (opcional)
+          {t.formFuture}
         </button>
         <p className="text-xs text-gray-500 mt-1">
-          Calculá tu HF en otra ciudad y fecha para explorar relocalización.
+          {t.formFutureHint}
         </p>
 
         {showFuture && (
           <div className="mt-4 space-y-4 p-4 bg-amber-500/5 rounded-lg border border-amber-500/20">
             <CityAutocomplete
-              label="Ciudad objetivo"
-              placeholder="¿A dónde querés mudarte?"
+              label={t.formFutureCity}
+              placeholder={t.formFutureCityPlaceholder}
               onSelect={({ city, lat, lon }) => {
                 setFutureCity(city);
                 setFutureLat(String(lat));
@@ -267,7 +270,7 @@ export default function BirthDataPanel() {
 
             <div className="space-y-1">
               <label className="block text-sm font-semibold text-slate-300">
-                Fecha objetivo
+                {t.formFutureDate}
               </label>
               <input
                 type="date"
@@ -276,7 +279,7 @@ export default function BirthDataPanel() {
                 onChange={(e) => setFutureDate(e.target.value)}
               />
               <p className="text-xs text-slate-500">
-                Fecha para la que querés calcular el HF transitorio en esa ciudad.
+                {t.formFutureDateHint}
               </p>
             </div>
           </div>
@@ -295,7 +298,7 @@ export default function BirthDataPanel() {
         type="submit"
         className="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 px-4 rounded-md transition-colors shadow-sm focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
       >
-        Generar Carta Astral
+        {t.formSubmit}
       </button>
     </form>
   );

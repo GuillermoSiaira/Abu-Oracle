@@ -126,6 +126,34 @@ export const UI: Record<Lang, {
   demoPageTitle: string;
   demoPageSubtitle: string;
   demoLoading: string;
+  // Navigation
+  navChart: string;
+  // Birth data form
+  formName: string;
+  formNamePlaceholder: string;
+  formNameHint: string;
+  formNameRemembered: string;
+  formDate: string;
+  formDateLocal: string;
+  formTimezone: string;
+  formTimezoneHint: string;
+  formTimezoneExample: string;
+  formBirthCity: string;
+  formBirthCityPlaceholder: string;
+  formBirthLat: string;
+  formBirthLon: string;
+  formResidenceCity: string;
+  formResidenceCityPlaceholder: string;
+  formResidenceCityHint: string;
+  formFuture: string;
+  formFutureHint: string;
+  formFutureCity: string;
+  formFutureCityPlaceholder: string;
+  formFutureDate: string;
+  formFutureDateHint: string;
+  formSubmit: string;
+  formErrorRequired: string;
+  formErrorGeneric: string;
 }> = {
   es: {
     tabChart: "Carta Natal",
@@ -172,6 +200,32 @@ export const UI: Record<Lang, {
     demoPageTitle: "Cartas de referencia",
     demoPageSubtitle: "10 sujetos con datos verificados (Rodden AA/A/B). Carta calculada on-demand.",
     demoLoading: "Calculando carta…",
+    navChart: "Carta",
+    formName: "Tu nombre",
+    formNamePlaceholder: "¿Cómo te llamás?",
+    formNameHint: "Abu recordará tu nombre entre sesiones.",
+    formNameRemembered: "recordado",
+    formDate: "Fecha y hora de nacimiento",
+    formDateLocal: "(hora local)",
+    formTimezone: "Huso horario (UTC offset)",
+    formTimezoneHint: "Usá el huso horario del lugar de nacimiento en el momento del evento.",
+    formTimezoneExample: "Ej: Argentina = −3, España = +1, NYC = −5",
+    formBirthCity: "Ciudad de nacimiento",
+    formBirthCityPlaceholder: "Ingresa tu ciudad natal",
+    formBirthLat: "Latitud natal",
+    formBirthLon: "Longitud natal",
+    formResidenceCity: "Ciudad de residencia actual",
+    formResidenceCityPlaceholder: "¿Dónde vivís actualmente?",
+    formResidenceCityHint: "Se usa para calcular tus tránsitos actuales. Por defecto igual a ciudad natal.",
+    formFuture: "Proyección futura (opcional)",
+    formFutureHint: "Calculá tu HF en otra ciudad y fecha para explorar relocalización.",
+    formFutureCity: "Ciudad objetivo",
+    formFutureCityPlaceholder: "¿A dónde querés mudarte?",
+    formFutureDate: "Fecha objetivo",
+    formFutureDateHint: "Fecha para la que querés calcular el HF transitorio en esa ciudad.",
+    formSubmit: "Generar Carta Astral",
+    formErrorRequired: "Seleccioná una ciudad de nacimiento y una fecha.",
+    formErrorGeneric: "Ocurrió un error. Intentalo nuevamente.",
     tpSysArch: "Arquitectura del Sistema",
     tpCoreKernel: "Kernel",
     tpEphemeris: "Efemérides",
@@ -281,6 +335,32 @@ export const UI: Record<Lang, {
     demoPageTitle: "Reference charts",
     demoPageSubtitle: "10 subjects with verified data (Rodden AA/A/B). Chart computed on-demand.",
     demoLoading: "Computing chart…",
+    navChart: "Chart",
+    formName: "Your name",
+    formNamePlaceholder: "What's your name?",
+    formNameHint: "Abu will remember your name between sessions.",
+    formNameRemembered: "remembered",
+    formDate: "Birth date and time",
+    formDateLocal: "(local time)",
+    formTimezone: "Time zone (UTC offset)",
+    formTimezoneHint: "Use the time zone of the birth location at the time of the event.",
+    formTimezoneExample: "e.g.: Argentina = −3, Spain = +1, NYC = −5",
+    formBirthCity: "Birth city",
+    formBirthCityPlaceholder: "Enter your birth city",
+    formBirthLat: "Birth latitude",
+    formBirthLon: "Birth longitude",
+    formResidenceCity: "Current residence city",
+    formResidenceCityPlaceholder: "Where do you currently live?",
+    formResidenceCityHint: "Used to calculate your current transits. Defaults to birth city.",
+    formFuture: "Future projection (optional)",
+    formFutureHint: "Calculate your HF in another city and date to explore relocation.",
+    formFutureCity: "Target city",
+    formFutureCityPlaceholder: "Where do you want to move?",
+    formFutureDate: "Target date",
+    formFutureDateHint: "Date for which you want to calculate the transient HF in that city.",
+    formSubmit: "Generate Birth Chart",
+    formErrorRequired: "Select a birth city and a date.",
+    formErrorGeneric: "An error occurred. Please try again.",
     tpSysArch: "System Architecture",
     tpCoreKernel: "Kernel",
     tpEphemeris: "Ephemeris",
@@ -390,6 +470,32 @@ export const UI: Record<Lang, {
     demoPageTitle: "Cartas de referência",
     demoPageSubtitle: "10 sujeitos com dados verificados (Rodden AA/A/B). Carta calculada sob demanda.",
     demoLoading: "Calculando carta…",
+    navChart: "Carta",
+    formName: "Seu nome",
+    formNamePlaceholder: "Como você se chama?",
+    formNameHint: "Abu lembrará seu nome entre sessões.",
+    formNameRemembered: "lembrado",
+    formDate: "Data e hora de nascimento",
+    formDateLocal: "(hora local)",
+    formTimezone: "Fuso horário (UTC offset)",
+    formTimezoneHint: "Use o fuso horário do local de nascimento no momento do evento.",
+    formTimezoneExample: "Ex: Argentina = −3, Espanha = +1, NYC = −5",
+    formBirthCity: "Cidade natal",
+    formBirthCityPlaceholder: "Insira sua cidade natal",
+    formBirthLat: "Latitude natal",
+    formBirthLon: "Longitude natal",
+    formResidenceCity: "Cidade de residência atual",
+    formResidenceCityPlaceholder: "Onde você mora atualmente?",
+    formResidenceCityHint: "Usado para calcular seus trânsitos atuais. Padrão igual à cidade natal.",
+    formFuture: "Projeção futura (opcional)",
+    formFutureHint: "Calcule seu HF em outra cidade e data para explorar relocalização.",
+    formFutureCity: "Cidade alvo",
+    formFutureCityPlaceholder: "Para onde você quer se mudar?",
+    formFutureDate: "Data alvo",
+    formFutureDateHint: "Data para a qual você quer calcular o HF transitório nessa cidade.",
+    formSubmit: "Gerar Carta Astral",
+    formErrorRequired: "Selecione uma cidade natal e uma data.",
+    formErrorGeneric: "Ocorreu um erro. Tente novamente.",
     tpSysArch: "Arquitetura do Sistema",
     tpCoreKernel: "Kernel",
     tpEphemeris: "Efemérides",
@@ -499,6 +605,32 @@ export const UI: Record<Lang, {
     demoPageTitle: "Thèmes de référence",
     demoPageSubtitle: "10 sujets avec données vérifiées (Rodden AA/A/B). Thème calculé à la demande.",
     demoLoading: "Calcul du thème…",
+    navChart: "Thème",
+    formName: "Votre prénom",
+    formNamePlaceholder: "Comment vous appelez-vous ?",
+    formNameHint: "Abu mémorisera votre prénom entre les sessions.",
+    formNameRemembered: "mémorisé",
+    formDate: "Date et heure de naissance",
+    formDateLocal: "(heure locale)",
+    formTimezone: "Fuseau horaire (UTC offset)",
+    formTimezoneHint: "Utilisez le fuseau horaire du lieu de naissance au moment de l'événement.",
+    formTimezoneExample: "Ex: Argentine = −3, Espagne = +1, NYC = −5",
+    formBirthCity: "Ville de naissance",
+    formBirthCityPlaceholder: "Entrez votre ville de naissance",
+    formBirthLat: "Latitude natale",
+    formBirthLon: "Longitude natale",
+    formResidenceCity: "Ville de résidence actuelle",
+    formResidenceCityPlaceholder: "Où habitez-vous actuellement ?",
+    formResidenceCityHint: "Utilisé pour calculer vos transits actuels. Par défaut égal à la ville de naissance.",
+    formFuture: "Projection future (optionnel)",
+    formFutureHint: "Calculez votre HF dans une autre ville et date pour explorer la relocalisation.",
+    formFutureCity: "Ville cible",
+    formFutureCityPlaceholder: "Où souhaitez-vous déménager ?",
+    formFutureDate: "Date cible",
+    formFutureDateHint: "Date pour laquelle vous souhaitez calculer le HF transitoire dans cette ville.",
+    formSubmit: "Générer le Thème Natal",
+    formErrorRequired: "Sélectionnez une ville de naissance et une date.",
+    formErrorGeneric: "Une erreur s'est produite. Veuillez réessayer.",
     tpSysArch: "Architecture du Système",
     tpCoreKernel: "Noyau",
     tpEphemeris: "Éphémérides",

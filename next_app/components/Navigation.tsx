@@ -3,16 +3,17 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAppStore } from '@/lib/store';
-import { LANG_OPTIONS, type Lang } from '@/lib/i18n';
-
-const navLinks = [
-  { href: '/', label: 'Home' },
-  { href: '/chart', label: 'Carta' },
-];
+import { UI, LANG_OPTIONS, type Lang } from '@/lib/i18n';
 
 export default function Navigation() {
   const pathname = usePathname();
   const { lang, setLang } = useAppStore();
+  const t = UI[lang];
+
+  const navLinks = [
+    { href: '/', label: 'Home' },
+    { href: '/chart', label: t.navChart },
+  ];
 
   return (
     <header className="w-full h-14 bg-slate-950 border-b border-slate-800 flex items-center px-6 select-none">
