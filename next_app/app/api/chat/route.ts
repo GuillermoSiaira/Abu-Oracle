@@ -81,8 +81,10 @@ export async function POST(req: Request) {
       }
     }
 
-    // Build canonical context block — injected into system prompt (chat pattern)
-    let systemPrompt = LILLY_SYSTEM_PROMPT;
+    // Build canonical context block — injected as second cached system block (chat pattern)
+    const systemBlocks: Array<{ type: 'text'; text: string; cache_control: { type: 'ephemeral' } }> = [
+      { type: 'text', text: LILLY_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } },
+    ];
     if (abuData) {
       const natal  = buildNatalContext(abuData, birthData);
       const active = buildActiveContext({
@@ -101,7 +103,7 @@ export async function POST(req: Request) {
         memoryBlock || undefined,
         lunarBlock || undefined,
       );
-      systemPrompt = `${LILLY_SYSTEM_PROMPT}\n\n---\n${block}`;
+      systemBlocks.push({ type: 'text', text: block, cache_control: { type: 'ephemeral' } });
     }
 
     // Filter hidden messages (synthetic reactives) — they are noise in free chat
@@ -124,7 +126,7 @@ export async function POST(req: Request) {
     const response = await client.messages.create({
       model: "claude-sonnet-4-6",
       max_tokens: parseInt(process.env.LILLY_CHAT_MAX_TOKENS ?? "2500"),
-      system: systemPrompt,
+      system: systemBlocks,
       messages: anthropicMessages,
     });
 

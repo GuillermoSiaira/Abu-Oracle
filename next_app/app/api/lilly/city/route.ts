@@ -78,7 +78,7 @@ export async function POST(req: Request) {
     const response = await client.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 1024,
-      system: LILLY_SYSTEM_PROMPT,
+      system: [{ type: 'text', text: LILLY_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
       messages: [...history, { role: 'user', content: block }],
     });
 
