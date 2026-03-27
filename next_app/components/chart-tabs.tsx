@@ -30,7 +30,7 @@ export function ChartTabs() {
   const gridCols = includeTransits ? "grid-cols-5" : "grid-cols-4"
 
   return (
-    <Tabs defaultValue="chart" className="w-full">
+    <Tabs defaultValue="persian" className="w-full">
       <div className="flex items-center gap-2 mb-1">
         <TabsList className={`grid flex-1 ${gridCols}`}>
           <TabsTrigger value="chart">{t.tabChart}</TabsTrigger>

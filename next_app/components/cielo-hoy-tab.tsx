@@ -104,7 +104,18 @@ export function CieloHoyTab() {
               {t.cieloHoyTransitsTitle}
             </h4>
 
-            {fastTransits.length === 0 ? (
+            {timeline === null ? (
+              /* Skeleton — biography fetch en curso */
+              <div className="space-y-2 pt-1">
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="h-9 rounded-md bg-slate-800/60 animate-pulse"
+                    style={{ opacity: 1 - i * 0.2 }}
+                  />
+                ))}
+              </div>
+            ) : fastTransits.length === 0 ? (
               <p className="text-[11px] text-slate-600 italic py-4">
                 {t.cieloHoyNoTransits}
               </p>
