@@ -7,6 +7,8 @@ export interface LunarData {
   sun_moon_aspect: { type: string | null; orb: number | null; applying: boolean | null }
   next_new_moon: { dt: string; sign: string; natal_house: number | null }
   next_full_moon: { dt: string; sign: string; natal_house: number | null }
+  next_solar_eclipse?: { dt: string; type: string; sign: string; natal_house: number | null } | null
+  next_lunar_eclipse?: { dt: string; type: string; sign: string; natal_house: number | null } | null
 }
 
 const PHASE_NAMES: Record<string, Record<string, string>> = {
@@ -20,8 +22,10 @@ const PHASE_NAMES: Record<string, Record<string, string>> = {
   "Waning Crescent": { es: "Menguante",        en: "Waning Crescent", pt: "Minguante",        fr: "Croissant Décroissant"  },
 }
 
-const NEXT_NEW:  Record<string, string> = { es: "Próx. Luna Nueva", en: "Next New Moon",  pt: "Próx. Lua Nova",  fr: "Proch. Nouvelle Lune" }
-const NEXT_FULL: Record<string, string> = { es: "Próx. Luna Llena", en: "Next Full Moon", pt: "Próx. Lua Cheia", fr: "Proch. Pleine Lune"   }
+const NEXT_NEW:    Record<string, string> = { es: "Próx. Luna Nueva",   en: "Next New Moon",     pt: "Próx. Lua Nova",     fr: "Proch. Nouvelle Lune"  }
+const NEXT_FULL:   Record<string, string> = { es: "Próx. Luna Llena",   en: "Next Full Moon",    pt: "Próx. Lua Cheia",    fr: "Proch. Pleine Lune"    }
+const NEXT_SOLAR:  Record<string, string> = { es: "Eclipse Solar",      en: "Solar Eclipse",     pt: "Eclipse Solar",      fr: "Éclipse Solaire"       }
+const NEXT_LUNAR:  Record<string, string> = { es: "Eclipse Lunar",      en: "Lunar Eclipse",     pt: "Eclipse Lunar",      fr: "Éclipse Lunaire"       }
 
 function phaseArcColor(sep: number): string {
   if (sep < 22.5 || sep >= 337.5) return "rgba(148,163,184,0.2)"
@@ -181,6 +185,24 @@ export function LunarDial({ data, lang }: { data: LunarData; lang: string }) {
             {data.next_full_moon.sign}{data.next_full_moon.natal_house ? ` H${data.next_full_moon.natal_house}` : ""}
           </span>
         </div>
+        {data.next_solar_eclipse && (
+          <div className="flex items-center justify-between gap-1 text-[10px]">
+            <span className="text-red-400/60 shrink-0">☉ {NEXT_SOLAR[lang] ?? NEXT_SOLAR.en}</span>
+            <span className="text-slate-500 font-mono shrink-0">{fmtDate(data.next_solar_eclipse.dt)}</span>
+            <span className="text-slate-600 text-[9px] truncate text-right">
+              {data.next_solar_eclipse.sign}{data.next_solar_eclipse.natal_house ? ` H${data.next_solar_eclipse.natal_house}` : ""}
+            </span>
+          </div>
+        )}
+        {data.next_lunar_eclipse && (
+          <div className="flex items-center justify-between gap-1 text-[10px]">
+            <span className="text-indigo-400/60 shrink-0">☽ {NEXT_LUNAR[lang] ?? NEXT_LUNAR.en}</span>
+            <span className="text-slate-500 font-mono shrink-0">{fmtDate(data.next_lunar_eclipse.dt)}</span>
+            <span className="text-slate-600 text-[9px] truncate text-right">
+              {data.next_lunar_eclipse.sign}{data.next_lunar_eclipse.natal_house ? ` H${data.next_lunar_eclipse.natal_house}` : ""}
+            </span>
+          </div>
+        )}
       </div>
     </div>
   )
