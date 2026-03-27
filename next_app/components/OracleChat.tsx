@@ -484,9 +484,9 @@ export default function OracleChat() {
             </span>
 
             <div
-              className={`max-w-[90%] rounded-sm p-3 text-sm shadow-sm border ${
+              className={`rounded-sm p-3 text-sm shadow-sm border ${
                 m.role === 'user'
-                  ? 'bg-slate-800/60 border-slate-700 text-slate-200 font-sans'
+                  ? 'max-w-[90%] bg-slate-800/60 border-slate-700 text-slate-200 font-sans'
                   : 'bg-[#0a0a0a] border-green-900/20 w-full font-mono shadow-inner'
               }`}
             >
