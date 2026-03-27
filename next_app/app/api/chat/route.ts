@@ -5,6 +5,7 @@ import {
   buildNatalContext,
   buildActiveContext,
   assembleContextBlock,
+  formatLunarContext,
   type BiographicalTimeline,
 } from "@/lib/context-builder";
 import { getUserIdFromRequest } from "@/lib/get-user-id";
@@ -56,6 +57,30 @@ export async function POST(req: Request) {
     const birthData = meta ? { birthDate: meta.date, city: meta.city, utcOffset: meta.utcOffset } : undefined;
     const lang: string = abuData?.lang ?? "es";
 
+    // ── Fetch lunar data from Abu Engine (non-fatal) ─────────────────────────
+    let lunarBlock = '';
+    const abuUrl = process.env.ABU_ENGINE_URL || process.env.NEXT_PUBLIC_ABU_URL || '';
+    const bDate = meta?.date;
+    const bLat  = meta?.lat;
+    const bLon  = meta?.lon;
+    if (abuUrl && bDate && bLat != null && bLon != null) {
+      try {
+        const authHeader = req.headers.get('Authorization');
+        const lunarUrl = new URL(`${abuUrl}/api/astro/lunar`);
+        lunarUrl.searchParams.set('birthDate', bDate);
+        lunarUrl.searchParams.set('lat',       String(bLat));
+        lunarUrl.searchParams.set('lon',       String(bLon));
+        const lunarRes = await fetch(lunarUrl.toString(), {
+          headers: authHeader ? { Authorization: authHeader } : {},
+        });
+        if (lunarRes.ok) {
+          lunarBlock = formatLunarContext(await lunarRes.json());
+        }
+      } catch {
+        // non-fatal — chat procede sin sección CIELO ACTUAL
+      }
+    }
+
     // Build canonical context block — injected into system prompt (chat pattern)
     let systemPrompt = LILLY_SYSTEM_PROMPT;
     if (abuData) {
@@ -74,6 +99,7 @@ export async function POST(req: Request) {
         active,
         lang,
         memoryBlock || undefined,
+        lunarBlock || undefined,
       );
       systemPrompt = `${LILLY_SYSTEM_PROMPT}\n\n---\n${block}`;
     }
