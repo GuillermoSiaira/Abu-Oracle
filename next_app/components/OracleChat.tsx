@@ -258,7 +258,7 @@ export default function OracleChat() {
       })
         .then((res) => res.json())
         .then((data) => {
-          const text: string = data.response || `> ERROR: ${data.error ?? 'LILLY_UNREACHABLE'}`;
+          const text: string = data.response || '> ✦ *Los astros tardan un momento en alinearse. Intentá de nuevo en unos segundos.*';
           setMessages([
             { id: `screen-open-user-${Date.now()}`, role: 'user', content: '[carta_cargada]', hidden: true },
             { id: 'screen-open', role: 'assistant', content: text },
@@ -271,7 +271,7 @@ export default function OracleChat() {
           setMessages([{
             id: 'screen-open',
             role: 'assistant',
-            content: '> LILLY_AI: Sin conexión.\n> Configura ANTHROPIC_API_KEY para activar la interpretación.',
+            content: '> ✦ *Los astros tardan un momento en alinearse. Intentá de nuevo en unos segundos.*',
           }]);
         })
         .finally(() => setIsLoading(false))
@@ -341,7 +341,7 @@ export default function OracleChat() {
     })
       .then((res) => res.json())
       .then((data) => {
-        const text: string = data.response || `> ERROR: ${data.error ?? 'LILLY_UNREACHABLE'}`;
+        const text: string = data.response || '> ✦ *Los astros tardan un momento en alinearse. Intentá de nuevo en unos segundos.*';
         const ts = Date.now();
         setMessages((prev) => [
           ...prev,
@@ -355,7 +355,7 @@ export default function OracleChat() {
           {
             id: `${type}-err-${Date.now()}`,
             role: 'assistant',
-            content: '> LILLY_AI: Sin conexión.',
+            content: '> ✦ *Los astros tardan un momento en alinearse. Intentá de nuevo en unos segundos.*',
           },
         ]);
       })
@@ -436,7 +436,7 @@ export default function OracleChat() {
         {
           id: Date.now() + 1,
           role: 'assistant',
-          content: "> ERROR: LINK_LOST. Lilly is unreachable."
+          content: '> ✦ *Los astros tardan un momento en alinearse. Intentá de nuevo en unos segundos.*',
         }
       ]);
     } finally {
