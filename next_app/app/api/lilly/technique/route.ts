@@ -50,7 +50,8 @@ export async function POST(req: Request) {
     }
 
     const maxTokens =
-      ['lot', 'sect', 'profection', 'firdaria'].includes(technique) ? 2048
+      ['lunar_transit', 'planetary_cycle'].includes(technique) ? 1536
+      : ['lot', 'sect', 'profection', 'firdaria'].includes(technique) ? 2048
       : 1024;
 
     const client = new Anthropic({ apiKey });
