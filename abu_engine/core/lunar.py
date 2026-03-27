@@ -19,6 +19,86 @@ from .transits import calculate_transits
 _J2000_JD = 2451545.0
 _J2000_DT = datetime(2000, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
 
+# ── Eclipse type bitmasks (Swiss Ephemeris swephexp.h) ────────────────────────
+_SE_ECL_TOTAL         = 4    # solar total + lunar total
+_SE_ECL_ANNULAR       = 8    # solar annular
+_SE_ECL_PARTIAL       = 16   # solar partial + lunar partial
+_SE_ECL_ANNULAR_TOTAL = 32   # solar hybrid (annular-total)
+_SE_ECL_PENUMBRAL     = 64   # lunar penumbral
+
+
+def _solar_eclipse_type(retval: int) -> str:
+    if retval & _SE_ECL_ANNULAR_TOTAL:
+        return "hybrid"
+    if retval & _SE_ECL_TOTAL:
+        return "total"
+    if retval & _SE_ECL_ANNULAR:
+        return "annular"
+    return "partial"
+
+
+def _lunar_eclipse_type(retval: int) -> str:
+    if retval & _SE_ECL_TOTAL:
+        return "total"
+    if retval & _SE_ECL_PARTIAL:
+        return "partial"
+    return "penumbral"
+
+
+def _find_next_solar_eclipse(
+    dt: datetime, birth_dt: datetime, lat: float, natal_lon: float
+) -> Optional[Dict[str, Any]]:
+    """
+    Próximo eclipse solar desde dt usando swe.sol_eclipse_when_glob().
+    Retorna { dt, type, lon, sign, natal_house } o None si falla.
+    """
+    try:
+        jd_start = _to_jd(dt) + 1.0
+        retval, tret = swe.sol_eclipse_when_glob(jd_start, 0)
+        jd_max = tret[0]
+        if jd_max <= 0:
+            return None
+        eclipse_dt = _from_jd(jd_max)
+        sun_lon = _planet_lon(jd_max, swe.SUN)
+        sign, _ = longitude_to_sign_degree(sun_lon)
+        return {
+            "dt": eclipse_dt.isoformat(),
+            "type": _solar_eclipse_type(retval),
+            "lon": round(sun_lon, 4),
+            "sign": sign,
+            "natal_house": _natal_house(sun_lon, birth_dt, lat, natal_lon),
+        }
+    except Exception:
+        return None
+
+
+def _find_next_lunar_eclipse(
+    dt: datetime, birth_dt: datetime, lat: float, natal_lon: float
+) -> Optional[Dict[str, Any]]:
+    """
+    Próximo eclipse lunar desde dt usando swe.lun_eclipse_when().
+    Retorna { dt, type, lon, sign, natal_house } o None si falla.
+    """
+    try:
+        jd_start = _to_jd(dt) + 1.0
+        retval, tret = swe.lun_eclipse_when(jd_start, 0)
+        jd_max = tret[0]
+        if jd_max <= 0:
+            return None
+        eclipse_dt = _from_jd(jd_max)
+        moon_lon = _planet_lon(jd_max, swe.MOON)
+        sign, _ = longitude_to_sign_degree(moon_lon)
+        return {
+            "dt": eclipse_dt.isoformat(),
+            "type": _lunar_eclipse_type(retval),
+            "lon": round(moon_lon, 4),
+            "sign": sign,
+            "natal_house": _natal_house(moon_lon, birth_dt, lat, natal_lon),
+        }
+    except Exception:
+        return None
+
+
 _PHASE_BANDS = [
     (0.0,   22.5,  "New Moon"),
     (22.5,  67.5,  "Waxing Crescent"),
@@ -172,6 +252,10 @@ def calculate_lunar_data(
     new_sign,  _ = longitude_to_sign_degree(new_lon)
     full_sign, _ = longitude_to_sign_degree(full_lon)
 
+    # Próximos eclipses
+    next_solar_eclipse = _find_next_solar_eclipse(query_dt, birth_dt, lat, lon)
+    next_lunar_eclipse = _find_next_lunar_eclipse(query_dt, birth_dt, lat, lon)
+
     return {
         "sun": {
             "lon": round(sun_lon, 4),
@@ -202,4 +286,6 @@ def calculate_lunar_data(
             "sign": full_sign,
             "natal_house": _natal_house(full_lon, birth_dt, lat, lon),
         },
+        "next_solar_eclipse": next_solar_eclipse,
+        "next_lunar_eclipse": next_lunar_eclipse,
     }
