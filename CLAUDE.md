@@ -848,22 +848,29 @@ ADC no funciona en dev local sin SA key explícita.
 
 ---
 
-### Fase 9 — Lilly Event System `[PARCIAL]`
+### Fase 9 — Lilly Event System `[MAYORMENTE COMPLETA]`
 
-click_planet implementado en Fase 8.6 como route independiente.
-Lo que resta es el sistema reactivo completo per ARCHITECTURE.md.
+El Event System reactivo está operativo. Todos los eventos principales implementados y validados en producción (2026-03-27).
 
-**Tarea 9.1** — Event System FE: emisores `LillyEvent` tipados para todas las pantallas
-- `click_planet` ✅ funcional (Fase 8.6) — implementación directa, no via Context Builder
-- `domain_select`, `click_house`, `click_transit`, `city_select` — pendientes
-**Tarea 9.2** — Context Builder: traducción evento → prompt estructurado (determinista, sin LLM)
-- Centraliza la construcción de context blocks (hoy cada route lo hace ad-hoc)
-**Tarea 9.3** — System prompt completo: citas de Christian Astrology, casos edge, tono refinado
-**Tarea 9.4** — RAG pipeline: chunking de Christian Astrology, recuperación por trigger
-**Tarea 9.5** — Benchmark de modelo: GPT-4o-mini vs GPT-4o vs Claude Sonnet 4.6 en 5 casos representativos
+**Tarea 9.1** ✅ — Event System FE: emisores `LillyEvent` para todas las pantallas
+- `click_planet` ✅ (Fase 8.6) — tarjetas planetarias + tooltip en rueda zodiacal
+- `click_technique` ✅ (Fase 8.7/8.8) — sect, profección, firdaria, lot, lunar_transit, planetary_cycle
+- `domain_select` ✅ (Fase 8.7) — selector de dominio HF en relocalización
+- `city_select` ✅ (Fase 8.7) — click en ranking + click en mapa (reverse geocoding)
+- `click_transit` ✅ (sesión 2026-03-22) — barras del Gantt de tránsitos, tooltip, route `/api/lilly/transit`
+- `sky_open` ✅ (Fase 8.13) — tab Cielo Hoy, auto-trigger + botón re-trigger
+- `click_house` ❌ — pendiente (click en casa de la rueda zodiacal)
 
-**Prerequisito**: leer `ARCHITECTURE.md` completo antes de tocar cualquier tarea de esta fase.
-El contrato LillyEvent, AbuContext schema y las plantillas del Context Builder están definidos ahí.
+**Tarea 9.2** ✅ — Context Builder centralizado (`assembleContextBlock`)
+- `next_app/lib/context-builder.ts` — todas las routes Lilly lo usan (sesión 2026-03-22)
+
+**Tarea 9.3** ✅ — System prompt v1.0 en `lib/lilly-prompt.ts` — compartido por todas las routes
+
+**Tarea 9.4** ❌ — RAG pipeline: chunking de Christian Astrology, recuperación por trigger
+
+**Tarea 9.5** ❌ — Benchmark de modelo: GPT-4o-mini vs GPT-4o vs Claude Sonnet 4.6
+
+**Prerequisito**: leer `ARCHITECTURE.md` completo antes de tocar tareas pendientes de esta fase.
 
 ---
 
@@ -1020,9 +1027,9 @@ Abu Oracle como astrólogo personal — Lilly recuerda contexto entre sesiones d
 Leer CLAUDE.md al inicio de cada sesión (sección "## Bugs Pendientes" incluida). Los bugs documentados son issues conocidos — no investigarlos de nuevo, solo tenerlos presentes como contexto.
 
 Cuando Claude Code retome una sesión, leer este archivo primero y preguntar por la fase activa.
-La próxima tarea es siempre la primera sin tilde `✅` en el plan de desarrollo — actualmente **Fase 9 (Lilly Event System completo)**.
+La próxima tarea es siempre la primera sin tilde `✅` en el plan de desarrollo — actualmente **Fase 9 pendiente**: `click_house`, RAG pipeline, benchmark de modelos.
 
-**Estado Lilly al 2026-03-16 (Fase 8.10)**: screen_open ✅, click_planet ✅, click_technique (sect/profección/firdaria/lot/**lunar_transit**/**planetary_cycle**) ✅, domain_select ✅, city_select ✅. Todas las routes usan `claude-sonnet-4-6` via `@anthropic-ai/sdk`. System prompt v1.0 en `lib/lilly-prompt.ts` ✅. Pendiente: click_house, click_transit, Context Builder centralizado (Fase 9).
+**Estado Lilly al 2026-03-27**: screen_open ✅, click_planet ✅, click_technique (sect/profección/firdaria/lot/lunar_transit/planetary_cycle) ✅, domain_select ✅, city_select ✅, click_transit ✅, sky_open ✅. Context Builder centralizado ✅. System prompt v1.0 ✅. Pendiente: click_house, RAG, benchmark.
 
 **Estado panel guía al 2026-03-16**: TechnicalPanel reescrito — LEYENDO AHORA + SEÑOR DEL AÑO + EXPLORAR operativos. `screen-open` devuelve `{ response, suggestions }`. `store.ts` mantiene `lastLillyEvent` y `lillySuggestions` en memoria (no persisten).
 
