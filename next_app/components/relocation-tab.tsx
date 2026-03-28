@@ -9,6 +9,7 @@ import RankingTable from "@/components/RankingTable";
 import { DomainSelector, type Domain } from "@/components/DomainSelector";
 import { LifeDomainSelector, type LifeDomain } from "@/components/LifeDomainSelector";
 import { Globe, Loader2, AlertCircle, Star } from "lucide-react";
+import { deriveSignificators } from "@/lib/astro-utils";
 import dynamic from "next/dynamic";
 
 const HFRelocationMap = dynamic(
@@ -69,28 +70,6 @@ const LIFE_DOMAIN_TO_HX: Partial<Record<LifeDomain, Domain>> = {
 };
 
 
-function deriveSignificators(
-  houseNum: number,
-  planets: Array<{ name: string; house: number; sign?: string }>,
-  houseCusps: Array<{ house: number; start: number }>
-): string[] {
-  const SIGN_LORDS: Record<string, string> = {
-    Aries: 'Mars', Taurus: 'Venus', Gemini: 'Mercury', Cancer: 'Moon',
-    Leo: 'Sun', Virgo: 'Mercury', Libra: 'Venus', Scorpio: 'Mars',
-    Sagittarius: 'Jupiter', Capricorn: 'Saturn', Aquarius: 'Saturn',
-    Pisces: 'Jupiter'
-  };
-  const SIGNS = [
-    'Aries','Taurus','Gemini','Cancer','Leo','Virgo',
-    'Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'
-  ];
-  const cusp = houseCusps.find(h => h.house === houseNum);
-  const cuspSign = cusp ? SIGNS[Math.floor(cusp.start / 30) % 12] : null;
-  const lord = cuspSign ? SIGN_LORDS[cuspSign] : null;
-  const occupants = planets.filter(p => p.house === houseNum).map(p => p.name);
-  const result = lord ? [lord, ...occupants.filter(p => p !== lord)] : occupants;
-  return result;
-}
 
 const DOMAIN_LABELS: Record<Domain, string> = {
   global: "Global", h1: "Identidad", h2: "Recursos", h4: "Hogar",
