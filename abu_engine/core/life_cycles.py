@@ -193,7 +193,7 @@ def forecast_life_cycles(birth_dt: str) -> Dict[str, List[Dict[str, Any]]]:
 
                 current_pos = current_positions[planet]
                 angles = planet_aspects.get(planet, [])
-                angle = detect_aspect_event(natal_pos, current_pos, angles=angles)
+                angle = detect_aspect_event(natal_pos, current_pos, orb=3.0, angles=angles)
 
                 if angle is not None:
                     events.append({
