@@ -37,7 +37,7 @@ export async function POST(req: Request) {
       activeDomain:  null,
       activeCity:    null,
       lastEventType: 'click_technique',
-      triggerData:   { technique, data },
+      triggerData:   { technique, ...data },
     });
     const block = assembleContextBlock(natal, timeline ?? EMPTY_TIMELINE, active, lang ?? 'es');
 
