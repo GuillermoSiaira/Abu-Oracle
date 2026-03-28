@@ -32,6 +32,7 @@ export async function POST(req: Request) {
       house_num,
       cusp_sign,
       house_lord,
+      occupants,
       subject_name,
       lang,
       natalData,
@@ -47,7 +48,7 @@ export async function POST(req: Request) {
       activeDomain:  null,
       activeCity:    null,
       lastEventType: 'click_house',
-      triggerData:   { house_num, cusp_sign, house_lord, subject_name },
+      triggerData:   { house_num, cusp_sign, house_lord, occupants, subject_name },
     });
     const block = assembleContextBlock(natal, timeline ?? EMPTY_TIMELINE, active, lang ?? 'es');
 

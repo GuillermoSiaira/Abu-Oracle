@@ -326,6 +326,10 @@ export function NatalChartTab() {
       type: "click_house",
       payload: {
         ...payload,
+        occupants: natalPlanets
+          .filter((p: any) => p.house === payload.house_num)
+          .map((p: any) => `${p.name} (${p.sign} ${Math.floor(p.degree ?? 0)}°)`)
+          .join(', ') || 'Ninguno',
         subject_name: subjectName,
         lang,
       },
