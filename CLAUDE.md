@@ -848,9 +848,9 @@ ADC no funciona en dev local sin SA key explícita.
 
 ---
 
-### Fase 9 — Lilly Event System `[MAYORMENTE COMPLETA]`
+### Fase 9 — Lilly Event System ✅ `[COMPLETA — sesión 2026-03-28]`
 
-El Event System reactivo está operativo. Todos los eventos principales implementados y validados en producción (2026-03-27).
+El Event System reactivo está operativo y completo. Todos los eventos implementados y desplegados en producción.
 
 **Tarea 9.1** ✅ — Event System FE: emisores `LillyEvent` para todas las pantallas
 - `click_planet` ✅ (Fase 8.6) — tarjetas planetarias + tooltip en rueda zodiacal
@@ -859,18 +859,23 @@ El Event System reactivo está operativo. Todos los eventos principales implemen
 - `city_select` ✅ (Fase 8.7) — click en ranking + click en mapa (reverse geocoding)
 - `click_transit` ✅ (sesión 2026-03-22) — barras del Gantt de tránsitos, tooltip, route `/api/lilly/transit`
 - `sky_open` ✅ (Fase 8.13) — tab Cielo Hoy, auto-trigger + botón re-trigger
-- `click_house` ❌ — pendiente (click en casa de la rueda zodiacal)
+- `click_house` ✅ (sesión 2026-03-28) — sectores de casa clickeables en rueda zodiacal, payload: `house_num + cusp_sign + house_lord + occupants`. Route `/api/lilly/house`. `SIGN_LORDS` extraído a `lib/astro-utils.ts` (compartido).
 
 **Tarea 9.2** ✅ — Context Builder centralizado (`assembleContextBlock`)
 - `next_app/lib/context-builder.ts` — todas las routes Lilly lo usan (sesión 2026-03-22)
 
 **Tarea 9.3** ✅ — System prompt v1.0 en `lib/lilly-prompt.ts` — compartido por todas las routes
 
-**Tarea 9.4** ❌ — RAG pipeline: chunking de Christian Astrology, recuperación por trigger
+**Tarea 9.4** ❌ — RAG pipeline: chunking de Christian Astrology, recuperación por trigger (postergado)
 
-**Tarea 9.5** ❌ — Benchmark de modelo: GPT-4o-mini vs GPT-4o vs Claude Sonnet 4.6
+**Tarea 9.5** ❌ — Benchmark de modelo: GPT-4o-mini vs GPT-4o vs Claude Sonnet 4.6 (postergado)
 
-**Prerequisito**: leer `ARCHITECTURE.md` completo antes de tocar tareas pendientes de esta fase.
+**Archivos clave sesión 2026-03-28:**
+- `next_app/lib/astro-utils.ts` — NUEVO: `SIGN_LORDS`, `getHouseLord()`, `deriveSignificators()` compartidos
+- `next_app/components/zodiac-wheel.tsx` — prop `onHouseClick` + wedge SVG por casa (arc path CCW)
+- `next_app/components/natal-chart-tab.tsx` — `handleHouseClick` con `occupants` calculados
+- `next_app/app/api/lilly/house/route.ts` — NUEVO: route `click_house`
+- `next_app/components/OracleChat.tsx` — `click_house` en routeMap + deriveLabel
 
 ---
 
@@ -1029,7 +1034,7 @@ Leer CLAUDE.md al inicio de cada sesión (sección "## Bugs Pendientes" incluida
 Cuando Claude Code retome una sesión, leer este archivo primero y preguntar por la fase activa.
 La próxima tarea es siempre la primera sin tilde `✅` en el plan de desarrollo — actualmente **Fase 9 pendiente**: `click_house`, RAG pipeline, benchmark de modelos.
 
-**Estado Lilly al 2026-03-27**: screen_open ✅, click_planet ✅, click_technique (sect/profección/firdaria/lot/lunar_transit/planetary_cycle) ✅, domain_select ✅, city_select ✅, click_transit ✅, sky_open ✅. Context Builder centralizado ✅. System prompt v1.0 ✅. Pendiente: click_house, RAG, benchmark.
+**Estado Lilly al 2026-03-28**: screen_open ✅, click_planet ✅, click_technique (sect/profección/firdaria/lot/lunar_transit/planetary_cycle) ✅, domain_select ✅, city_select ✅, click_transit ✅, sky_open ✅, click_house ✅. Context Builder centralizado ✅. System prompt v1.0 ✅. RAG y benchmark postergados.
 
 **Estado panel guía al 2026-03-16**: TechnicalPanel reescrito — LEYENDO AHORA + SEÑOR DEL AÑO + EXPLORAR operativos. `screen-open` devuelve `{ response, suggestions }`. `store.ts` mantiene `lastLillyEvent` y `lillySuggestions` en memoria (no persisten).
 
