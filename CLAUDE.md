@@ -1459,3 +1459,125 @@ Una vez que el Context Builder canónico esté funcionando, dedicar una sesión 
 Estos conceptos deben integrarse en:
 - `AXIOMATICS_OF_HEAVENS`: nuevo Axioma 9
 - Canon (ES + EN): sección nueva "Navegación Temporal"
+
+---
+
+## Visión de Largo Plazo — Abu Oracle como Plataforma de Inteligencia Biográfica Personal
+
+> Documento vivo. Última actualización: 2026-03-27.
+> Esta sección articula la visión estratégica de Abu Oracle más allá de la app actual.
+> Es el documento base para el pitch inversor y para las decisiones arquitectónicas de largo plazo.
+
+---
+
+### El cambio de categoría
+
+Abu Oracle no es una app de astrología con IA.
+
+Es un **sistema de inteligencia biográfica personal** — un motor que observa la vida acumulada del nativo (eventos confirmados, decisiones tomadas, ciclos vividos) y construye un modelo predictivo y explicativo de su trayectoria. La doctrina astrológica helenística-persa es el lenguaje formal con el que ese modelo opera: un sistema simbólico de probada coherencia interna, ahora validado empíricalmente por primera vez con métodos estadísticos modernos (527 eventos, 5,359 cartas, Cohen's d=0.44).
+
+Lo que distingue este sistema de cualquier app de astrología existente:
+- No interpreta símbolos — calcula campos escalares geográficos y detecta convergencias temporales
+- No adivina — correlaciona con datos biográficos reales y mide la correlación
+- No responde preguntas — construye un modelo del nativo que mejora con el tiempo
+
+---
+
+### Las tres capas del sistema
+
+#### Capa 1 — Harmony Field (dimensión espacial) ✅ En producción
+**¿Dónde en el mundo funciona mejor la vida del nativo para cada dominio?**
+
+El HF es un campo escalar geográfico calculado sobre ~9,425 puntos de la Tierra. Mide la resonancia geométrica entre la carta natal y cada ubicación. Validado empíricamente: correlación positiva entre HF alto en el dominio correcto y eventos positivos documentados (H04 Home: Δcorr +0.306, Cohen's d +1.311).
+
+Nadie más hace esto. Ni Astro.com, ni AstroCartography, ni ninguna app de astrología existente combina campo escalar geográfico con validación estadística empírica y agente LLM interpretativo en un sistema integrado.
+
+**Roadmap HF:**
+- Rediseño desde primeros principios (sesión estratégica separada pendiente)
+- HF × tránsito × fecha: "¿Dónde ir en julio para maximizar esta apertura?"
+- Eclipse Maps: líneas de eclipse temporales sobre el campo escalar
+- Ingreso Solar Mundial por ciudad
+
+#### Capa 2 — Grafo de Conocimiento del Nativo (dimensión temporal) 🔭 Visión
+**¿Cómo fue, cómo es y cómo será la trayectoria biográfica del nativo?**
+
+La memoria actual de Lilly es lineal: exchanges recientes + resumen comprimido por Haiku. Es funcional pero no estructural. No puede conectar "evento biográfico de 2019" con "tránsito de Saturno de 2019" con "profección de Casa 7 de 2019" como nodos relacionados.
+
+La visión es un **grafo de conocimiento personal** donde cada elemento es un nodo:
+- Planetas, casas, aspectos natales → nodos permanentes
+- Tránsitos activos → nodos temporales con fecha
+- Eventos biográficos confirmados por el nativo → nodos con valencia y dominio
+- Interpretaciones de Lilly → nodos vinculados a los elementos relevantes
+- Ciclos planetarios → arcos temporales sobre el grafo
+
+Con el tiempo suficiente, Lilly puede decir: "Tu patrón en los años de Casa 12 históricamente produce aislamiento creativo seguido de emergencia pública. Este ciclo tiene la misma geometría que 2007 y 2019 — en ambos casos el producto del repliegue fue visible 18 meses después."
+
+Eso no es interpretación simbólica. Es reconocimiento de patrones biográficos con base doctrinal.
+
+**Implementación técnica:**
+- Firestore como store del grafo (nodos + edges por usuario)
+- Lilly escribe al grafo después de cada interpretación significativa
+- Lilly lee del grafo antes de cada interpretación para contextualizar
+- El grafo es el activo más valioso del usuario — no portable a ningún otro sistema
+
+**Por qué esto importa comercialmente:**
+- Genera lock-in genuino basado en valor acumulado, no en fricción
+- El LTV del usuario crece con el tiempo — cuanto más usa el sistema, más valioso se vuelve
+- Es el argumento más fuerte contra el churn: abandonar Abu Oracle significa perder años de memoria biográfica estructurada
+
+#### Capa 3 — Optimizador de Recursos (dimensión económica) 🔭 Investigación
+**¿Cómo sostener el sistema a escala con márgenes positivos en todos los planes?**
+
+Formulado como un MILP (Mixed Integer Linear Program) — problema de optimización con variables continuas (tokens consumidos) y discretas (elección de modelo por ruta). El optimizador conoce simultáneamente:
+
+- El costo marginal de cada ruta (función de tokens × modelo)
+- El ingreso por usuario según su plan (Genesis $100 one-time, Mensual $5, Anual $45)
+- El margen objetivo por plan
+- Las restricciones de calidad mínima por tipo de request (no todas las rutas son degradables a Haiku)
+- El rate limit disponible como recurso escaso compartido entre usuarios simultáneos
+
+**Estado:** investigación bibliográfica en curso. Ver conversación paralela "Módulo FinOp MILP".
+
+**Por qué esto trasciende Abu Oracle:**
+Ningún paper existente aborda este problema con restricciones de margen por plan de suscripción. FrugalGPT optimiza costo global; RouteLLM optimiza calidad. Lo que Abu Oracle necesita — y está diseñando — es un optimizador que conoce el contexto de negocio completo. Eso es publicable (MLSys, SIGMOD) y vendible como infraestructura para cualquier SaaS multi-plan sobre LLMs.
+
+---
+
+### Lo que esto forma en conjunto
+
+| Dimensión | Componente | Pregunta que responde |
+|---|---|---|
+| Espacial | Harmony Field | ¿Dónde? |
+| Temporal | Grafo biográfico | ¿Cuándo y por qué? |
+| Económica | Optimizador MILP | ¿Cómo sostenerlo? |
+
+Juntos forman algo que no existe: una plataforma de inteligencia personal con doctrina astrológica como sistema formal subyacente, validación empírica como credencial científica, y arquitectura de optimización económica como modelo de negocio sostenible.
+
+**El sistema es prospectivo, no reactivo.** La mayoría de los sistemas de IA responden a lo que el usuario pregunta. Abu Oracle construye un modelo del nativo que mejora con el tiempo y puede anticipar antes de que el usuario pregunte.
+
+---
+
+### Valor académico y comercial
+
+**Publicable:**
+- HF como campo escalar geográfico con validación empírica — novedad metodológica en astrología computacional
+- Optimizador MILP para SaaS multi-plan sobre LLMs — novedad en LLM inference optimization
+- Grafo de conocimiento biográfico con agente LLM — novedad en personal AI systems
+
+**Venues candidatos:** MLSys, SIGMOD, ACL, Journal of Artificial Intelligence Research
+
+**Vendible como infraestructura:**
+- El módulo FinOps MILP es independiente del dominio astrológico — cualquier SaaS multi-plan sobre LLMs tiene este problema
+- El grafo de conocimiento personal es independiente del dominio — cualquier sistema de IA longitudinal necesita esta arquitectura
+
+---
+
+### Principio rector
+
+> "El nativo no consulta su carta natal.
+> El sistema observa su vida."
+
+---
+
+*Sección agregada: 2026-03-27*
+*Próxima revisión: después de primera venta Genesis y reunión con inversor.*
