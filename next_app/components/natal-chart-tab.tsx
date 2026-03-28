@@ -316,6 +316,22 @@ export function NatalChartTab() {
     });
   }
 
+  // House click handler
+  function handleHouseClick(payload: { house_num: number; cusp_sign: string; house_lord: string }) {
+    const subjectName =
+      (birthData as any)?.userName ||
+      abuData?.person?.name ||
+      "Anónimo";
+    setPendingLillyEvent({
+      type: "click_house",
+      payload: {
+        ...payload,
+        subject_name: subjectName,
+        lang,
+      },
+    });
+  }
+
   return (
     <div className="space-y-4 p-4">
 
@@ -349,6 +365,7 @@ export function NatalChartTab() {
               ...rawPlanets.find((r: any) => r.name === p.name),
               longitude: p.longitude,
             })}
+            onHouseClick={handleHouseClick}
             natalAspects={natalAspectLines}
           />
         </div>

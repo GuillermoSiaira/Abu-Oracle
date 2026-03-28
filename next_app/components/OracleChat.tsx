@@ -328,6 +328,7 @@ export default function OracleChat() {
       if (t === 'sr_domain_select') return `SR ${p?.sr_year ?? ''} · ${p?.domain ?? ''}`;
       if (t === 'click_transit') return `${p?.transit_planet ?? 'Tránsito'} en ${p?.transit_sign ?? ''}`;
 
+      if (t === 'click_house') return `Casa ${p?.house_num ?? ''} · ${p?.cusp_sign ?? ''}`;
       if (t === 'city_select') return p?.city_name || 'Ciudad';
       if (t === 'sky_open') return 'Cielo Hoy';
       return t;
@@ -336,6 +337,7 @@ export default function OracleChat() {
 
     const routeMap: Record<string, string> = {
       click_planet: '/api/lilly/planet',
+      click_house:  '/api/lilly/house',
       click_technique: '/api/lilly/technique',
       domain_select: '/api/lilly/domain',
       sr_domain_select: '/api/lilly/solar-return',

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { getHouseLord } from "@/lib/astro-utils";
 
 interface Planet {
   name: string;
@@ -47,6 +48,7 @@ interface ZodiacWheelProps {
   ascendantSign?: string;
   orientation?: "aries" | "ascendant";
   onPlanetClick?: (planet: PlanetPosition) => void;
+  onHouseClick?: (payload: { house_num: number; cusp_sign: string; house_lord: string }) => void;
   natalAspects?: Array<{
     planet_a: string;
     planet_b: string;
@@ -117,9 +119,11 @@ export function ZodiacWheel({
   ascendantSign,
   orientation = "aries",
   onPlanetClick,
+  onHouseClick,
   natalAspects,
 }: ZodiacWheelProps) {
   const [hoveredPlanet, setHoveredPlanet] = useState<PlanetPosition | null>(null);
+  const [hoveredHouse, setHoveredHouse] = useState<number | null>(null);
   // -------------------------
   // CONSTS DE DIBUJO
   // -------------------------
@@ -341,8 +345,29 @@ export function ZodiacWheel({
           const mid = h.cusp + ((next - h.cusp + 360) % 360) / 2;
           const numPos = polarToCartesian(mid, 180);
 
+          const spanDeg = (next - h.cusp + 360) % 360;
+          const largeArc = spanDeg > 180 ? 1 : 0;
+          const outerEnd = polarToCartesian(next, houseRadius);
+          const innerEnd = polarToCartesian(next, innerRadius);
+          const wedgePath = [
+            `M ${start.x.toFixed(2)} ${start.y.toFixed(2)}`,
+            `A ${houseRadius} ${houseRadius} 0 ${largeArc} 0 ${outerEnd.x.toFixed(2)} ${outerEnd.y.toFixed(2)}`,
+            `L ${innerEnd.x.toFixed(2)} ${innerEnd.y.toFixed(2)}`,
+            `A ${innerRadius} ${innerRadius} 0 ${largeArc} 1 ${end.x.toFixed(2)} ${end.y.toFixed(2)}`,
+            'Z',
+          ].join(' ');
+
           return (
             <g key={`h-${h.number}`}>
+              <path
+                d={wedgePath}
+                fill={hoveredHouse === h.number ? 'rgba(251,191,36,0.08)' : 'transparent'}
+                stroke="none"
+                style={{ cursor: onHouseClick ? 'pointer' : 'default' }}
+                onClick={() => onHouseClick?.({ house_num: h.number, cusp_sign: h.sign, house_lord: getHouseLord(h.sign) })}
+                onMouseEnter={() => setHoveredHouse(h.number)}
+                onMouseLeave={() => setHoveredHouse(null)}
+              />
               <line
                 x1={start.x}
                 y1={start.y}
