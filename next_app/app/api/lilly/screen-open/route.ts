@@ -14,6 +14,38 @@ import { checkAndIncrementDailyUsage, LIMIT_MESSAGE } from '../../../../lib/usag
 
 export const dynamic = 'force-dynamic';
 
+// ── Welcome message for first-time users (no LLM call) ───────────────────────
+
+const WELCOME_COPY: Record<string, string> = {
+  es: `Bienvenido a Abu Oracle. Tenés tres formas de explorar tu carta:\n— Hacé clic en cualquier planeta o casa de la rueda para que lo interprete\n— Abrí Técnicas Persas para ver el año astrológico que estás viviendo\n— Explorá el Mapa HF para descubrir dónde en el mundo resonás mejor\n\n¿Por dónde querés empezar?`,
+  en: `Welcome to Abu Oracle. You have three ways to explore your chart:\n— Click any planet or house on the wheel to get an interpretation\n— Open Persian Techniques to see the astrological year you're living\n— Explore the HF Map to discover where in the world you resonate best\n\nWhere would you like to start?`,
+  pt: `Bem-vindo ao Abu Oracle. Tens três formas de explorar o teu mapa:\n— Clica em qualquer planeta ou casa da roda para obter uma interpretação\n— Abre Técnicas Persas para ver o ano astrológico que estás a viver\n— Explora o Mapa HF para descobrir onde no mundo ressonas melhor\n\nPor onde queres começar?`,
+  fr: `Bienvenue sur Abu Oracle. Vous avez trois façons d'explorer votre thème :\n— Cliquez sur une planète ou une maison du zodiaque pour l'interpréter\n— Ouvrez Techniques Persanes pour voir l'année astrologique que vous vivez\n— Explorez la Carte HF pour découvrir où dans le monde vous résonnez le mieux\n\nPar où voulez-vous commencer ?`,
+};
+
+const WELCOME_SUGGESTIONS: Record<string, Array<{ type: string; target: string; label: string }>> = {
+  es: [
+    { type: 'click_planet',    target: 'Sun',       label: '☀ Interpretar mi Sol natal' },
+    { type: 'click_technique', target: 'profection', label: '↻ Ver mi año profeccional' },
+    { type: 'click_domain',    target: 'h10',        label: '⬡ Campo HF Carrera' },
+  ],
+  en: [
+    { type: 'click_planet',    target: 'Sun',       label: '☀ Interpret my natal Sun' },
+    { type: 'click_technique', target: 'profection', label: '↻ See my profection year' },
+    { type: 'click_domain',    target: 'h10',        label: '⬡ Career HF Map' },
+  ],
+  pt: [
+    { type: 'click_planet',    target: 'Sun',       label: '☀ Interpretar o meu Sol natal' },
+    { type: 'click_technique', target: 'profection', label: '↻ Ver o meu ano profeccional' },
+    { type: 'click_domain',    target: 'h10',        label: '⬡ Mapa HF Carreira' },
+  ],
+  fr: [
+    { type: 'click_planet',    target: 'Sun',       label: '☀ Interpréter mon Soleil natal' },
+    { type: 'click_technique', target: 'profection', label: '↻ Voir mon année de profection' },
+    { type: 'click_domain',    target: 'h10',        label: '⬡ Carte HF Carrière' },
+  ],
+};
+
 const EMPTY_TIMELINE: BiographicalTimeline = {
   profections: [],
   firdaria: [],
@@ -69,6 +101,18 @@ export async function POST(req: Request) {
     }
     const memoryCtx = userId ? await getRecentHistory(userId) : null;
     const memoryBlock = memoryCtx ? formatMemoryForPrompt(memoryCtx) : '';
+
+    // ── Welcome message for first-time users — no LLM call, no API cost ──────
+    const isNewUser =
+      !!userId && !!memoryCtx &&
+      memoryCtx.exchanges.length === 0 && !memoryCtx.summary;
+    if (isNewUser) {
+      const resolvedLang = (lang as string) in WELCOME_COPY ? (lang as string) : 'es';
+      return NextResponse.json({
+        response:    WELCOME_COPY[resolvedLang],
+        suggestions: WELCOME_SUGGESTIONS[resolvedLang],
+      });
+    }
 
     // ── Fetch lunar data from Abu Engine (non-fatal, forwarding auth header) ─
     let lunarBlock = '';
