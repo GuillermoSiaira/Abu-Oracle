@@ -77,6 +77,57 @@ Esto confirma el **Axioma 8** — el campo global es sordo a la
 pregunta específica. La especificidad de dominio es condición
 de legibilidad del campo.
 
+## Límites de validez — matiz crítico
+
+La confirmación es real, pero está acotada. Conviene no sobre-interpretar antes de
+ampliar el corpus.
+
+### El sesgo de selección de dominios
+
+Los dos dominios confirmados (H07, H10) son precisamente los que tienen mayor N
+en el dataset. Esto no es casualidad: son también los únicos donde N- es suficiente
+para calcular Cohen's d.
+
+| casa | N total | N+  | N-  | Cohen's d |
+|------|---------|-----|-----|-----------|
+| H04  | 0       | —   | —   | no computable (cero eventos en v2) |
+| H05  | 57      | 51  | 1   | no computable (N- insuficiente) |
+| H07  | 93      | 81  | 9   | +0.587 ✅ |
+| H10  | 250     | 231 | 4   | +0.702 ✅ |
+
+H07 tiene 9 eventos negativos — estadísticamente marginal. H10 tiene 4.
+La métrica Cohen's d es sensible a N- pequeño: una variación en 1-2 casos
+puede mover el resultado de forma no despreciable.
+
+### Lo que la confirmación no dice
+
+El efecto está medido sobre el subconjunto más favorable del corpus.
+H04 (Hogar) y H05 (Creatividad) — dos dominios con señal positiva en experimentos
+anteriores (v3 domain: H04 Δcorr=+0.306, H05 Δcorr=+0.150) — no pueden evaluarse
+en v6 por falta de eventos negativos. La hipótesis no está falsada en esos dominios;
+simplemente no hay datos suficientes para probarla.
+
+### Riesgo de overfitting doctrinal
+
+El diseño de HF_v6 fue guiado por la doctrina, no por búsqueda de parámetros sobre
+los datos. Eso reduce el riesgo de overfitting estadístico. Pero introduce un riesgo
+distinto: que los axiomas seleccionados (angularidad, dignidad, firdaria∩dominio)
+sean los más fáciles de confirmar en este corpus específico, no los más generales.
+Verificar con un corpus independiente y balanceado es la única forma de saberlo.
+
+### Condición para considerar la hipótesis robusta
+
+> H_v6 será robusta cuando d > 0.3 en al menos 3 dominios con N- ≥ 10 cada uno.
+
+Hoy cumple en 2 dominios con N- de 9 y 4 respectivamente. La dirección es correcta;
+la potencia estadística aún no.
+
+**Acción necesaria**: ampliar N- mediante scraping de eventos negativos en Wikidata
+(quiebras, exilios, fracasos documentados) antes de considerar HF_v6 listo para
+reemplazar HF_v3 en producción.
+
+---
+
 ## Fuentes doctrinales
 
 - Ptolomeo: angularidad como fuente de fuerza extrema

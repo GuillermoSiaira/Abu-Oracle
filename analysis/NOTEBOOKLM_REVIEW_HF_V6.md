@@ -82,3 +82,37 @@ sólido y falsable**.
 *Fuente: NotebookLM — ventana de contexto: `HF_V6_RESULTS.md`, `hf_v6.md`,
 `HF_EXPERIMENT_LOG.md`, `HIPOTESIS_REGISTRO.md`, Ptolomeo (Tetrabiblos),
 William Lilly (Christian Astrology, 1647), Axiomática de los Cielos v0.4.*
+
+---
+
+## Matiz crítico — Claude Sonnet 4.6 (2026-03-29)
+
+La revisión de NotebookLM es acertada en el diagnóstico técnico y doctrinal.
+El punto que merece temperarse es el tono de cierre definitivo.
+
+**Lo que la confirmación no cubre:**
+
+H07 y H10 son los dominios con mayor N en el corpus — y también los únicos donde
+N- es suficiente para calcular Cohen's d. H04 tiene 0 eventos en `biographical_events_v2`.
+H05 tiene N-=1. La confirmación existe, pero está concentrada en el subconjunto
+más favorable del dataset.
+
+Más concretamente:
+- H07 confirma con N-=9. Un efecto de d=+0.587 sobre 9 casos negativos es
+  estadísticamente válido pero frágil: 1-2 casos distintos pueden moverlo.
+- H10 confirma con N-=4. Cuatro fracasos de carrera documentados en un corpus
+  de 250 eventos. El efecto es grande precisamente porque el denominador es pequeño.
+
+**El riesgo real no es overfitting estadístico** — el diseño basado en doctrina,
+sin ajuste de parámetros sobre los datos, lo mitiga. El riesgo es que los axiomas
+seleccionados (angularidad, dignidad, firdaria∩dominio) sean los más confirmables
+en *este* corpus específico de celebridades del siglo XX, no los más generales.
+
+**La condición para considerar HF_v6 robusto:**
+d > 0.3 en al menos 3 dominios con N- ≥ 10 cada uno. Hoy cumple en 2 dominios
+con N- de 9 y 4. La dirección es correcta; la potencia estadística aún no es
+suficiente para reemplazar HF_v3 en producción.
+
+El paso necesario antes de ese reemplazo es ampliar N- con eventos negativos
+de Wikidata (quiebras, exilios, fracasos documentados). Eso y solo eso convierte
+esta confirmación parcial en evidencia robusta.

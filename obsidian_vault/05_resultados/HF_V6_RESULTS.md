@@ -73,6 +73,28 @@ invirtiendo la señal. HF_v6 separa geometría (aspectos) y cualidad (angularida
 
 ---
 
+## Límites de validez — matiz crítico
+
+La confirmación está acotada al subconjunto más favorable del corpus:
+
+| casa | N-            | Cohen's d | Estado             |
+|------|---------------|-----------|--------------------|
+| H04  | — (0 eventos) | n/a       | sin datos          |
+| H05  | 1             | n/a       | N- insuficiente    |
+| H07  | 9             | +0.587    | ✅ frágil           |
+| H10  | 4             | +0.702    | ✅ frágil           |
+
+H07 y H10 son los únicos dominios con N- suficiente — y también los de mayor N total.
+El efecto es real pero la potencia estadística es baja: 9 y 4 casos negativos respectivamente.
+
+**Condición para considerar HF_v6 robusto:**
+d > 0.3 en ≥ 3 dominios con N- ≥ 10 cada uno. Requiere ampliar corpus con
+eventos negativos de Wikidata antes de reemplazar HF_v3 en producción.
+
+*Fuente del matiz: Claude Sonnet 4.6, 2026-03-29.*
+
+---
+
 ## Por qué el global cae
 
 El campo global promedia sobre todos los dominios. Confirma [[AXIOMATICS_v0_4#Axioma 8]]:
