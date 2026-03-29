@@ -1,0 +1,51 @@
+{
+  "collapse-filter": false,
+  "search": "",
+  "showTags": false,
+  "showAttachments": false,
+  "hideUnresolved": false,
+  "showOrphans": true,
+  "collapse-color-groups": false,
+  "colorGroups": [
+    {
+      "query": "tag:#doctrina  ",
+      "color": {
+        "a": 1,
+        "rgb": 14711890
+      }
+    },
+    {
+      "query": "tag:#hipotesis  ",
+      "color": {
+        "a": 1,
+        "rgb": 5431387
+      }
+    },
+    {
+      "query": "tag:#resultados  ",
+      "color": {
+        "a": 1,
+        "rgb": 14147666
+      }
+    },
+    {
+      "query": "tag:#experimentos  ",
+      "color": {
+        "a": 1,
+        "rgb": 14111456
+      }
+    }
+  ],
+  "collapse-display": true,
+  "showArrow": false,
+  "textFadeMultiplier": 0,
+  "nodeSizeMultiplier": 1,
+  "lineSizeMultiplier": 1,
+  "collapse-forces": false,
+  "centerStrength": 0.518713248970312,
+  "repelStrength": 10,
+  "linkStrength": 1,
+  "linkDistance": 250,
+  "scale": 1,
+  "close": true
+}
