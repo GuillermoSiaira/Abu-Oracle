@@ -885,6 +885,56 @@ Vectorización aplicada en Fase 8.10 (CC.4). Ver detalle arriba.
 
 ---
 
+### Fase 11 — Sonic Field ✅ `[COMPLETA — sesión 2026-03-31]`
+
+**3 archivos nuevos · 2 archivos modificados · Deploy producción `6a9b316`**
+
+Módulo de síntesis de audio generativo que convierte la carta natal en un campo sonoro ambiental. Construido sobre Tone.js 15.1.22 — importación dinámica (SSR-safe).
+
+#### Capa 1 — Firma Sonora Natal ✅
+Cada planeta natal es una voz sostenida, única e irrepetible para cada carta.
+
+| Mapeo astrológico | Parámetro de síntesis |
+|---|---|
+| Octava cósmica de Cousto (Sol 126.22 Hz → Neptuno 211.44 Hz × 2^n) | Frecuencia base |
+| Dignidad tradicional (domicilio/exaltación/peregrine/detrimento/caída) | Tipo de oscilador (sine/triangle/sawtooth/AMSynth/FMSynth) |
+| Angularidad a ASC/MC/DESC/IC (score 0–1) | Volumen −30 dB a −6 dB |
+| Aspectos natales (orbe, tipo) | Detune fino por `applyAspectTuning()` |
+| Fase lunar natal (8 zonas) | ADSR envelope (attack 0.5s–3s) |
+- Nota natal: 14s ± 2s · Loop cada 10s (notas solapadas) · Stagger 400ms entre planetas
+- Validado por oído con carta de Gandhi ✅
+
+#### Capa 2 — Tránsitos Activos ✅
+Capa aditiva sobre la firma natal. Requiere `transit_lon` (posición actual del planeta transitante) — inyectado por Abu Engine en `GET /api/astro/biography`.
+
+| Mapeo | Parámetro |
+|---|---|
+| `transit_lon` del planeta transitante | Frecuencia (Cousto) |
+| Orb (0°–8°) | Volumen −24 dB a −12 dB (siempre softer que natales) |
+| trine/sextile → consonante | `Synth/sine` |
+| square/opposition → disonante | `FMSynth` (harmonicity=3, modulationIndex=8) |
+| conjunction/resto → fusión | `AMSynth` (harmonicity=1.5) |
+- Nota tránsito: 8s ± 2s · Loop cada 6s · Stagger 300ms, arranca después de todos los natales
+
+#### Integración UI
+- Botón `♪` en header de `/chart` (junto al badge de secta), componente `SonicField.tsx`
+- Panel de volumen absoluto (`position:absolute`) — no afecta altura del header
+- `buildSonicInput(abuData, timeline?)` en `sonicMapping.ts` — factory que deriva `SonicFieldInput` del store
+- `suppressHydrationWarning` en `<body>` (Loom extension interference)
+
+**Archivos:**
+- `next_app/components/sonic/sonicMapping.ts` — tablas Cousto, mapeos dignidad/angularidad/aspecto/ADSR, `buildSonicInput()`
+- `next_app/components/sonic/useSonicEngine.ts` — hook Tone.js, Capa 1 + Capa 2
+- `next_app/components/sonic/SonicField.tsx` — componente UI con botón ♪ y slider
+- `next_app/app/chart/page.tsx` — integración del botón en header
+- `abu_engine/main.py` — `transit_lon` patcheado en `transits_window` para tránsitos activos
+- `next_app/lib/context-builder.ts` — `transit_lon?: number` en tipo `BiographicalTimeline`
+
+**Pendiente Fase 12:**
+- Capa 3 — HF Paisaje: heatmap sonoro geográfico (frecuencias moduladas por HF score de la ubicación)
+
+---
+
 ## Convenciones del proyecto
 
 - **Sistema de casas**: Placidus

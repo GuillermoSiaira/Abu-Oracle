@@ -9,11 +9,15 @@ Quality gate (oído del fundador): aprobado.
 - `next_app/components/sonic/sonicMapping.ts`
 - `next_app/components/sonic/useSonicEngine.ts`
 - `next_app/components/sonic/SonicField.tsx`
-- Integrado en `natal-chart-tab.tsx`
+- Integrado en `next_app/app/chart/page.tsx` (header, junto al badge de secta)
+
+## Completado
+- [x] Capa 1 — Firma Sonora Natal
+- [x] [[sonic_capa2_transitos]] — tránsitos activos como capa aditiva ✅
 
 ## Pendiente
-- [[sonic_capa2_transitos]] — siguiente iteración
 - [[sonic_capa3_hf_paisaje]] — iteración posterior
 
 ## Links
 [[SONIC_FIELD_SPEC]] · [[ARCHITECTURE]] · [[HF_V6_RESULTS]]
+

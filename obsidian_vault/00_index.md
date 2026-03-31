@@ -103,6 +103,7 @@ Fuente: [[resonance_weights]] · [[field_v3]]
 |-----------|-------------|
 | [[sonic_field/SONIC_FIELD_SPEC\|SONIC_FIELD_SPEC]] | Spec fundacional — doctrina Cousto, arquitectura 3 capas, mapeo astrológico→síntesis |
 | [[sonic_field/sonic_capa1_natal\|sonic_capa1_natal]] | ✅ Capa 1 implementada y validada — Firma Sonora Natal con Tone.js |
+| [[sonic_capa2_transitos]] | ✅ Capa 2 implementada — Tránsitos activos como capa aditiva sobre la firma natal |
 
 ---
 
