@@ -5,6 +5,14 @@ import { useAppStore } from "@/lib/store";
 import { ChartTabs } from "@/components/chart-tabs";
 import { Calendar, MapPin, Sun, Moon } from "lucide-react";
 import AuthGuard from "@/components/AuthGuard";
+import dynamic from 'next/dynamic'
+import { useMemo } from 'react'
+import { buildSonicInput } from '@/components/sonic/sonicMapping'
+
+const SonicField = dynamic(
+  () => import('@/components/sonic/SonicField').then(m => ({ default: m.SonicField })),
+  { ssr: false }
+)
 
 function formatLocalDate(utcStr: string, utcOffset?: number): string {
   if (!utcStr) return "—";
@@ -25,6 +33,7 @@ function formatLocalDate(utcStr: string, utcOffset?: number): string {
 export default function ChartPage() {
   const birthData = useAppStore((s) => s.birthData);
   const abuData = useAppStore((s) => s.abuData);
+  const timeline = useAppStore((s) => s.timeline);
 
   const ready = !!abuData;
 
@@ -46,6 +55,11 @@ export default function ChartPage() {
   // ✅ FIX REAL
   const isDiurnal = abuData.derived?.sect === "diurnal";
   const SectIcon = isDiurnal ? Sun : Moon;
+
+  // Sonic Field input — memoized from abuData
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const sonicInput = useMemo(() => buildSonicInput(abuData, timeline), [abuData, timeline])
+  const subjectName = (birthData as any)?.userName || abuData.person?.name || 'Anónimo'
 
   return (
     <AuthGuard>
@@ -84,6 +98,9 @@ export default function ChartPage() {
               {abuData.derived?.sect || "unknown"} sect
             </span>
           </div>
+          {sonicInput && (
+            <SonicField input={sonicInput} subjectName={subjectName} />
+          )}
         </div>
       </header>
 

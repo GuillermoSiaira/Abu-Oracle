@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${dmSerif.variable} ${inter.variable}`}>
+      <body className={`${dmSerif.variable} ${inter.variable}`} suppressHydrationWarning>
         <AuthProvider>
           <DashboardLayoutClient>
             {children}

@@ -2050,6 +2050,18 @@ def get_biography(
 
         transits_window.sort(key=lambda x: x["exact_date"])
 
+        # Opción A — transit_lon: longitud eclíptica actual del planeta transitante,
+        # calculada una vez por planeta único para los tránsitos is_active=True.
+        active_planets = {t["transit_planet"] for t in transits_window if t.get("is_active")}
+        current_lons: Dict[str, Optional[float]] = {
+            pl: _bio_planet_lon(from_dt_utc, pl) for pl in active_planets
+        }
+        for t in transits_window:
+            if t.get("is_active"):
+                lon = current_lons.get(t["transit_planet"])
+                if lon is not None:
+                    t["transit_lon"] = round(lon, 4)
+
     except Exception as e:
         transits_window = [{"error": str(e)}]
 

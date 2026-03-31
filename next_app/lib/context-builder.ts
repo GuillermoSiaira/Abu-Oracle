@@ -190,6 +190,7 @@ export interface BiographicalTimeline {
     egress_date:    string
     is_active:      boolean
     speed_class?:   string
+    transit_lon?:   number
   }>
 }
 

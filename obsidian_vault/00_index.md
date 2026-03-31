@@ -97,6 +97,15 @@ Fuente: [[resonance_weights]] · [[field_v3]]
 
 ---
 
+## 06 — Sonic Field
+
+| Documento | Descripción |
+|-----------|-------------|
+| [[sonic_field/SONIC_FIELD_SPEC\|SONIC_FIELD_SPEC]] | Spec fundacional — doctrina Cousto, arquitectura 3 capas, mapeo astrológico→síntesis |
+| [[sonic_field/sonic_capa1_natal\|sonic_capa1_natal]] | ✅ Capa 1 implementada y validada — Firma Sonora Natal con Tone.js |
+
+---
+
 ## Convenciones del motor
 
 | Parámetro | Valor |
