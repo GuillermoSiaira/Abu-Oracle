@@ -106,6 +106,12 @@ Fallback implementado: si `len(subset) < 3`, completar con Sol + Luna + señor A
 
 *H10 Cohen's d_global = +0.871 — separación real pero desbalance N+=208/N−=4 limita Pearson.
 
+> Nota 2026-04-01: d=+0.871 calculado sobre N=226 eventos
+> (dataset v2, run 2026-03-13) con z-score por sujeto.
+> Run actual: N=250, d=+0.5668 (z-score) / d=+0.4858 (raw).
+> N−=4 en todos los casos — resultado no robusto estadísticamente.
+> Ver diagnóstico D1 en [[EXP_004_HF_v6_domain]].
+
 Ver resultados completos: [[domain_correlation_report]] · [[correlation_results]]
 
 ### Nota metodológica — H10 y Pearson vs. Cohen's d

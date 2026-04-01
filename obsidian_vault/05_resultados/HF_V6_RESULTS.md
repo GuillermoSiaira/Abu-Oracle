@@ -9,6 +9,23 @@ tags: [resultados, hf_v6, cohens_d, dignidad, firdaria, dominio, validacion-empi
 
 # HF_v6 — Resultados y validación doctrinal
 
+> ⚠️ ESTADO DE VALIDACIÓN (actualizado 2026-04-01)
+>
+> H10: d=+0.702 con N−=4 (HF_v6, z-score por sujeto)
+> H07: d=+0.587 con N−=9 (HF_v6, z-score por sujeto)
+> Estos valores son de HF_v6 — no comparar directamente con
+> d=+0.5668 de HF_v3 (algoritmo distinto).
+> Con N−<10, IC 95% bootstrap abarca casi el rango completo
+> (ver [[EXP_004_HF_v6_domain]] D1).
+>
+> La arquitectura HF_v6 (separación geometría/cualidad) es sólida
+> como diseño doctrinal. La validación empírica robusta requiere
+> N−≥10 por dominio.
+>
+> Valores canónicos HF_v3 (z-score, run actual N=250):
+> H10 d_global=+0.5668 · H07 d_global=+0.0624
+> Fuente: `analysis/domain_correlation_results.json` · 2026-04-01
+
 **Fecha:** 2026-03-29
 **Estado:** Confirmado — hipótesis doctrinal validada empíricamente
 

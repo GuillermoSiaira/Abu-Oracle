@@ -1657,3 +1657,17 @@ Juntos forman algo que no existe: una plataforma de inteligencia personal con do
 
 *Sección agregada: 2026-03-27*
 *Próxima revisión: después de primera venta Genesis y reunión con inversor.*
+
+---
+
+## Investigación de ingeniería
+
+Separado de `abu-oracle-research/` que contiene exclusivamente
+investigación empírica astrológica.
+
+| Documento | Descripción |
+|---|---|
+| `research/finops/MILP_INITIATIVE.md` | Spec FinOps MILP — formulación, variables, plan de implementación |
+| `research/finops/TOKEN_EXPERIMENT_DESIGN.md` | Diseño experimento tokens — ~$2, 700 llamadas, 26 sujetos históricos |
+
+Vault: `obsidian_vault/06_engineering/` — documentos de ingeniería y producto.

@@ -92,4 +92,4 @@ Ver también: [[domain_correlation_report]] · [[HF_EXPERIMENT_LOG]]
 | Mejor Δcorr | H05 | +0.150 | Creatividad: dominio mejora sobre global |
 | Mejor delta_rb | H07 | +0.214 | Relaciones: filtrado corrige sesgo del global |
 | Mejor delta_rb | H10 | +0.249 | Carrera: filtrado reduce error global −0.315 → −0.066 |
-| Mayor efecto | H10 | d=+0.567 | Carrera: separación pos/neg significativa |
+| Mayor efecto | H10 | d=+0.567 | Carrera: separación pos/neg significativa ⚠️ N−=4, ver [[EXP_004_HF_v6_domain]] D1 |
