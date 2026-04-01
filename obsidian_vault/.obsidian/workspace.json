@@ -74,7 +74,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 300,
+    "collapsed": true
   },
   "right": {
     "id": "fbc6943c4738f1f8",
@@ -178,11 +179,23 @@
   },
   "active": "ba00c6dbb151c8f6",
   "lastOpenFiles": [
-    "01_formula/hf_v6.md",
+    "00_index.md.tmp.11104.1775079613633",
+    "COST_OPTIMIZATION.md",
+    "06_engineering/FINOPS_MILP_VARIABLES.md",
+    "03_experimentos/HF_EXPERIMENT_LOG.md.tmp.8232.1775076087360",
+    "04_hipotesis/FINOPS_MILP_VARIABLES.md",
+    "05_resultados/HF_V6_RESULTS.md.tmp.8232.1775075946750",
+    "03_experimentos/HF_EXPERIMENT_LOG.md",
+    "01_formula/resonance_weights.md",
+    "sonic_field/sonic_capa1_natal.md",
+    "sonic_field/sonic_capa1_natal.md.tmp.11592.1774950585355",
+    "sonic_capa2_transitos.md",
     "05_resultados/HF_V6_RESULTS.md",
+    "00_index.md.tmp.11592.1774950269865",
+    "sonic_field",
+    "01_formula/hf_v6.md",
     "04_hipotesis/HIPOTESIS_REGISTRO.md",
     "02_doctrina/AXIOMATICS_v0_4.md",
-    "03_experimentos/HF_EXPERIMENT_LOG.md",
     "01_formula/HF_V4_SESSION_B.md"
   ]
 }

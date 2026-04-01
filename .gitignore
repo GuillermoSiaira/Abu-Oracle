@@ -95,3 +95,5 @@ next_app/build_output.txt
 next_app/_tmp_tree_depth3.txt
 firebase_apps_response.json
 .claude/
+run_d3_compute.py
+run_d3_figure.py

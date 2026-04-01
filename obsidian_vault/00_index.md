@@ -101,7 +101,16 @@ Fuente: [[resonance_weights]] · [[field_v3]]
 
 ---
 
-## 06 — Sonic Field
+## 06 — Engineering
+
+| Documento | Descripción |
+|-----------|-------------|
+| [[finops_milp]] | FinOps MILP — entry point, links a research/finops/ |
+| [[FINOPS_MILP_VARIABLES]] | Variables de decisión técnicas — max_tokens por ruta, modelos |
+
+---
+
+## 07 — Sonic Field
 
 | Documento | Descripción |
 |-----------|-------------|

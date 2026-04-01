@@ -64,6 +64,31 @@ La pestaña Tránsitos fue reemplazada por un Gantt interactivo. Los datos viene
 | Bug casas↔signo | `zodiac-wheel.tsx` | Bloque `SIGNOS` derivado de `houseCusps` reales (antes usaba `ZODIAC_SIGNS` fijo en 0°/30°/60°…) |
 | max_tokens técnicas | `lilly/technique/route.ts` | `lot`/`sect`/`profection`/`firdaria` → 2048 tokens |
 
+### Consistencia numérica vault + estructura FinOps — sesión 2026-04-01 (commit `66fa52b`)
+
+**Diagnóstico de inconsistencias H10/H07**: se detectaron 5 valores distintos de Cohen's d para H10 en distintos documentos. Causa raíz: métricas distintas (HF_v3 vs v6, z-score vs raw, N=226 vs N=250 por distinto estado del dataset v2 en cada run). Todos eran correctos en su contexto — faltaban disclaimers.
+
+**Números canónicos establecidos** (fuente: merge `biographical_events_v2/*.json` + `correlation_results.json`):
+- H10: N+=231, N−=4 · d_global_v3=+0.5668 (z-score) · d_global_v6=+0.702 (HF_v6)
+- H07: N+=81, N−=9 · d_global_v3=+0.0624 (z-score) · d_global_v6=+0.587 (HF_v6)
+- d=+0.871 del Exp 5 = run anterior con N=226 (dataset v2 con menos sujetos) — no es error
+
+**Vault actualizado** (3 archivos):
+- `obsidian_vault/05_resultados/HF_V6_RESULTS.md` — disclaimer al inicio: d_v6 no comparable con d_v3
+- `obsidian_vault/03_experimentos/HF_EXPERIMENT_LOG.md` — contextualización d=+0.871 con nota explícita
+- `obsidian_vault/05_resultados/correlation_results.md` — H10 d=+0.567 marcado con ⚠️ N−=4
+
+**Estructura investigación de ingeniería** (separada de `abu-oracle-research/` empírico):
+- `research/finops/MILP_INITIATIVE.md` — spec MILP, variables x_r y t_r, plan A-B-C
+- `research/finops/TOKEN_EXPERIMENT_DESIGN.md` — diseño experimento ~$2, 700 llamadas, 26 sujetos históricos
+- `obsidian_vault/06_engineering/` — carpeta nueva; `FINOPS_MILP_VARIABLES.md` movido de `04_hipotesis/`
+
+**Inventario docs/** (read-only):
+- `docs/INVENTORY.md` — 109 archivos clasificados: ACTIVO:6 · ARCHIVADO:87 · DUPLICADO:4 · DESCONOCIDO:7
+- Acción futura: mover los 87 archivados a `docs/archive/` en una sola operación
+
+---
+
 ### Fix truncación Lilly — sesión 2026-04-01 (commit `82605f6`)
 
 **Problema**: Las respuestas de Lilly se cortaban en medio de una oración cuando el modelo alcanzaba `max_tokens`. Ninguna ruta verificaba `stop_reason`.
