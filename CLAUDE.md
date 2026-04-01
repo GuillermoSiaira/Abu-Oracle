@@ -64,6 +64,29 @@ La pestaña Tránsitos fue reemplazada por un Gantt interactivo. Los datos viene
 | Bug casas↔signo | `zodiac-wheel.tsx` | Bloque `SIGNOS` derivado de `houseCusps` reales (antes usaba `ZODIAC_SIGNS` fijo en 0°/30°/60°…) |
 | max_tokens técnicas | `lilly/technique/route.ts` | `lot`/`sect`/`profection`/`firdaria` → 2048 tokens |
 
+### Fix truncación Lilly — sesión 2026-04-01 (commit `82605f6`)
+
+**Problema**: Las respuestas de Lilly se cortaban en medio de una oración cuando el modelo alcanzaba `max_tokens`. Ninguna ruta verificaba `stop_reason`.
+
+**Fix**: `next_app/lib/lilly-complete.ts` — helper `completeLilly(client, params)` con loop de continuación automático.
+- Si `stop_reason === 'max_tokens'`: agrega el fragmento parcial como turno `assistant` y llama de nuevo — el modelo retoma exactamente donde quedó.
+- Cap en 3 continuaciones. Cero overhead en el caso normal.
+- Solo Next.js — Abu Engine no modificado.
+
+**10 rutas migradas**: `technique`, `planet`, `city`, `domain`, `house`, `sky`, `solar-return`, `transit`, `screen-open`, `chat`.
+
+Patrón anterior (en cada ruta):
+```ts
+const response = await client.messages.create({...});
+const text = response.content[0].type === 'text' ? response.content[0].text : '';
+```
+Patrón nuevo:
+```ts
+const text = await completeLilly(client, {...});
+```
+
+---
+
 ### Fix anillo de signos — sesión 2026-03-25
 
 **Bug**: el anillo de signos zodiacales estaba derivado de las cúspides de casas (`houseCusps`). Esto causaba que los sectores tuvieran tamaños irregulares y los planetas aparecieran en el signo visualmente incorrecto (ej: Sol/Luna en Cáncer Casa 5 aparecían dentro del sector Géminis).
