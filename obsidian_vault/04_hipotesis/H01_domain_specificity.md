@@ -52,7 +52,22 @@ por lo que la hipótesis de velocidad queda como pendiente de validación.
 3. Si d_domain_H10 sigue siendo bajo con corpus balanceado → hipótesis refutada
 4. Si d_domain_H10 mejora → hipótesis confirmada, colapso anterior fue artefacto
 
+## Tabla de estado — 1 Abril 2026
+
+| Dominio | n | Resultado | Estado |
+|---|---|---|---|
+| H05 Creatividad | 57 | r_domain=0.350 > r_global=0.200 (+0.150) | ✅ Confirma |
+| H07 Relaciones | 93 | r_domain=0.041 < r_global=0.063 (−0.022) | ❌ No confirma |
+| H09 Expansión | 66 | r_domain=−0.046 vs r_global=−0.063 (marginal) | ⬜ Débil |
+| H10 Carrera | 250 | N−=5, d no medible (D1 Bootstrap IC=[−0.962,+0.947]) | ⚠️ Inválido |
+
+**Conclusión provisional:** La hipótesis se confirma en H05.
+La validación de H10 requiere ampliar el corpus de eventos negativos
+(ver [[wikidata_candidates]]).
+
 ## Links
 [[EXP_003_HF_v3_global]] — baseline global
 [[EXP_004_HF_v6_domain]] — experimento de validación con diagnósticos
 [[H01b_significator_speed]] — sub-hipótesis de velocidad orbital
+[[wikidata_candidates]] — candidatos Wikidata para ampliar corpus H10
+[[REVISION_2026_04_01]] — dashboard de revisión sesión 2026-04-01
