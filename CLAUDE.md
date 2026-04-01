@@ -1611,6 +1611,9 @@ Formulado como un MILP (Mixed Integer Linear Program) — problema de optimizaci
 
 **Estado:** investigación bibliográfica en curso. Ver conversación paralela "Módulo FinOp MILP".
 
+**Variable de decisión pendiente — `max_tokens` por ruta:**
+El valor de `max_tokens` en cada ruta Lilly no es un parámetro técnico fijo sino una **variable de decisión del MILP**. Mayor `max_tokens` reduce el riesgo de continuación (mejor calidad percibida) pero aumenta el costo marginal esperado. El optimizador debería resolver el valor óptimo por ruta dado el modelo asignado, el margen objetivo del plan y la distribución empírica de longitud de respuesta por tipo de evento (`screen_open`, `click_planet`, `lot`, etc.). Los valores actuales (1024–2048 tokens según ruta) son heurísticos — no optimizados.
+
 **Por qué esto trasciende Abu Oracle:**
 Ningún paper existente aborda este problema con restricciones de margen por plan de suscripción. FrugalGPT optimiza costo global; RouteLLM optimiza calidad. Lo que Abu Oracle necesita — y está diseñando — es un optimizador que conoce el contexto de negocio completo. Eso es publicable (MLSys, SIGMOD) y vendible como infraestructura para cualquier SaaS multi-plan sobre LLMs.
 
