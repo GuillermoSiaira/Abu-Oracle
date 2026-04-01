@@ -1,0 +1,44 @@
+# Secrets / credentials
+*.env
+*.key
+secrets/
+*.pem
+*.p12
+
+# Private corpus data
+raw_birthdata_original.jsonl
+*.jsonl
+*_private.csv
+*_names.csv
+
+# GCP / Firebase credentials
+service-account*.json
+firebase-adminsdk*.json
+*-credentials.json
+gcloud/
+
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+
+# Notebooks checkpoints
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp

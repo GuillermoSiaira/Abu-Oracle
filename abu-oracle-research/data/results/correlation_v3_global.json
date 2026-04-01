@@ -1,0 +1,13 @@
+{
+  "dataset": "events_detailed.csv",
+  "sha256": "aea8ea86d87f9ef2463e0280e54fb9401fb4faed7f9372137ebc9f1bbec7069c",
+  "n_events": 527,
+  "n_subjects": 26,
+  "method": "Pearson r on hf_weighted × valence_num",
+  "pearson_r_all": 0.12080249045808161,
+  "pearson_r_nonneutral": 0.13332735644007662,
+  "cohens_d": 0.441,
+  "mean_hf_positive": -12.009911410994102,
+  "mean_hf_negative": -13.098340799788506,
+  "notes": "HF_weighted uses optimized weights w_h=-1.0, w_t=-1.0, w_c=+2.5. Negative weights for harmony/tension reflect that global HF mixes events across all life domains; domain-filtered HF (v6) improves signal."
+}

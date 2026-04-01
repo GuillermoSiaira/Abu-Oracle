@@ -1,0 +1,2 @@
+total_events,n_positive,n_negative,n_neutral,n_subjects,date_range_start,date_range_end,n_event_types,source_certificado,source_bio,source_sin_confirmar,source_other,time_precision_exact,time_precision_unknown
+527,377,69,81,26,1855-01-01,2021-06-23,25,425,49,0,53,527,0
