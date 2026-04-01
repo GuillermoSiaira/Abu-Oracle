@@ -5,8 +5,9 @@
  * Garantiza que la respuesta nunca quede truncada en medio de una oración.
  *
  * Mecanismo:
- *   Si stop_reason === 'max_tokens', el texto parcial se agrega como turno
- *   'assistant' y se llama de nuevo — el modelo retoma exactamente donde quedó.
+ *   Si stop_reason === 'max_tokens', el fragmento parcial se agrega como turno
+ *   'assistant' seguido de un turno 'user: Continúa.' — claude-sonnet-4-6 no
+ *   acepta que el array termine en assistant (no soporta prefill).
  *   Se repite hasta stop_reason === 'end_turn' o MAX_CONTINUATIONS.
  *
  * Costo: 1 llamada adicional de ~100-300 tokens de input en el caso raro de
@@ -43,8 +44,10 @@ export async function completeLilly(
     if (response.stop_reason !== 'max_tokens') break;
     if (i === MAX_CONTINUATIONS) break;
 
-    // Agrega el fragmento parcial como turno assistant → el modelo continúa
+    // claude-sonnet-4-6 no soporta prefill (array terminando en assistant).
+    // Patrón correcto: assistant partial → user 'Continúa.' → el modelo retoma.
     messages.push({ role: 'assistant', content: chunk });
+    messages.push({ role: 'user',      content: 'Continúa.' });
   }
 
   return fullText;
