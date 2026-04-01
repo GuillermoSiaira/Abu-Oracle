@@ -39,7 +39,9 @@ Motor astrológico computacional con campo escalar geográfico (Harmony Field) e
 
 | Documento | Descripción |
 |-----------|-------------|
-| [[HF_EXPERIMENT_LOG]] | Log secuencial Exp 1-5: RSI, v1/v2/v3, correlación por dominio, validación cualitativa |
+| [[HF_EXPERIMENT_LOG]] | Log secuencial Exp 1-7: RSI, v1/v2/v3, correlación por dominio, validación cualitativa, diagnósticos D1-D3 |
+| [[EXP_003_HF_v3_global]] | EXP_003 — Correlación global HF_v3 (r=0.121, d=0.441, n=527) |
+| [[EXP_004_HF_v6_domain]] | EXP_004 — Correlación por dominio + diagnósticos D1/D2/D3 — H05 ✅, H10 corpus insuficiente |
 | [[NOTE_SESSION_B]] | Referencia y resumen de Session B (ver [[HF_V4_SESSION_B]]) |
 
 ---
@@ -49,6 +51,8 @@ Motor astrológico computacional con campo escalar geográfico (Harmony Field) e
 | Documento | Descripción |
 |-----------|-------------|
 | [[HIPOTESIS_REGISTRO]] | H01–H07: estructura espacial, signos de pesos, especificidad de dominio, validación directa, firdaria temporal, convergencia |
+| [[H01_domain_specificity]] | H01 — Especificidad de dominio: confirmada H05 ✅, no testeable H10 (N−=5) |
+| [[H01b_significator_speed]] | H01b — Eficacia del filtro en función de velocidad orbital: parcial en velocidad, refutada en varianza |
 
 ---
 

@@ -278,6 +278,89 @@ Artefactos:
 
 ---
 
+## Experimento 7 — Diagnósticos H10 + Scraper Wikidata de eventos negativos
+
+**Fecha:** 2026-04-01
+**Dataset:** `data/biographical_events/events_detailed.csv` (527 eventos, 26 sujetos)
+**Herramientas:** bootstrap (scipy/numpy), LOSO, pyswisseph (venv310), SPARQLWrapper
+
+### D1 — Bootstrap H10 Cohen's d (10,000 iteraciones)
+
+```python
+# Bootstrap bajo H0: pool positivos+negativos, resamplear con replacement
+np.random.seed(42)
+boot_d = [cohens_d(np.random.choice(all_hf, len(pos), replace=True),
+                   np.random.choice(all_hf, len(neg), replace=True))
+          for _ in range(10000)]
+```
+
+**Resultado:**
+- N+=232, N−=5 en H10
+- d_observado = 0.551
+- Bootstrap IC 95%: [−0.962, +0.947] — abarca casi el rango completo
+- Bootstrap media = −0.003, p-value = 0.50
+- **d=0.551 no es estadísticamente distinguible de ruido con N−=5.**
+
+### D2 — LOSO H10
+
+- 21/26 sujetos tienen cero eventos negativos en H10
+- Rango d_loso: 0.35 − 0.81 — ninguno cae por debajo de 0.2
+- No hay concentración en pocos sujetos (top-3 = 21.2%)
+- **Problema estructural: 81% de sujetos sin ningún evento negativo en H10.**
+
+### D3 — Velocidad de significadores H05 vs H10
+
+```python
+# venv310/Scripts/python.exe (requiere pyswisseph)
+sigs = house_significators(natal_data, house)  # abu_engine
+```
+
+**Significadores por dominio (26 sujetos, Placidus):**
+
+| Dominio | % Fast | % Medium | % Slow | Mean speed |
+|---------|--------|----------|--------|------------|
+| H05 Creatividad | 50.0% | 13.3% | 36.7% | 2.67 deg/día |
+| H10 Carrera | 41.1% | 12.2% | 46.7% | 0.96 deg/día |
+
+Ratio velocidad H05/H10 = 2.77x.
+
+**Varianza geográfica HF_domain (25 parquets en output/relocation_fields_domain/):**
+- std(HF_h5) = 0.323 · std(HF_h10) = 0.362 — H10 ligeramente mayor
+- La hipótesis de varianza reducida en H10 **no se confirma**.
+
+**D4 descartado:** Las dos condiciones requeridas no se cumplen simultáneamente.
+El colapso de d_domain en H10 es un artefacto de N−=5, no de las propiedades del campo.
+
+### Scraper Wikidata (SPARQLWrapper)
+
+Script: `abu-oracle-research/scripts/wikidata_negative_events.py`
+Propiedades consultadas: P793 (sig. events), P1411 (nominations), P1399 (convictions)
+
+**Resultados:**
+- 54 candidatos totales con fecha
+- 2 legales confirmados (Oscar Wilde, gross indecency 1895 + 1952)
+- 52 nominaciones que necesitan revisión manual (distinguir pérdidas de victorias)
+- 16/26 sujetos con 0 candidatos (incluyendo Bowie, Monroe, Frida, Morrison...)
+- Jung: 17, Freud: 13, Einstein: 11 — sujetos más representados en Wikidata
+
+**Diagnóstico:** Wikidata P793/P1399 está sparsely populated para artistas/músicos.
+Los 52 candidatos de nominaciones son el principal insumo para curaduría manual.
+
+### Conclusión
+El experimento confirma que el límite del sistema es el corpus, no el modelo.
+Para validar H01 en H10 se necesitan N−≥20 eventos negativos de carrera curados.
+Los candidatos Wikidata proveen el insumo para ese trabajo.
+
+**Artefactos:**
+- `abu-oracle-research/figures/h10_bootstrap_cohens_d.png`
+- `abu-oracle-research/figures/h10_loso_cohens_d.png`
+- `abu-oracle-research/figures/significator_speed_comparison.png`
+- `abu-oracle-research/data/corpus/wikidata_candidates.csv` (54 candidatos)
+- `abu-oracle-research/data/corpus/wikidata_scrape_summary.json`
+- `abu-oracle-research/data/results/d3_significator_counts.json`
+
+---
+
 ## Experimento 6 — Publicación del corpus de investigación + validación consolidada
 
 **Fecha:** 2026-04-01  

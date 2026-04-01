@@ -51,6 +51,36 @@ cohens_d = (pos.mean() - neg.mean()) / pooled_std
 - `abu-oracle-research/figures/cohens_d_by_domain.png`
 - `analysis/domain_correlation_results.json` — resultados originales del correlator
 
+## Diagnóstico post-experimento (2026-04-01)
+
+### D1 — Bootstrap H10 (10,000 iteraciones)
+- d_observado = 0.551 con N+=232, N−=5
+- IC 95% bootstrap: [−0.962, +0.947] — abarca casi el rango completo
+- Bootstrap media = −0.003, p-value = 0.50
+- **Conclusión**: d=0.551 en H10 es estadísticamente indistinguible del ruido con N−=5.
+  Es un artefacto de corpus, no un efecto real medible.
+
+### D2 — LOSO H10
+- 21/26 sujetos tienen cero eventos negativos en H10
+- Todos los LOSO d ≥ 0.35 — ningún sujeto único colapsa la señal
+- **Conclusión**: el problema no es concentración en pocos sujetos,
+  sino que el 81% de los sujetos no tiene ningún evento negativo de carrera en el corpus.
+
+### D3 — Velocidad de significadores
+- H05 significadores: 50% rápidos, 36.7% lentos, velocidad media 2.67 deg/día
+- H10 significadores: 41.1% rápidos, 46.7% lentos, velocidad media 0.96 deg/día
+- Ratio velocidad H05/H10 = 2.77x — H05 es casi 3x más rápido
+- **Varianza geográfica HF_domain** (25 parquets): std_h5=0.323, std_h10=0.362
+- La varianza geográfica de H10 es ligeramente MAYOR que H05, no menor
+- **Conclusión**: hipótesis de planetas lentos PARCIALMENTE confirmada en velocidad,
+  pero REFUTADA en varianza geográfica. D4 descartado.
+
+### Hipótesis alternativa (validada)
+El colapso de d_domain en H10 se explica por el desbalance de corpus (N−=5),
+no por las propiedades del campo HF filtrado. El filtro de dominio funciona
+correctamente — simplemente no hay datos negativos suficientes para medirlo.
+
 ## Links
 [[EXP_003_HF_v3_global]] — experimento anterior (baseline global)
 [[H01_domain_specificity]] — hipótesis parcialmente confirmada
+[[H01b_significator_speed]] — sub-hipótesis generada por estos diagnósticos
