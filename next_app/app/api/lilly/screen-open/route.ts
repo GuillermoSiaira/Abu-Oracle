@@ -11,6 +11,7 @@ import {
 import { getUserIdFromRequest } from '../../../../lib/get-user-id';
 import { getRecentHistory, formatMemoryForPrompt } from '../../../../lib/chat-memory';
 import { checkAndIncrementDailyUsage, LIMIT_MESSAGE } from '../../../../lib/usage-limiter';
+import { completeLilly } from '../../../../lib/lilly-complete';
 
 export const dynamic = 'force-dynamic';
 
@@ -161,14 +162,12 @@ export async function POST(req: Request) {
     }
 
     const client = new Anthropic({ apiKey });
-    const response = await client.messages.create({
+    const rawText = await completeLilly(client, {
       model: 'claude-sonnet-4-6',
       max_tokens: 1024,
       system: [{ type: 'text', text: LILLY_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
       messages: [...history, { role: 'user', content: block }],
     });
-
-    const rawText = response.content[0].type === 'text' ? response.content[0].text : '';
 
     // Parse [SUGERENCIAS] block from the end of the response
     let text = rawText;

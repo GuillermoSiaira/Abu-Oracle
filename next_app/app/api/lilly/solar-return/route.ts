@@ -9,6 +9,7 @@ import {
 } from '../../../../lib/context-builder';
 
 export const dynamic = 'force-dynamic';
+import { completeLilly } from '../../../../lib/lilly-complete';
 
 const EMPTY_TIMELINE: BiographicalTimeline = {
   profections: [],
@@ -61,14 +62,12 @@ export async function POST(req: Request) {
     }
 
     const client = new Anthropic({ apiKey });
-    const response = await client.messages.create({
+    const text = await completeLilly(client, {
       model: 'claude-sonnet-4-6',
       max_tokens: 1024,
       system: [{ type: 'text', text: LILLY_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
       messages: [...history, { role: 'user', content: block }],
     });
-
-    const text = response.content[0].type === 'text' ? response.content[0].text : '';
     return NextResponse.json({ response: text });
   } catch (err: any) {
     console.error('[lilly/solar-return]', err);

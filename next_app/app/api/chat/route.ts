@@ -16,6 +16,7 @@ import {
   summarizeIfNeeded,
 } from "@/lib/chat-memory";
 import { checkAndIncrementDailyUsage, LIMIT_MESSAGE } from "@/lib/usage-limiter";
+import { completeLilly } from "@/lib/lilly-complete";
 
 export const dynamic = "force-dynamic";
 
@@ -123,14 +124,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No valid messages" }, { status: 400 });
     }
 
-    const response = await client.messages.create({
+    const text = await completeLilly(client, {
       model: "claude-sonnet-4-6",
       max_tokens: parseInt(process.env.LILLY_CHAT_MAX_TOKENS ?? "2500"),
       system: systemBlocks,
       messages: anthropicMessages,
     });
-
-    const text = response.content[0]?.type === "text" ? response.content[0].text : "";
 
     // ── Persist exchange to Firestore (fire-and-forget) ──────────────────────
     if (userId && text) {
