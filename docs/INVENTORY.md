@@ -132,36 +132,29 @@ Criterios:
 
 ---
 
-## Resumen
+## Resumen — estado post limpieza 2026-04-01
 
-| Clasificación | N |
-|---------------|---|
-| ACTIVO | 6 |
-| ARCHIVADO | 87 |
-| DUPLICADO | 4 |
-| DESCONOCIDO | 7 |
-| **Total** | **104** |
+| Clasificación | N | Estado |
+|---------------|---|--------|
+| ACTIVO | 6 | En docs/ raíz — no tocar |
+| ARCHIVADO | 95 | Movidos a docs/archive/ |
+| DUPLICADO | 4 | En docs/ raíz — pendiente decisión |
+| DESCONOCIDO | 0 | Resueltos — ver abajo |
+| **Total** | **105** | |
 
-*(Contando subdirectorios como 1 entrada cada uno: 101 archivos raíz + 6 subdirs = 107 entradas; 4 subdirs archivados, 1 activo, 1 desconocido.)*
+## Resolución de los 7 DESCONOCIDO (2026-04-01)
 
----
+| Archivo | Decisión | Motivo |
+|---------|----------|--------|
+| `IGP_Quantum_Layer.md` | → archive/ | Qiskit/QAOA nunca implementado, fase temprana |
+| `Marketing_Agent_Plan.md` | → archive/ | Pre-lanzamiento, checkboxes sin marcar, refs obsoletas |
+| `PROPUESTA_GRANT_FILECOIN_ABU_2026.md` | → grants/ | Draft de grant Filecoin, nunca enviado |
+| `OpenAPI_Specification.md` | → archive/ | Endpoints desactualizados, no activa en producción |
+| `Narrative_Engine_Guide.md` | → archive/ | Arquitectura Lilly anterior (GPT-4 + JSON Maestro) |
+| `semantics.md` | → archive/ | Pipeline NLP no implementado ni planificado |
+| `theory/HF_THEORETICAL_FRAMEWORK.md` | → archive/ | Embedding 36D migrado a `obsidian_vault/01_formula/hf_embedding_36d.md` |
+| `Technical_Debt_Backlog.md` | → archive/ | Fechado 2025-11-10, refs a arquitectura obsoleta (igp_optimizer) |
 
-## Recomendación para sesión futura de limpieza
+## Pendiente
 
-**No tocar:**
-- Los 6 ACTIVOS — son fuente de verdad vigente
-- `concepts/` — fuente de los docx que generaron la landing page pública
-- Los 5 DESCONOCIDOS que pueden tener items vigentes (`Technical_Debt_Backlog.md`, `Marketing_Agent_Plan.md`, `OpenAPI_Specification.md`, `PROPUESTA_GRANT_FILECOIN_ABU_2026.md`, `IGP_Quantum_Layer.md`)
-
-**Mover a `docs/archive/` (una sola operación):**
-- Los 87 ARCHIVADOS — preservan historia sin contaminar el espacio de trabajo activo
-- Los 4 DUPLICADOS — ya migrados al vault, se pueden eliminar previa confirmación
-
-**Leer antes de decidir (7 archivos):**
-- `IGP_Quantum_Layer.md` — "Quantum Layer" no identificado
-- `Marketing_Agent_Plan.md` — ¿hay items activos?
-- `Narrative_Engine_Guide.md` — ¿relevante para Lilly?
-- `OpenAPI_Specification.md` — ¿activa en producción?
-- `PROPUESTA_GRANT_FILECOIN_ABU_2026.md` — ¿grant vigente?
-- `semantics.md` — ¿relevante para el sistema actual?
-- `theory/HF_THEORETICAL_FRAMEWORK.md` — ¿solapamiento con vault?
+- Los 4 DUPLICADOS (`HF_EXPERIMENT_LOG.md`, `HF_CORE_V1.md`, `HF_CORE_V1_DATASET_REPORT.md`, `HF_CORE_V2_DESIGN.md`) siguen en docs/ raíz — decidir si archivar o eliminar en sesión futura.

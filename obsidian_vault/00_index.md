@@ -23,6 +23,7 @@ Motor astrológico computacional con campo escalar geográfico (Harmony Field) e
 | [[field_v3]] | Fórmula completa `HF_total_v3 = HF_aspects + β*HF_angles + γ*HF_houses` (β=0.6, γ=0.3) |
 | [[HF_CORE_V2_DESIGN]] | Diseño v2 multiplicativo (archivado) — diagnóstico de por qué no funcionó |
 | [[HF_V4_SESSION_B]] | Spec HF v4 pesos diferenciados + correlador de eventos biográficos |
+| [[hf_embedding_36d]] | Embedding 36D — vector circular 24D + armónicos 8D + métricas HF 4D (usado en hf_dataset_v2.parquet) |
 
 ---
 
