@@ -9,6 +9,7 @@ import {
 } from '../../../../lib/context-builder';
 import { applyRateLimit } from '../../../../lib/usage-limiter';
 import { completeLilly } from '../../../../lib/lilly-complete';
+import { selectModel } from '../../../../lib/selectModel';
 
 export const dynamic = 'force-dynamic';
 
@@ -75,9 +76,10 @@ export async function POST(req: Request) {
       history.shift();
     }
 
+    const { model } = selectModel('city', 'genesis');
     const client = new Anthropic({ apiKey });
     const text = await completeLilly(client, {
-      model: 'claude-haiku-4-5-20251001',
+      model,
       max_tokens: 1024,
       system: [{ type: 'text', text: LILLY_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
       messages: [...history, { role: 'user', content: block }],

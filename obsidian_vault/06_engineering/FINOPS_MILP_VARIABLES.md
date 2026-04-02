@@ -73,3 +73,61 @@ los logs de producción.
 - Implementación actual: `next_app/lib/lilly-complete.ts`
 - Descripción del MILP: `CLAUDE.md § Capa 3 — Optimizador de Recursos`
 - Conversación de diseño: "Módulo FinOp MILP" (chat paralelo)
+
+---
+
+## max_tokens como variable de decisión
+
+**Origen:** sesión 2026-04-02. Contexto: `max_tokens` no es un parámetro técnico
+— es una variable de decisión del optimizador.
+
+### Variable adicional al MILP
+
+$$t_{u,r} \in \mathbb{Z}^+$$
+
+— tokens de output autorizados para usuario $u$ en ruta $r$.
+
+**Bounds:**
+- $t_{u,r}^{min}$ — mínimo para respuesta no trunca (depende de ruta; estimable
+  del percentil 99 de output observado en producción)
+- $t_{u,r}^{max}$ — máximo autorizado según plan
+
+**Valores actuales de referencia:**
+
+| Ruta | Modelo | max_tokens actual |
+|------|--------|-------------------|
+| `screen-open` | Sonnet | 1024 |
+| `planet` | Sonnet | 1024 |
+| `technique` (lot/firdaria) | Haiku | 2048 |
+| `technique` (lunar/cycle) | Haiku | 1536 |
+| `city` | Haiku | 1024 |
+| `domain` | Sonnet | 1024 |
+| `house` | Sonnet | 1024 |
+| `sky` | Sonnet | 1536 |
+| `transit` | Sonnet | 1024 |
+| `chat` | Sonnet | 2500 |
+
+### Impacto en función de costo
+
+El término de output ya no es fijo — depende de la decisión:
+
+$$\hat{\kappa}(r, m, z_{u,r}, t_{u,r}) = \kappa^{input}(r,m,z_{u,r}) + c^{out}_m \cdot t_{u,r}$$
+
+### Bounds por plan (propuesta inicial)
+
+| Plan | $t^{max}$ global | Nota |
+|------|-----------------|------|
+| Genesis | sin límite | 100 slots, ingreso fijo |
+| Annual | 2048 | margen más ajustado |
+| Monthly | 1536 | margen más ajustado |
+| Dev | sin límite | cuenta del fundador |
+
+### Shadow price de $t_{u,r}^{max}$
+
+Cuantifica el valor de ofrecer tokens adicionales como feature premium — base
+para diseñar tiers de respuesta dentro de cada plan.
+
+### Modo dev vs producción
+
+En desarrollo $t_{u,r}^{max} = \infty$. En producción el optimizador fija el
+límite por plan antes de llamar a Anthropic.

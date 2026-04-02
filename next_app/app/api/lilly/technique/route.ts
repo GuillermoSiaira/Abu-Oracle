@@ -9,6 +9,7 @@ import {
 } from '../../../../lib/context-builder';
 import { applyRateLimit } from '../../../../lib/usage-limiter';
 import { completeLilly } from '../../../../lib/lilly-complete';
+import { selectModel } from '../../../../lib/selectModel';
 
 export const dynamic = 'force-dynamic';
 
@@ -55,9 +56,10 @@ export async function POST(req: Request) {
       : ['lot', 'sect', 'profection', 'firdaria'].includes(technique) ? 2048
       : 1024;
 
+    const { model } = selectModel('technique', 'genesis');
     const client = new Anthropic({ apiKey });
     const text = await completeLilly(client, {
-      model: 'claude-haiku-4-5-20251001',
+      model,
       max_tokens: maxTokens,
       system: [{ type: 'text', text: LILLY_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
       messages: [...history, { role: 'user', content: block }],

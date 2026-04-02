@@ -10,6 +10,7 @@ import {
 
 export const dynamic = 'force-dynamic';
 import { completeLilly } from '../../../../lib/lilly-complete';
+import { selectModel } from '../../../../lib/selectModel';
 
 const EMPTY_TIMELINE: BiographicalTimeline = {
   profections: [],
@@ -61,9 +62,10 @@ export async function POST(req: Request) {
       history.shift();
     }
 
+    const { model } = selectModel('solar-return', 'genesis');
     const client = new Anthropic({ apiKey });
     const text = await completeLilly(client, {
-      model: 'claude-sonnet-4-6',
+      model,
       max_tokens: 1024,
       system: [{ type: 'text', text: LILLY_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
       messages: [...history, { role: 'user', content: block }],

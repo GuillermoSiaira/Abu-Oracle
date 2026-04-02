@@ -17,6 +17,7 @@ import {
 } from "@/lib/chat-memory";
 import { checkAndIncrementDailyUsage, LIMIT_MESSAGE } from "@/lib/usage-limiter";
 import { completeLilly } from "@/lib/lilly-complete";
+import { selectModel } from "@/lib/selectModel";
 
 export const dynamic = "force-dynamic";
 
@@ -124,8 +125,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No valid messages" }, { status: 400 });
     }
 
+    const { model } = selectModel('chat', 'genesis');
     const text = await completeLilly(client, {
-      model: "claude-sonnet-4-6",
+      model,
       max_tokens: parseInt(process.env.LILLY_CHAT_MAX_TOKENS ?? "2500"),
       system: systemBlocks,
       messages: anthropicMessages,

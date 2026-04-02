@@ -40,13 +40,15 @@ Precios Sonnet 4.6: input $3.00/1M tok · cache write $3.75/1M · cache read $0.
 - Nota: el segundo bloque contiene `memoryBlock` y `lunarBlock` — dinámicos por usuario/momento. Cache hit garantizado solo en primer bloque. Ahorro real del segundo bloque menor al teórico pero presente en sesiones largas.
 - Implementación: `system` de string plano → array de bloques en todas las routes
 
-### Fase B — Haiku en routes simples ⏳ PENDIENTE
-Candidatos confirmados:
-- `/api/lilly/technique` — respuestas cortas, baja complejidad doctrinal
-- `/api/lilly/city` — descripción de ciudad, baja complejidad
-Candidatos a evaluar:
-- `/api/lilly/planet` — complejidad media
-Ahorro adicional: ~15% sobre costo total
+### Fase B — Haiku en routes simples ✅ COMPLETA (2026-04-02)
+- `selectModel(route, plan)` en `next_app/lib/selectModel.ts` — única fuente de verdad para selección de modelo.
+  - `technique`, `city` → `claude-haiku-4-5-20251001` (baja complejidad doctrinal)
+  - `screen-open`, `planet`, `transit`, `domain`, `solar-return`, `sky`, `house`, `chat` → `claude-sonnet-4-6`
+- Logging estructurado (JSON a stdout) por cada request: `route`, `plan`, `model_selected`, `routing_reason`, `tokens_input_est`, `cost_est_usd`.
+- 11 routes migradas: hardcoded string → `selectModel(route, 'genesis')`.
+- `tsc --noEmit` exit 0.
+- Punto de entrada para Fase E (MILP): solo hay que modificar `selectModel.ts`.
+- Ahorro adicional: ~15% sobre costo total
 
 ### Fase C — Caching avanzado ⏳ PENDIENTE
 - Separar `assembleContextBlock()` en parte estática (cacheable) y dinámica
