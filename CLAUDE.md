@@ -1095,6 +1095,7 @@ Marcar con ✅ al resolver. No eliminar — mover a historial abajo.
 | BUG-06 | Badge del mapa muestra siempre "Global" aunque el dominio activo sea otro. El heatmap sí cambia pero el badge no se actualiza | HFRelocationMap.tsx o RelocationClient.tsx | Baja | ⬜ Descartado · /relocation eliminado del navbar (redirect a /chart) |
 | BUG-07 | Top 3 ciudades no cambia al seleccionar dominio — muestra siempre el ranking global. Debería recalcularse por dominio activo | RelocationClient.tsx o lógica de ranking | Media | ⬜ Descartado · /relocation eliminado del navbar (redirect a /chart) |
 | BUG-08 | Oracle Interface muestra historial de conversación al volver de /chart a Home — los mensajes no se borran al cambiar de ruta | OracleChat.tsx | Media | 🟢 Resuelto · Decisión de diseño: mensajes persisten en sesión activa mientras el sujeto no cambie. Reset solo al cambiar abuData. |
+| BUG-09 | Error al generar carta no indica la causa específica — el mensaje genérico `formErrorGeneric` no diferencia entre "fecha inválida", "ciudad no seleccionada", "error de red" o "403 del engine". El usuario no sabe qué corregir. | `birth-data-panel.tsx` + `services/abu.ts` | Baja | 🔴 Abierto |
 
 ### Historial bugs resueltos
 (vacío por ahora)

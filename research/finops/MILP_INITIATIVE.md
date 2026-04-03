@@ -76,6 +76,39 @@ completo (margen por plan). Eso es distinto y publicable.
 
 ## Estado
 
-Pendiente — sesión dedicada post-lanzamiento.
-No iniciar hasta tener datos reales de usuarios de producción,
-o ejecutar Fase A con sujetos históricos como sustituto.
+Fase C completada como prerequisito (sesión 2026-04-02).
+Fase A en progreso — script de medición pendiente de ejecución.
+
+---
+
+## Roadmaps paralelos — no mezclar
+
+Existen dos roadmaps con propósitos distintos:
+
+| Fase | COST_OPTIMIZATION.md (producto) | MILP_INITIATIVE.md (investigación) |
+|------|----------------------------------|-------------------------------------|
+| A | ✅ Caching mínimo (commit aedfe1a) | ⏳ TOKEN_EXPERIMENT: medir distribución real |
+| B | ✅ selectModel + Haiku (2026-04-02) | ⏳ Formular y resolver MILP con datos reales |
+| C | ⏳ Caching avanzado contextBlock | ✅ selectModel gateway — completado como Fase B de COST_OPT |
+| D | ⏳ Auditoría tokens contextBlock | — |
+| E | ⏳ Módulo MILP dinámico en producción | — |
+
+**Nota:** Fase C de MILP_INITIATIVE completada como Fase B de COST_OPTIMIZATION —
+`next_app/lib/selectModel.ts` es el gateway unificado. Es prerequisito del módulo
+dinámico (Fase E de COST_OPT / Fase B de MILP_INITIATIVE).
+
+---
+
+## Modos del simulador MILP
+
+### Modo prescriptivo
+Restricción R5 activa con $\mu_{p(u)} > 0$ — garantiza margen mínimo por plan.
+Úsalo para decisiones de producción: qué modelo y max_tokens asignar a cada
+ruta × plan para sostener el margen objetivo.
+
+### Modo descriptivo
+Restricción R5 libre ($\mu_{p(u)} = 0$) — muestra la realidad sin restricción
+de piso de margen. Útil para:
+- Diagnóstico: cuánto cuesta el sistema sin restricciones
+- Paper: caracterizar el espacio de soluciones completo
+- Comparar con modo prescriptivo para cuantificar el costo de calidad

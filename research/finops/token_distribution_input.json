@@ -1,0 +1,3970 @@
+{
+  "meta": {
+    "sample_n": 50,
+    "skipped": 5,
+    "seed": 42,
+    "generated_at": "2026-04-02T15:55:27.991154+00:00"
+  },
+  "results": [
+    {
+      "subject_id": 384770,
+      "subject_name": "Juan Evangelista Venegas",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3436,
+      "timestamp": "2026-04-02T15:44:10.413685+00:00"
+    },
+    {
+      "subject_id": 384770,
+      "subject_name": "Juan Evangelista Venegas",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3454,
+      "timestamp": "2026-04-02T15:44:10.809089+00:00"
+    },
+    {
+      "subject_id": 384770,
+      "subject_name": "Juan Evangelista Venegas",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3451,
+      "timestamp": "2026-04-02T15:44:11.199208+00:00"
+    },
+    {
+      "subject_id": 384770,
+      "subject_name": "Juan Evangelista Venegas",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3470,
+      "timestamp": "2026-04-02T15:44:11.607757+00:00"
+    },
+    {
+      "subject_id": 384770,
+      "subject_name": "Juan Evangelista Venegas",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3427,
+      "timestamp": "2026-04-02T15:44:12.009569+00:00"
+    },
+    {
+      "subject_id": 384770,
+      "subject_name": "Juan Evangelista Venegas",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3465,
+      "timestamp": "2026-04-02T15:44:12.504118+00:00"
+    },
+    {
+      "subject_id": 384770,
+      "subject_name": "Juan Evangelista Venegas",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3450,
+      "timestamp": "2026-04-02T15:44:12.893970+00:00"
+    },
+    {
+      "subject_id": 384770,
+      "subject_name": "Juan Evangelista Venegas",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3441,
+      "timestamp": "2026-04-02T15:44:13.349906+00:00"
+    },
+    {
+      "subject_id": 384770,
+      "subject_name": "Juan Evangelista Venegas",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3447,
+      "timestamp": "2026-04-02T15:44:13.932539+00:00"
+    },
+    {
+      "subject_id": 384770,
+      "subject_name": "Juan Evangelista Venegas",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3449,
+      "timestamp": "2026-04-02T15:44:14.313114+00:00"
+    },
+    {
+      "subject_id": 384770,
+      "subject_name": "Juan Evangelista Venegas",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3431,
+      "timestamp": "2026-04-02T15:44:15.190457+00:00"
+    },
+    {
+      "subject_id": 62955,
+      "subject_name": "Karen Allen",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3429,
+      "timestamp": "2026-04-02T15:44:25.503865+00:00"
+    },
+    {
+      "subject_id": 62955,
+      "subject_name": "Karen Allen",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3453,
+      "timestamp": "2026-04-02T15:44:25.899454+00:00"
+    },
+    {
+      "subject_id": 62955,
+      "subject_name": "Karen Allen",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3451,
+      "timestamp": "2026-04-02T15:44:26.288309+00:00"
+    },
+    {
+      "subject_id": 62955,
+      "subject_name": "Karen Allen",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3469,
+      "timestamp": "2026-04-02T15:44:26.676187+00:00"
+    },
+    {
+      "subject_id": 62955,
+      "subject_name": "Karen Allen",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3427,
+      "timestamp": "2026-04-02T15:44:27.078112+00:00"
+    },
+    {
+      "subject_id": 62955,
+      "subject_name": "Karen Allen",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3464,
+      "timestamp": "2026-04-02T15:44:27.474838+00:00"
+    },
+    {
+      "subject_id": 62955,
+      "subject_name": "Karen Allen",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3449,
+      "timestamp": "2026-04-02T15:44:27.865565+00:00"
+    },
+    {
+      "subject_id": 62955,
+      "subject_name": "Karen Allen",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3440,
+      "timestamp": "2026-04-02T15:44:28.243972+00:00"
+    },
+    {
+      "subject_id": 62955,
+      "subject_name": "Karen Allen",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3446,
+      "timestamp": "2026-04-02T15:44:28.683840+00:00"
+    },
+    {
+      "subject_id": 62955,
+      "subject_name": "Karen Allen",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3448,
+      "timestamp": "2026-04-02T15:44:29.094248+00:00"
+    },
+    {
+      "subject_id": 62955,
+      "subject_name": "Karen Allen",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3430,
+      "timestamp": "2026-04-02T15:44:29.483484+00:00"
+    },
+    {
+      "subject_id": 12145,
+      "subject_name": "Jorge Luis Borges",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3423,
+      "timestamp": "2026-04-02T15:44:38.778867+00:00"
+    },
+    {
+      "subject_id": 12145,
+      "subject_name": "Jorge Luis Borges",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3444,
+      "timestamp": "2026-04-02T15:44:39.167665+00:00"
+    },
+    {
+      "subject_id": 12145,
+      "subject_name": "Jorge Luis Borges",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3441,
+      "timestamp": "2026-04-02T15:44:39.564110+00:00"
+    },
+    {
+      "subject_id": 12145,
+      "subject_name": "Jorge Luis Borges",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3460,
+      "timestamp": "2026-04-02T15:44:39.948369+00:00"
+    },
+    {
+      "subject_id": 12145,
+      "subject_name": "Jorge Luis Borges",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3417,
+      "timestamp": "2026-04-02T15:44:40.383199+00:00"
+    },
+    {
+      "subject_id": 12145,
+      "subject_name": "Jorge Luis Borges",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3455,
+      "timestamp": "2026-04-02T15:44:40.800884+00:00"
+    },
+    {
+      "subject_id": 12145,
+      "subject_name": "Jorge Luis Borges",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3440,
+      "timestamp": "2026-04-02T15:44:41.193660+00:00"
+    },
+    {
+      "subject_id": 12145,
+      "subject_name": "Jorge Luis Borges",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3426,
+      "timestamp": "2026-04-02T15:44:41.580385+00:00"
+    },
+    {
+      "subject_id": 12145,
+      "subject_name": "Jorge Luis Borges",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3437,
+      "timestamp": "2026-04-02T15:44:41.965256+00:00"
+    },
+    {
+      "subject_id": 12145,
+      "subject_name": "Jorge Luis Borges",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3439,
+      "timestamp": "2026-04-02T15:44:42.358942+00:00"
+    },
+    {
+      "subject_id": 12145,
+      "subject_name": "Jorge Luis Borges",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3421,
+      "timestamp": "2026-04-02T15:44:43.079928+00:00"
+    },
+    {
+      "subject_id": 246705,
+      "subject_name": "Nick Carter",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3426,
+      "timestamp": "2026-04-02T15:44:52.704111+00:00"
+    },
+    {
+      "subject_id": 246705,
+      "subject_name": "Nick Carter",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3450,
+      "timestamp": "2026-04-02T15:44:53.114437+00:00"
+    },
+    {
+      "subject_id": 246705,
+      "subject_name": "Nick Carter",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3447,
+      "timestamp": "2026-04-02T15:44:53.509757+00:00"
+    },
+    {
+      "subject_id": 246705,
+      "subject_name": "Nick Carter",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3465,
+      "timestamp": "2026-04-02T15:44:53.903718+00:00"
+    },
+    {
+      "subject_id": 246705,
+      "subject_name": "Nick Carter",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3421,
+      "timestamp": "2026-04-02T15:44:54.431691+00:00"
+    },
+    {
+      "subject_id": 246705,
+      "subject_name": "Nick Carter",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3461,
+      "timestamp": "2026-04-02T15:44:54.823866+00:00"
+    },
+    {
+      "subject_id": 246705,
+      "subject_name": "Nick Carter",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3446,
+      "timestamp": "2026-04-02T15:44:55.210198+00:00"
+    },
+    {
+      "subject_id": 246705,
+      "subject_name": "Nick Carter",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3440,
+      "timestamp": "2026-04-02T15:44:55.573240+00:00"
+    },
+    {
+      "subject_id": 246705,
+      "subject_name": "Nick Carter",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3443,
+      "timestamp": "2026-04-02T15:44:55.960036+00:00"
+    },
+    {
+      "subject_id": 246705,
+      "subject_name": "Nick Carter",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3445,
+      "timestamp": "2026-04-02T15:44:56.370202+00:00"
+    },
+    {
+      "subject_id": 246705,
+      "subject_name": "Nick Carter",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3427,
+      "timestamp": "2026-04-02T15:44:56.766839+00:00"
+    },
+    {
+      "subject_id": 233475,
+      "subject_name": "Simone De Beauvoir",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3438,
+      "timestamp": "2026-04-02T15:45:05.917346+00:00"
+    },
+    {
+      "subject_id": 233475,
+      "subject_name": "Simone De Beauvoir",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3457,
+      "timestamp": "2026-04-02T15:45:06.293825+00:00"
+    },
+    {
+      "subject_id": 233475,
+      "subject_name": "Simone De Beauvoir",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3454,
+      "timestamp": "2026-04-02T15:45:06.730374+00:00"
+    },
+    {
+      "subject_id": 233475,
+      "subject_name": "Simone De Beauvoir",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3473,
+      "timestamp": "2026-04-02T15:45:07.151209+00:00"
+    },
+    {
+      "subject_id": 233475,
+      "subject_name": "Simone De Beauvoir",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3430,
+      "timestamp": "2026-04-02T15:45:07.582101+00:00"
+    },
+    {
+      "subject_id": 233475,
+      "subject_name": "Simone De Beauvoir",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3468,
+      "timestamp": "2026-04-02T15:45:08.050787+00:00"
+    },
+    {
+      "subject_id": 233475,
+      "subject_name": "Simone De Beauvoir",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3453,
+      "timestamp": "2026-04-02T15:45:08.464639+00:00"
+    },
+    {
+      "subject_id": 233475,
+      "subject_name": "Simone De Beauvoir",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3441,
+      "timestamp": "2026-04-02T15:45:08.856607+00:00"
+    },
+    {
+      "subject_id": 233475,
+      "subject_name": "Simone De Beauvoir",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3450,
+      "timestamp": "2026-04-02T15:45:09.250584+00:00"
+    },
+    {
+      "subject_id": 233475,
+      "subject_name": "Simone De Beauvoir",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3452,
+      "timestamp": "2026-04-02T15:45:09.642486+00:00"
+    },
+    {
+      "subject_id": 233475,
+      "subject_name": "Simone De Beauvoir",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3434,
+      "timestamp": "2026-04-02T15:45:10.033690+00:00"
+    },
+    {
+      "subject_id": 119010,
+      "subject_name": "Henry Miller",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3430,
+      "timestamp": "2026-04-02T15:45:19.397073+00:00"
+    },
+    {
+      "subject_id": 119010,
+      "subject_name": "Henry Miller",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3455,
+      "timestamp": "2026-04-02T15:45:19.815418+00:00"
+    },
+    {
+      "subject_id": 119010,
+      "subject_name": "Henry Miller",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3451,
+      "timestamp": "2026-04-02T15:45:20.226020+00:00"
+    },
+    {
+      "subject_id": 119010,
+      "subject_name": "Henry Miller",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3470,
+      "timestamp": "2026-04-02T15:45:20.864926+00:00"
+    },
+    {
+      "subject_id": 119010,
+      "subject_name": "Henry Miller",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3427,
+      "timestamp": "2026-04-02T15:45:21.256078+00:00"
+    },
+    {
+      "subject_id": 119010,
+      "subject_name": "Henry Miller",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3465,
+      "timestamp": "2026-04-02T15:45:21.652297+00:00"
+    },
+    {
+      "subject_id": 119010,
+      "subject_name": "Henry Miller",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3450,
+      "timestamp": "2026-04-02T15:45:22.060344+00:00"
+    },
+    {
+      "subject_id": 119010,
+      "subject_name": "Henry Miller",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3438,
+      "timestamp": "2026-04-02T15:45:22.458322+00:00"
+    },
+    {
+      "subject_id": 119010,
+      "subject_name": "Henry Miller",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3447,
+      "timestamp": "2026-04-02T15:45:22.899251+00:00"
+    },
+    {
+      "subject_id": 119010,
+      "subject_name": "Henry Miller",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3449,
+      "timestamp": "2026-04-02T15:45:23.287781+00:00"
+    },
+    {
+      "subject_id": 119010,
+      "subject_name": "Henry Miller",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3431,
+      "timestamp": "2026-04-02T15:45:23.688850+00:00"
+    },
+    {
+      "subject_id": 78210,
+      "subject_name": "Luiz Inácio Lula Da Silva",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3438,
+      "timestamp": "2026-04-02T15:45:33.528225+00:00"
+    },
+    {
+      "subject_id": 78210,
+      "subject_name": "Luiz Inácio Lula Da Silva",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3452,
+      "timestamp": "2026-04-02T15:45:34.012699+00:00"
+    },
+    {
+      "subject_id": 78210,
+      "subject_name": "Luiz Inácio Lula Da Silva",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3449,
+      "timestamp": "2026-04-02T15:45:34.404743+00:00"
+    },
+    {
+      "subject_id": 78210,
+      "subject_name": "Luiz Inácio Lula Da Silva",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3468,
+      "timestamp": "2026-04-02T15:45:34.806160+00:00"
+    },
+    {
+      "subject_id": 78210,
+      "subject_name": "Luiz Inácio Lula Da Silva",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3423,
+      "timestamp": "2026-04-02T15:45:35.299272+00:00"
+    },
+    {
+      "subject_id": 78210,
+      "subject_name": "Luiz Inácio Lula Da Silva",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3463,
+      "timestamp": "2026-04-02T15:45:35.686860+00:00"
+    },
+    {
+      "subject_id": 78210,
+      "subject_name": "Luiz Inácio Lula Da Silva",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3448,
+      "timestamp": "2026-04-02T15:45:36.849576+00:00"
+    },
+    {
+      "subject_id": 78210,
+      "subject_name": "Luiz Inácio Lula Da Silva",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3437,
+      "timestamp": "2026-04-02T15:45:37.399118+00:00"
+    },
+    {
+      "subject_id": 78210,
+      "subject_name": "Luiz Inácio Lula Da Silva",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3445,
+      "timestamp": "2026-04-02T15:45:37.801125+00:00"
+    },
+    {
+      "subject_id": 78210,
+      "subject_name": "Luiz Inácio Lula Da Silva",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3447,
+      "timestamp": "2026-04-02T15:45:38.193345+00:00"
+    },
+    {
+      "subject_id": 78210,
+      "subject_name": "Luiz Inácio Lula Da Silva",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3429,
+      "timestamp": "2026-04-02T15:45:38.570534+00:00"
+    },
+    {
+      "subject_id": 59120,
+      "subject_name": "Jennifer Rush",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3422,
+      "timestamp": "2026-04-02T15:45:48.204449+00:00"
+    },
+    {
+      "subject_id": 59120,
+      "subject_name": "Jennifer Rush",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3446,
+      "timestamp": "2026-04-02T15:45:48.591265+00:00"
+    },
+    {
+      "subject_id": 59120,
+      "subject_name": "Jennifer Rush",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3443,
+      "timestamp": "2026-04-02T15:45:49.014857+00:00"
+    },
+    {
+      "subject_id": 59120,
+      "subject_name": "Jennifer Rush",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3461,
+      "timestamp": "2026-04-02T15:45:49.408329+00:00"
+    },
+    {
+      "subject_id": 59120,
+      "subject_name": "Jennifer Rush",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3420,
+      "timestamp": "2026-04-02T15:45:49.837092+00:00"
+    },
+    {
+      "subject_id": 59120,
+      "subject_name": "Jennifer Rush",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3457,
+      "timestamp": "2026-04-02T15:45:50.492897+00:00"
+    },
+    {
+      "subject_id": 59120,
+      "subject_name": "Jennifer Rush",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3442,
+      "timestamp": "2026-04-02T15:45:50.890987+00:00"
+    },
+    {
+      "subject_id": 59120,
+      "subject_name": "Jennifer Rush",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3436,
+      "timestamp": "2026-04-02T15:45:51.304299+00:00"
+    },
+    {
+      "subject_id": 59120,
+      "subject_name": "Jennifer Rush",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3439,
+      "timestamp": "2026-04-02T15:45:51.697486+00:00"
+    },
+    {
+      "subject_id": 59120,
+      "subject_name": "Jennifer Rush",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3441,
+      "timestamp": "2026-04-02T15:45:52.107840+00:00"
+    },
+    {
+      "subject_id": 59120,
+      "subject_name": "Jennifer Rush",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3423,
+      "timestamp": "2026-04-02T15:45:52.815863+00:00"
+    },
+    {
+      "subject_id": 380635,
+      "subject_name": "Consuelo Velázquez",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3423,
+      "timestamp": "2026-04-02T15:46:02.304708+00:00"
+    },
+    {
+      "subject_id": 380635,
+      "subject_name": "Consuelo Velázquez",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3440,
+      "timestamp": "2026-04-02T15:46:02.750171+00:00"
+    },
+    {
+      "subject_id": 380635,
+      "subject_name": "Consuelo Velázquez",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3438,
+      "timestamp": "2026-04-02T15:46:03.225223+00:00"
+    },
+    {
+      "subject_id": 380635,
+      "subject_name": "Consuelo Velázquez",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3457,
+      "timestamp": "2026-04-02T15:46:03.629766+00:00"
+    },
+    {
+      "subject_id": 380635,
+      "subject_name": "Consuelo Velázquez",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3414,
+      "timestamp": "2026-04-02T15:46:04.016105+00:00"
+    },
+    {
+      "subject_id": 380635,
+      "subject_name": "Consuelo Velázquez",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3452,
+      "timestamp": "2026-04-02T15:46:04.407688+00:00"
+    },
+    {
+      "subject_id": 380635,
+      "subject_name": "Consuelo Velázquez",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3437,
+      "timestamp": "2026-04-02T15:46:04.794829+00:00"
+    },
+    {
+      "subject_id": 380635,
+      "subject_name": "Consuelo Velázquez",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3431,
+      "timestamp": "2026-04-02T15:46:05.170023+00:00"
+    },
+    {
+      "subject_id": 380635,
+      "subject_name": "Consuelo Velázquez",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3434,
+      "timestamp": "2026-04-02T15:46:05.587475+00:00"
+    },
+    {
+      "subject_id": 380635,
+      "subject_name": "Consuelo Velázquez",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3436,
+      "timestamp": "2026-04-02T15:46:06.053241+00:00"
+    },
+    {
+      "subject_id": 380635,
+      "subject_name": "Consuelo Velázquez",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3418,
+      "timestamp": "2026-04-02T15:46:06.490690+00:00"
+    },
+    {
+      "subject_id": 51995,
+      "subject_name": "Murray Gell-Mann",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3431,
+      "timestamp": "2026-04-02T15:46:15.491958+00:00"
+    },
+    {
+      "subject_id": 51995,
+      "subject_name": "Murray Gell-Mann",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3451,
+      "timestamp": "2026-04-02T15:46:15.899802+00:00"
+    },
+    {
+      "subject_id": 51995,
+      "subject_name": "Murray Gell-Mann",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3446,
+      "timestamp": "2026-04-02T15:46:16.299522+00:00"
+    },
+    {
+      "subject_id": 51995,
+      "subject_name": "Murray Gell-Mann",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3467,
+      "timestamp": "2026-04-02T15:46:16.698561+00:00"
+    },
+    {
+      "subject_id": 51995,
+      "subject_name": "Murray Gell-Mann",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3424,
+      "timestamp": "2026-04-02T15:46:17.401182+00:00"
+    },
+    {
+      "subject_id": 51995,
+      "subject_name": "Murray Gell-Mann",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3462,
+      "timestamp": "2026-04-02T15:46:17.866653+00:00"
+    },
+    {
+      "subject_id": 51995,
+      "subject_name": "Murray Gell-Mann",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3447,
+      "timestamp": "2026-04-02T15:46:18.338014+00:00"
+    },
+    {
+      "subject_id": 51995,
+      "subject_name": "Murray Gell-Mann",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3439,
+      "timestamp": "2026-04-02T15:46:18.743500+00:00"
+    },
+    {
+      "subject_id": 51995,
+      "subject_name": "Murray Gell-Mann",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3444,
+      "timestamp": "2026-04-02T15:46:19.154280+00:00"
+    },
+    {
+      "subject_id": 51995,
+      "subject_name": "Murray Gell-Mann",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3446,
+      "timestamp": "2026-04-02T15:46:19.547457+00:00"
+    },
+    {
+      "subject_id": 51995,
+      "subject_name": "Murray Gell-Mann",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3428,
+      "timestamp": "2026-04-02T15:46:20.069624+00:00"
+    },
+    {
+      "subject_id": 382580,
+      "subject_name": "Pedro Alfonso",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3424,
+      "timestamp": "2026-04-02T15:46:29.695763+00:00"
+    },
+    {
+      "subject_id": 382580,
+      "subject_name": "Pedro Alfonso",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3446,
+      "timestamp": "2026-04-02T15:46:30.066787+00:00"
+    },
+    {
+      "subject_id": 382580,
+      "subject_name": "Pedro Alfonso",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3445,
+      "timestamp": "2026-04-02T15:46:30.463705+00:00"
+    },
+    {
+      "subject_id": 382580,
+      "subject_name": "Pedro Alfonso",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3463,
+      "timestamp": "2026-04-02T15:46:31.430806+00:00"
+    },
+    {
+      "subject_id": 382580,
+      "subject_name": "Pedro Alfonso",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3421,
+      "timestamp": "2026-04-02T15:46:31.830562+00:00"
+    },
+    {
+      "subject_id": 382580,
+      "subject_name": "Pedro Alfonso",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3459,
+      "timestamp": "2026-04-02T15:46:32.220927+00:00"
+    },
+    {
+      "subject_id": 382580,
+      "subject_name": "Pedro Alfonso",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3444,
+      "timestamp": "2026-04-02T15:46:32.624494+00:00"
+    },
+    {
+      "subject_id": 382580,
+      "subject_name": "Pedro Alfonso",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3434,
+      "timestamp": "2026-04-02T15:46:33.022292+00:00"
+    },
+    {
+      "subject_id": 382580,
+      "subject_name": "Pedro Alfonso",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3441,
+      "timestamp": "2026-04-02T15:46:33.738921+00:00"
+    },
+    {
+      "subject_id": 382580,
+      "subject_name": "Pedro Alfonso",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3443,
+      "timestamp": "2026-04-02T15:46:34.635907+00:00"
+    },
+    {
+      "subject_id": 382580,
+      "subject_name": "Pedro Alfonso",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3425,
+      "timestamp": "2026-04-02T15:46:35.043210+00:00"
+    },
+    {
+      "subject_id": 339915,
+      "subject_name": "Candice Bergen",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3427,
+      "timestamp": "2026-04-02T15:46:44.400811+00:00"
+    },
+    {
+      "subject_id": 339915,
+      "subject_name": "Candice Bergen",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3449,
+      "timestamp": "2026-04-02T15:46:44.785422+00:00"
+    },
+    {
+      "subject_id": 339915,
+      "subject_name": "Candice Bergen",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3446,
+      "timestamp": "2026-04-02T15:46:45.169719+00:00"
+    },
+    {
+      "subject_id": 339915,
+      "subject_name": "Candice Bergen",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3465,
+      "timestamp": "2026-04-02T15:46:46.123194+00:00"
+    },
+    {
+      "subject_id": 339915,
+      "subject_name": "Candice Bergen",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3422,
+      "timestamp": "2026-04-02T15:46:46.543723+00:00"
+    },
+    {
+      "subject_id": 339915,
+      "subject_name": "Candice Bergen",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3460,
+      "timestamp": "2026-04-02T15:46:46.986514+00:00"
+    },
+    {
+      "subject_id": 339915,
+      "subject_name": "Candice Bergen",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3445,
+      "timestamp": "2026-04-02T15:46:47.376117+00:00"
+    },
+    {
+      "subject_id": 339915,
+      "subject_name": "Candice Bergen",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3434,
+      "timestamp": "2026-04-02T15:46:47.774039+00:00"
+    },
+    {
+      "subject_id": 339915,
+      "subject_name": "Candice Bergen",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3442,
+      "timestamp": "2026-04-02T15:46:48.487740+00:00"
+    },
+    {
+      "subject_id": 339915,
+      "subject_name": "Candice Bergen",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3444,
+      "timestamp": "2026-04-02T15:46:48.875006+00:00"
+    },
+    {
+      "subject_id": 339915,
+      "subject_name": "Candice Bergen",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3426,
+      "timestamp": "2026-04-02T15:46:49.601676+00:00"
+    },
+    {
+      "subject_id": 14660,
+      "subject_name": "James Hunt",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3421,
+      "timestamp": "2026-04-02T15:46:59.535608+00:00"
+    },
+    {
+      "subject_id": 14660,
+      "subject_name": "James Hunt",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3444,
+      "timestamp": "2026-04-02T15:46:59.929193+00:00"
+    },
+    {
+      "subject_id": 14660,
+      "subject_name": "James Hunt",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3442,
+      "timestamp": "2026-04-02T15:47:00.312918+00:00"
+    },
+    {
+      "subject_id": 14660,
+      "subject_name": "James Hunt",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3461,
+      "timestamp": "2026-04-02T15:47:00.712787+00:00"
+    },
+    {
+      "subject_id": 14660,
+      "subject_name": "James Hunt",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3418,
+      "timestamp": "2026-04-02T15:47:01.155373+00:00"
+    },
+    {
+      "subject_id": 14660,
+      "subject_name": "James Hunt",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3456,
+      "timestamp": "2026-04-02T15:47:01.537282+00:00"
+    },
+    {
+      "subject_id": 14660,
+      "subject_name": "James Hunt",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3441,
+      "timestamp": "2026-04-02T15:47:01.950203+00:00"
+    },
+    {
+      "subject_id": 14660,
+      "subject_name": "James Hunt",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3430,
+      "timestamp": "2026-04-02T15:47:02.379060+00:00"
+    },
+    {
+      "subject_id": 14660,
+      "subject_name": "James Hunt",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3438,
+      "timestamp": "2026-04-02T15:47:02.809701+00:00"
+    },
+    {
+      "subject_id": 14660,
+      "subject_name": "James Hunt",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3440,
+      "timestamp": "2026-04-02T15:47:03.187835+00:00"
+    },
+    {
+      "subject_id": 14660,
+      "subject_name": "James Hunt",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3422,
+      "timestamp": "2026-04-02T15:47:03.575715+00:00"
+    },
+    {
+      "subject_id": 55635,
+      "subject_name": "Aldo Moro",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3424,
+      "timestamp": "2026-04-02T15:47:15.766859+00:00"
+    },
+    {
+      "subject_id": 55635,
+      "subject_name": "Aldo Moro",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3443,
+      "timestamp": "2026-04-02T15:47:16.440663+00:00"
+    },
+    {
+      "subject_id": 55635,
+      "subject_name": "Aldo Moro",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3441,
+      "timestamp": "2026-04-02T15:47:16.826713+00:00"
+    },
+    {
+      "subject_id": 55635,
+      "subject_name": "Aldo Moro",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3460,
+      "timestamp": "2026-04-02T15:47:17.438521+00:00"
+    },
+    {
+      "subject_id": 55635,
+      "subject_name": "Aldo Moro",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3415,
+      "timestamp": "2026-04-02T15:47:18.088926+00:00"
+    },
+    {
+      "subject_id": 55635,
+      "subject_name": "Aldo Moro",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3455,
+      "timestamp": "2026-04-02T15:47:18.628646+00:00"
+    },
+    {
+      "subject_id": 55635,
+      "subject_name": "Aldo Moro",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3440,
+      "timestamp": "2026-04-02T15:47:19.505670+00:00"
+    },
+    {
+      "subject_id": 55635,
+      "subject_name": "Aldo Moro",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3430,
+      "timestamp": "2026-04-02T15:47:20.022396+00:00"
+    },
+    {
+      "subject_id": 55635,
+      "subject_name": "Aldo Moro",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3437,
+      "timestamp": "2026-04-02T15:47:20.435182+00:00"
+    },
+    {
+      "subject_id": 55635,
+      "subject_name": "Aldo Moro",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3439,
+      "timestamp": "2026-04-02T15:47:20.842786+00:00"
+    },
+    {
+      "subject_id": 55635,
+      "subject_name": "Aldo Moro",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3421,
+      "timestamp": "2026-04-02T15:47:21.228717+00:00"
+    },
+    {
+      "subject_id": 116880,
+      "subject_name": "Harry Shearer",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3432,
+      "timestamp": "2026-04-02T15:47:31.244646+00:00"
+    },
+    {
+      "subject_id": 116880,
+      "subject_name": "Harry Shearer",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3455,
+      "timestamp": "2026-04-02T15:47:31.631024+00:00"
+    },
+    {
+      "subject_id": 116880,
+      "subject_name": "Harry Shearer",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3451,
+      "timestamp": "2026-04-02T15:47:32.047953+00:00"
+    },
+    {
+      "subject_id": 116880,
+      "subject_name": "Harry Shearer",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3470,
+      "timestamp": "2026-04-02T15:47:32.451194+00:00"
+    },
+    {
+      "subject_id": 116880,
+      "subject_name": "Harry Shearer",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3427,
+      "timestamp": "2026-04-02T15:47:32.839042+00:00"
+    },
+    {
+      "subject_id": 116880,
+      "subject_name": "Harry Shearer",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3465,
+      "timestamp": "2026-04-02T15:47:33.238224+00:00"
+    },
+    {
+      "subject_id": 116880,
+      "subject_name": "Harry Shearer",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3450,
+      "timestamp": "2026-04-02T15:47:33.713354+00:00"
+    },
+    {
+      "subject_id": 116880,
+      "subject_name": "Harry Shearer",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3438,
+      "timestamp": "2026-04-02T15:47:34.090795+00:00"
+    },
+    {
+      "subject_id": 116880,
+      "subject_name": "Harry Shearer",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3447,
+      "timestamp": "2026-04-02T15:47:34.854127+00:00"
+    },
+    {
+      "subject_id": 116880,
+      "subject_name": "Harry Shearer",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3449,
+      "timestamp": "2026-04-02T15:47:35.244951+00:00"
+    },
+    {
+      "subject_id": 116880,
+      "subject_name": "Harry Shearer",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3431,
+      "timestamp": "2026-04-02T15:47:35.652579+00:00"
+    },
+    {
+      "subject_id": 122735,
+      "subject_name": "Donna Summer",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3421,
+      "timestamp": "2026-04-02T15:47:51.967000+00:00"
+    },
+    {
+      "subject_id": 122735,
+      "subject_name": "Donna Summer",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3445,
+      "timestamp": "2026-04-02T15:47:52.359402+00:00"
+    },
+    {
+      "subject_id": 122735,
+      "subject_name": "Donna Summer",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3439,
+      "timestamp": "2026-04-02T15:47:53.113398+00:00"
+    },
+    {
+      "subject_id": 122735,
+      "subject_name": "Donna Summer",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3460,
+      "timestamp": "2026-04-02T15:47:53.498136+00:00"
+    },
+    {
+      "subject_id": 122735,
+      "subject_name": "Donna Summer",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3417,
+      "timestamp": "2026-04-02T15:47:54.631318+00:00"
+    },
+    {
+      "subject_id": 122735,
+      "subject_name": "Donna Summer",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3455,
+      "timestamp": "2026-04-02T15:47:55.043908+00:00"
+    },
+    {
+      "subject_id": 122735,
+      "subject_name": "Donna Summer",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3440,
+      "timestamp": "2026-04-02T15:47:55.445256+00:00"
+    },
+    {
+      "subject_id": 122735,
+      "subject_name": "Donna Summer",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3430,
+      "timestamp": "2026-04-02T15:47:55.803115+00:00"
+    },
+    {
+      "subject_id": 122735,
+      "subject_name": "Donna Summer",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3437,
+      "timestamp": "2026-04-02T15:47:56.188178+00:00"
+    },
+    {
+      "subject_id": 122735,
+      "subject_name": "Donna Summer",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3439,
+      "timestamp": "2026-04-02T15:47:56.593113+00:00"
+    },
+    {
+      "subject_id": 122735,
+      "subject_name": "Donna Summer",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3421,
+      "timestamp": "2026-04-02T15:47:57.004229+00:00"
+    },
+    {
+      "subject_id": 383075,
+      "subject_name": "Jorge Puccinelli Converso",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3433,
+      "timestamp": "2026-04-02T15:48:11.018477+00:00"
+    },
+    {
+      "subject_id": 383075,
+      "subject_name": "Jorge Puccinelli Converso",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3451,
+      "timestamp": "2026-04-02T15:48:11.418846+00:00"
+    },
+    {
+      "subject_id": 383075,
+      "subject_name": "Jorge Puccinelli Converso",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3448,
+      "timestamp": "2026-04-02T15:48:11.888944+00:00"
+    },
+    {
+      "subject_id": 383075,
+      "subject_name": "Jorge Puccinelli Converso",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3466,
+      "timestamp": "2026-04-02T15:48:12.366285+00:00"
+    },
+    {
+      "subject_id": 383075,
+      "subject_name": "Jorge Puccinelli Converso",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3421,
+      "timestamp": "2026-04-02T15:48:12.795099+00:00"
+    },
+    {
+      "subject_id": 383075,
+      "subject_name": "Jorge Puccinelli Converso",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3461,
+      "timestamp": "2026-04-02T15:48:13.227645+00:00"
+    },
+    {
+      "subject_id": 383075,
+      "subject_name": "Jorge Puccinelli Converso",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3446,
+      "timestamp": "2026-04-02T15:48:13.655606+00:00"
+    },
+    {
+      "subject_id": 383075,
+      "subject_name": "Jorge Puccinelli Converso",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3438,
+      "timestamp": "2026-04-02T15:48:14.046716+00:00"
+    },
+    {
+      "subject_id": 383075,
+      "subject_name": "Jorge Puccinelli Converso",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3443,
+      "timestamp": "2026-04-02T15:48:14.436011+00:00"
+    },
+    {
+      "subject_id": 383075,
+      "subject_name": "Jorge Puccinelli Converso",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3445,
+      "timestamp": "2026-04-02T15:48:14.812829+00:00"
+    },
+    {
+      "subject_id": 383075,
+      "subject_name": "Jorge Puccinelli Converso",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3427,
+      "timestamp": "2026-04-02T15:48:15.222963+00:00"
+    },
+    {
+      "subject_id": 12625,
+      "subject_name": "Maurice Pialat",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3426,
+      "timestamp": "2026-04-02T15:48:33.318167+00:00"
+    },
+    {
+      "subject_id": 12625,
+      "subject_name": "Maurice Pialat",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3447,
+      "timestamp": "2026-04-02T15:48:33.708490+00:00"
+    },
+    {
+      "subject_id": 12625,
+      "subject_name": "Maurice Pialat",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3444,
+      "timestamp": "2026-04-02T15:48:34.238362+00:00"
+    },
+    {
+      "subject_id": 12625,
+      "subject_name": "Maurice Pialat",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3463,
+      "timestamp": "2026-04-02T15:48:34.647746+00:00"
+    },
+    {
+      "subject_id": 12625,
+      "subject_name": "Maurice Pialat",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3420,
+      "timestamp": "2026-04-02T15:48:35.050494+00:00"
+    },
+    {
+      "subject_id": 12625,
+      "subject_name": "Maurice Pialat",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3458,
+      "timestamp": "2026-04-02T15:48:35.456672+00:00"
+    },
+    {
+      "subject_id": 12625,
+      "subject_name": "Maurice Pialat",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3443,
+      "timestamp": "2026-04-02T15:48:37.223539+00:00"
+    },
+    {
+      "subject_id": 12625,
+      "subject_name": "Maurice Pialat",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3437,
+      "timestamp": "2026-04-02T15:48:37.601387+00:00"
+    },
+    {
+      "subject_id": 12625,
+      "subject_name": "Maurice Pialat",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3440,
+      "timestamp": "2026-04-02T15:48:38.051335+00:00"
+    },
+    {
+      "subject_id": 12625,
+      "subject_name": "Maurice Pialat",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3442,
+      "timestamp": "2026-04-02T15:48:38.452195+00:00"
+    },
+    {
+      "subject_id": 12625,
+      "subject_name": "Maurice Pialat",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3424,
+      "timestamp": "2026-04-02T15:48:38.881895+00:00"
+    },
+    {
+      "subject_id": 381295,
+      "subject_name": "José María García Lahiguera",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3434,
+      "timestamp": "2026-04-02T15:48:49.366208+00:00"
+    },
+    {
+      "subject_id": 381295,
+      "subject_name": "José María García Lahiguera",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3453,
+      "timestamp": "2026-04-02T15:48:49.992754+00:00"
+    },
+    {
+      "subject_id": 381295,
+      "subject_name": "José María García Lahiguera",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3450,
+      "timestamp": "2026-04-02T15:48:50.604018+00:00"
+    },
+    {
+      "subject_id": 381295,
+      "subject_name": "José María García Lahiguera",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3469,
+      "timestamp": "2026-04-02T15:48:51.230041+00:00"
+    },
+    {
+      "subject_id": 381295,
+      "subject_name": "José María García Lahiguera",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3424,
+      "timestamp": "2026-04-02T15:48:51.592270+00:00"
+    },
+    {
+      "subject_id": 381295,
+      "subject_name": "José María García Lahiguera",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3464,
+      "timestamp": "2026-04-02T15:48:52.014105+00:00"
+    },
+    {
+      "subject_id": 381295,
+      "subject_name": "José María García Lahiguera",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3449,
+      "timestamp": "2026-04-02T15:48:52.412299+00:00"
+    },
+    {
+      "subject_id": 381295,
+      "subject_name": "José María García Lahiguera",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3439,
+      "timestamp": "2026-04-02T15:48:52.797408+00:00"
+    },
+    {
+      "subject_id": 381295,
+      "subject_name": "José María García Lahiguera",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3446,
+      "timestamp": "2026-04-02T15:48:53.185104+00:00"
+    },
+    {
+      "subject_id": 381295,
+      "subject_name": "José María García Lahiguera",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3448,
+      "timestamp": "2026-04-02T15:48:53.574888+00:00"
+    },
+    {
+      "subject_id": 381295,
+      "subject_name": "José María García Lahiguera",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3430,
+      "timestamp": "2026-04-02T15:48:53.972677+00:00"
+    },
+    {
+      "subject_id": 107305,
+      "subject_name": "Ödön Von Horváth",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3443,
+      "timestamp": "2026-04-02T15:49:04.664611+00:00"
+    },
+    {
+      "subject_id": 107305,
+      "subject_name": "Ödön Von Horváth",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3461,
+      "timestamp": "2026-04-02T15:49:05.061200+00:00"
+    },
+    {
+      "subject_id": 107305,
+      "subject_name": "Ödön Von Horváth",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3455,
+      "timestamp": "2026-04-02T15:49:05.489372+00:00"
+    },
+    {
+      "subject_id": 107305,
+      "subject_name": "Ödön Von Horváth",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3476,
+      "timestamp": "2026-04-02T15:49:05.897622+00:00"
+    },
+    {
+      "subject_id": 107305,
+      "subject_name": "Ödön Von Horváth",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3434,
+      "timestamp": "2026-04-02T15:49:06.325464+00:00"
+    },
+    {
+      "subject_id": 107305,
+      "subject_name": "Ödön Von Horváth",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3471,
+      "timestamp": "2026-04-02T15:49:06.990169+00:00"
+    },
+    {
+      "subject_id": 107305,
+      "subject_name": "Ödön Von Horváth",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3456,
+      "timestamp": "2026-04-02T15:49:07.429795+00:00"
+    },
+    {
+      "subject_id": 107305,
+      "subject_name": "Ödön Von Horváth",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3446,
+      "timestamp": "2026-04-02T15:49:07.814555+00:00"
+    },
+    {
+      "subject_id": 107305,
+      "subject_name": "Ödön Von Horváth",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3453,
+      "timestamp": "2026-04-02T15:49:08.224336+00:00"
+    },
+    {
+      "subject_id": 107305,
+      "subject_name": "Ödön Von Horváth",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3455,
+      "timestamp": "2026-04-02T15:49:08.643303+00:00"
+    },
+    {
+      "subject_id": 107305,
+      "subject_name": "Ödön Von Horváth",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3437,
+      "timestamp": "2026-04-02T15:49:09.546546+00:00"
+    },
+    {
+      "subject_id": 385360,
+      "subject_name": "Ágatha Ruiz De La Prada",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3439,
+      "timestamp": "2026-04-02T15:49:19.139930+00:00"
+    },
+    {
+      "subject_id": 385360,
+      "subject_name": "Ágatha Ruiz De La Prada",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3451,
+      "timestamp": "2026-04-02T15:49:19.547047+00:00"
+    },
+    {
+      "subject_id": 385360,
+      "subject_name": "Ágatha Ruiz De La Prada",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3450,
+      "timestamp": "2026-04-02T15:49:19.960508+00:00"
+    },
+    {
+      "subject_id": 385360,
+      "subject_name": "Ágatha Ruiz De La Prada",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3468,
+      "timestamp": "2026-04-02T15:49:20.344240+00:00"
+    },
+    {
+      "subject_id": 385360,
+      "subject_name": "Ágatha Ruiz De La Prada",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3424,
+      "timestamp": "2026-04-02T15:49:20.744739+00:00"
+    },
+    {
+      "subject_id": 385360,
+      "subject_name": "Ágatha Ruiz De La Prada",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3464,
+      "timestamp": "2026-04-02T15:49:21.139699+00:00"
+    },
+    {
+      "subject_id": 385360,
+      "subject_name": "Ágatha Ruiz De La Prada",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3449,
+      "timestamp": "2026-04-02T15:49:21.490174+00:00"
+    },
+    {
+      "subject_id": 385360,
+      "subject_name": "Ágatha Ruiz De La Prada",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3439,
+      "timestamp": "2026-04-02T15:49:21.872901+00:00"
+    },
+    {
+      "subject_id": 385360,
+      "subject_name": "Ágatha Ruiz De La Prada",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3446,
+      "timestamp": "2026-04-02T15:49:22.222791+00:00"
+    },
+    {
+      "subject_id": 385360,
+      "subject_name": "Ágatha Ruiz De La Prada",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3448,
+      "timestamp": "2026-04-02T15:49:22.657247+00:00"
+    },
+    {
+      "subject_id": 385360,
+      "subject_name": "Ágatha Ruiz De La Prada",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3430,
+      "timestamp": "2026-04-02T15:49:23.047594+00:00"
+    },
+    {
+      "subject_id": 380620,
+      "subject_name": "Elisa Sánchez Loriga",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3439,
+      "timestamp": "2026-04-02T15:49:33.712940+00:00"
+    },
+    {
+      "subject_id": 380620,
+      "subject_name": "Elisa Sánchez Loriga",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3455,
+      "timestamp": "2026-04-02T15:49:34.410568+00:00"
+    },
+    {
+      "subject_id": 380620,
+      "subject_name": "Elisa Sánchez Loriga",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3453,
+      "timestamp": "2026-04-02T15:49:34.810485+00:00"
+    },
+    {
+      "subject_id": 380620,
+      "subject_name": "Elisa Sánchez Loriga",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3471,
+      "timestamp": "2026-04-02T15:49:35.202939+00:00"
+    },
+    {
+      "subject_id": 380620,
+      "subject_name": "Elisa Sánchez Loriga",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3428,
+      "timestamp": "2026-04-02T15:49:35.605618+00:00"
+    },
+    {
+      "subject_id": 380620,
+      "subject_name": "Elisa Sánchez Loriga",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3466,
+      "timestamp": "2026-04-02T15:49:35.986472+00:00"
+    },
+    {
+      "subject_id": 380620,
+      "subject_name": "Elisa Sánchez Loriga",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3451,
+      "timestamp": "2026-04-02T15:49:36.549574+00:00"
+    },
+    {
+      "subject_id": 380620,
+      "subject_name": "Elisa Sánchez Loriga",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3445,
+      "timestamp": "2026-04-02T15:49:36.945745+00:00"
+    },
+    {
+      "subject_id": 380620,
+      "subject_name": "Elisa Sánchez Loriga",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3448,
+      "timestamp": "2026-04-02T15:49:37.334016+00:00"
+    },
+    {
+      "subject_id": 380620,
+      "subject_name": "Elisa Sánchez Loriga",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3450,
+      "timestamp": "2026-04-02T15:49:37.726483+00:00"
+    },
+    {
+      "subject_id": 380620,
+      "subject_name": "Elisa Sánchez Loriga",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3432,
+      "timestamp": "2026-04-02T15:49:38.111517+00:00"
+    },
+    {
+      "subject_id": 338750,
+      "subject_name": "Traci Lords",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3424,
+      "timestamp": "2026-04-02T15:49:51.107459+00:00"
+    },
+    {
+      "subject_id": 338750,
+      "subject_name": "Traci Lords",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3446,
+      "timestamp": "2026-04-02T15:49:51.549477+00:00"
+    },
+    {
+      "subject_id": 338750,
+      "subject_name": "Traci Lords",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3443,
+      "timestamp": "2026-04-02T15:49:51.939733+00:00"
+    },
+    {
+      "subject_id": 338750,
+      "subject_name": "Traci Lords",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3461,
+      "timestamp": "2026-04-02T15:49:52.327227+00:00"
+    },
+    {
+      "subject_id": 338750,
+      "subject_name": "Traci Lords",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3419,
+      "timestamp": "2026-04-02T15:49:52.744481+00:00"
+    },
+    {
+      "subject_id": 338750,
+      "subject_name": "Traci Lords",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3457,
+      "timestamp": "2026-04-02T15:49:53.124484+00:00"
+    },
+    {
+      "subject_id": 338750,
+      "subject_name": "Traci Lords",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3442,
+      "timestamp": "2026-04-02T15:49:53.578054+00:00"
+    },
+    {
+      "subject_id": 338750,
+      "subject_name": "Traci Lords",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3430,
+      "timestamp": "2026-04-02T15:49:53.968185+00:00"
+    },
+    {
+      "subject_id": 338750,
+      "subject_name": "Traci Lords",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3439,
+      "timestamp": "2026-04-02T15:49:54.352887+00:00"
+    },
+    {
+      "subject_id": 338750,
+      "subject_name": "Traci Lords",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3441,
+      "timestamp": "2026-04-02T15:49:54.758935+00:00"
+    },
+    {
+      "subject_id": 338750,
+      "subject_name": "Traci Lords",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3423,
+      "timestamp": "2026-04-02T15:49:55.150013+00:00"
+    },
+    {
+      "subject_id": 117760,
+      "subject_name": "Mauricio Kagel",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3436,
+      "timestamp": "2026-04-02T15:50:05.225318+00:00"
+    },
+    {
+      "subject_id": 117760,
+      "subject_name": "Mauricio Kagel",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3457,
+      "timestamp": "2026-04-02T15:50:06.281636+00:00"
+    },
+    {
+      "subject_id": 117760,
+      "subject_name": "Mauricio Kagel",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3451,
+      "timestamp": "2026-04-02T15:50:06.722904+00:00"
+    },
+    {
+      "subject_id": 117760,
+      "subject_name": "Mauricio Kagel",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3472,
+      "timestamp": "2026-04-02T15:50:07.142609+00:00"
+    },
+    {
+      "subject_id": 117760,
+      "subject_name": "Mauricio Kagel",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3429,
+      "timestamp": "2026-04-02T15:50:07.551019+00:00"
+    },
+    {
+      "subject_id": 117760,
+      "subject_name": "Mauricio Kagel",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3467,
+      "timestamp": "2026-04-02T15:50:07.949725+00:00"
+    },
+    {
+      "subject_id": 117760,
+      "subject_name": "Mauricio Kagel",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3452,
+      "timestamp": "2026-04-02T15:50:08.382030+00:00"
+    },
+    {
+      "subject_id": 117760,
+      "subject_name": "Mauricio Kagel",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3447,
+      "timestamp": "2026-04-02T15:50:08.814145+00:00"
+    },
+    {
+      "subject_id": 117760,
+      "subject_name": "Mauricio Kagel",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3449,
+      "timestamp": "2026-04-02T15:50:09.196742+00:00"
+    },
+    {
+      "subject_id": 117760,
+      "subject_name": "Mauricio Kagel",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3451,
+      "timestamp": "2026-04-02T15:50:09.591275+00:00"
+    },
+    {
+      "subject_id": 117760,
+      "subject_name": "Mauricio Kagel",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3433,
+      "timestamp": "2026-04-02T15:50:09.993003+00:00"
+    },
+    {
+      "subject_id": 350750,
+      "subject_name": "Luis César Amadori",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3427,
+      "timestamp": "2026-04-02T15:50:22.318804+00:00"
+    },
+    {
+      "subject_id": 350750,
+      "subject_name": "Luis César Amadori",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3448,
+      "timestamp": "2026-04-02T15:50:22.705097+00:00"
+    },
+    {
+      "subject_id": 350750,
+      "subject_name": "Luis César Amadori",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3443,
+      "timestamp": "2026-04-02T15:50:23.129982+00:00"
+    },
+    {
+      "subject_id": 350750,
+      "subject_name": "Luis César Amadori",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3464,
+      "timestamp": "2026-04-02T15:50:23.557528+00:00"
+    },
+    {
+      "subject_id": 350750,
+      "subject_name": "Luis César Amadori",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3421,
+      "timestamp": "2026-04-02T15:50:24.023648+00:00"
+    },
+    {
+      "subject_id": 350750,
+      "subject_name": "Luis César Amadori",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3459,
+      "timestamp": "2026-04-02T15:50:24.440513+00:00"
+    },
+    {
+      "subject_id": 350750,
+      "subject_name": "Luis César Amadori",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3444,
+      "timestamp": "2026-04-02T15:50:25.855881+00:00"
+    },
+    {
+      "subject_id": 350750,
+      "subject_name": "Luis César Amadori",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3432,
+      "timestamp": "2026-04-02T15:50:26.546639+00:00"
+    },
+    {
+      "subject_id": 350750,
+      "subject_name": "Luis César Amadori",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3441,
+      "timestamp": "2026-04-02T15:50:26.980886+00:00"
+    },
+    {
+      "subject_id": 350750,
+      "subject_name": "Luis César Amadori",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3443,
+      "timestamp": "2026-04-02T15:50:27.632772+00:00"
+    },
+    {
+      "subject_id": 350750,
+      "subject_name": "Luis César Amadori",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3425,
+      "timestamp": "2026-04-02T15:50:28.485991+00:00"
+    },
+    {
+      "subject_id": 382465,
+      "subject_name": "Aida De La Fuente Penaos",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3442,
+      "timestamp": "2026-04-02T15:50:38.531766+00:00"
+    },
+    {
+      "subject_id": 382465,
+      "subject_name": "Aida De La Fuente Penaos",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3456,
+      "timestamp": "2026-04-02T15:50:38.917947+00:00"
+    },
+    {
+      "subject_id": 382465,
+      "subject_name": "Aida De La Fuente Penaos",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3453,
+      "timestamp": "2026-04-02T15:50:39.344376+00:00"
+    },
+    {
+      "subject_id": 382465,
+      "subject_name": "Aida De La Fuente Penaos",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3472,
+      "timestamp": "2026-04-02T15:50:39.779848+00:00"
+    },
+    {
+      "subject_id": 382465,
+      "subject_name": "Aida De La Fuente Penaos",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3427,
+      "timestamp": "2026-04-02T15:50:40.191735+00:00"
+    },
+    {
+      "subject_id": 382465,
+      "subject_name": "Aida De La Fuente Penaos",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3467,
+      "timestamp": "2026-04-02T15:50:40.569639+00:00"
+    },
+    {
+      "subject_id": 382465,
+      "subject_name": "Aida De La Fuente Penaos",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3452,
+      "timestamp": "2026-04-02T15:50:41.253014+00:00"
+    },
+    {
+      "subject_id": 382465,
+      "subject_name": "Aida De La Fuente Penaos",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3448,
+      "timestamp": "2026-04-02T15:50:41.740853+00:00"
+    },
+    {
+      "subject_id": 382465,
+      "subject_name": "Aida De La Fuente Penaos",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3449,
+      "timestamp": "2026-04-02T15:50:42.458351+00:00"
+    },
+    {
+      "subject_id": 382465,
+      "subject_name": "Aida De La Fuente Penaos",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3451,
+      "timestamp": "2026-04-02T15:50:42.851171+00:00"
+    },
+    {
+      "subject_id": 382465,
+      "subject_name": "Aida De La Fuente Penaos",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3433,
+      "timestamp": "2026-04-02T15:50:43.242097+00:00"
+    },
+    {
+      "subject_id": 247730,
+      "subject_name": "Phil Collins",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3417,
+      "timestamp": "2026-04-02T15:50:53.477936+00:00"
+    },
+    {
+      "subject_id": 247730,
+      "subject_name": "Phil Collins",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3441,
+      "timestamp": "2026-04-02T15:50:53.858748+00:00"
+    },
+    {
+      "subject_id": 247730,
+      "subject_name": "Phil Collins",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3438,
+      "timestamp": "2026-04-02T15:50:54.383639+00:00"
+    },
+    {
+      "subject_id": 247730,
+      "subject_name": "Phil Collins",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3457,
+      "timestamp": "2026-04-02T15:50:54.773629+00:00"
+    },
+    {
+      "subject_id": 247730,
+      "subject_name": "Phil Collins",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3414,
+      "timestamp": "2026-04-02T15:50:55.157944+00:00"
+    },
+    {
+      "subject_id": 247730,
+      "subject_name": "Phil Collins",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3452,
+      "timestamp": "2026-04-02T15:50:55.595540+00:00"
+    },
+    {
+      "subject_id": 247730,
+      "subject_name": "Phil Collins",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3437,
+      "timestamp": "2026-04-02T15:50:55.986944+00:00"
+    },
+    {
+      "subject_id": 247730,
+      "subject_name": "Phil Collins",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3427,
+      "timestamp": "2026-04-02T15:50:56.390612+00:00"
+    },
+    {
+      "subject_id": 247730,
+      "subject_name": "Phil Collins",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3434,
+      "timestamp": "2026-04-02T15:50:57.110014+00:00"
+    },
+    {
+      "subject_id": 247730,
+      "subject_name": "Phil Collins",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3436,
+      "timestamp": "2026-04-02T15:50:57.569249+00:00"
+    },
+    {
+      "subject_id": 247730,
+      "subject_name": "Phil Collins",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3418,
+      "timestamp": "2026-04-02T15:50:57.956395+00:00"
+    },
+    {
+      "subject_id": 3850,
+      "subject_name": "Jean Piaget",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3423,
+      "timestamp": "2026-04-02T15:51:07.741439+00:00"
+    },
+    {
+      "subject_id": 3850,
+      "subject_name": "Jean Piaget",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3443,
+      "timestamp": "2026-04-02T15:51:08.332906+00:00"
+    },
+    {
+      "subject_id": 3850,
+      "subject_name": "Jean Piaget",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3442,
+      "timestamp": "2026-04-02T15:51:08.728909+00:00"
+    },
+    {
+      "subject_id": 3850,
+      "subject_name": "Jean Piaget",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3461,
+      "timestamp": "2026-04-02T15:51:09.085513+00:00"
+    },
+    {
+      "subject_id": 3850,
+      "subject_name": "Jean Piaget",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3416,
+      "timestamp": "2026-04-02T15:51:09.468746+00:00"
+    },
+    {
+      "subject_id": 3850,
+      "subject_name": "Jean Piaget",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3456,
+      "timestamp": "2026-04-02T15:51:09.872388+00:00"
+    },
+    {
+      "subject_id": 3850,
+      "subject_name": "Jean Piaget",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3441,
+      "timestamp": "2026-04-02T15:51:10.275873+00:00"
+    },
+    {
+      "subject_id": 3850,
+      "subject_name": "Jean Piaget",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3431,
+      "timestamp": "2026-04-02T15:51:10.670235+00:00"
+    },
+    {
+      "subject_id": 3850,
+      "subject_name": "Jean Piaget",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3438,
+      "timestamp": "2026-04-02T15:51:11.061177+00:00"
+    },
+    {
+      "subject_id": 3850,
+      "subject_name": "Jean Piaget",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3440,
+      "timestamp": "2026-04-02T15:51:11.493280+00:00"
+    },
+    {
+      "subject_id": 3850,
+      "subject_name": "Jean Piaget",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3422,
+      "timestamp": "2026-04-02T15:51:11.905625+00:00"
+    },
+    {
+      "subject_id": 307980,
+      "subject_name": "Louison Bobet",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3425,
+      "timestamp": "2026-04-02T15:51:22.324020+00:00"
+    },
+    {
+      "subject_id": 307980,
+      "subject_name": "Louison Bobet",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3445,
+      "timestamp": "2026-04-02T15:51:22.771309+00:00"
+    },
+    {
+      "subject_id": 307980,
+      "subject_name": "Louison Bobet",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3442,
+      "timestamp": "2026-04-02T15:51:23.215201+00:00"
+    },
+    {
+      "subject_id": 307980,
+      "subject_name": "Louison Bobet",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3461,
+      "timestamp": "2026-04-02T15:51:23.623704+00:00"
+    },
+    {
+      "subject_id": 307980,
+      "subject_name": "Louison Bobet",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3418,
+      "timestamp": "2026-04-02T15:51:24.023749+00:00"
+    },
+    {
+      "subject_id": 307980,
+      "subject_name": "Louison Bobet",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3456,
+      "timestamp": "2026-04-02T15:51:24.417409+00:00"
+    },
+    {
+      "subject_id": 307980,
+      "subject_name": "Louison Bobet",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3441,
+      "timestamp": "2026-04-02T15:51:24.799177+00:00"
+    },
+    {
+      "subject_id": 307980,
+      "subject_name": "Louison Bobet",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3429,
+      "timestamp": "2026-04-02T15:51:25.239928+00:00"
+    },
+    {
+      "subject_id": 307980,
+      "subject_name": "Louison Bobet",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3438,
+      "timestamp": "2026-04-02T15:51:25.636239+00:00"
+    },
+    {
+      "subject_id": 307980,
+      "subject_name": "Louison Bobet",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3440,
+      "timestamp": "2026-04-02T15:51:26.033736+00:00"
+    },
+    {
+      "subject_id": 307980,
+      "subject_name": "Louison Bobet",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3422,
+      "timestamp": "2026-04-02T15:51:26.432824+00:00"
+    },
+    {
+      "subject_id": 247635,
+      "subject_name": "Vanessa Redgrave",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3431,
+      "timestamp": "2026-04-02T15:51:36.246266+00:00"
+    },
+    {
+      "subject_id": 247635,
+      "subject_name": "Vanessa Redgrave",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3450,
+      "timestamp": "2026-04-02T15:51:36.921998+00:00"
+    },
+    {
+      "subject_id": 247635,
+      "subject_name": "Vanessa Redgrave",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3448,
+      "timestamp": "2026-04-02T15:51:37.319436+00:00"
+    },
+    {
+      "subject_id": 247635,
+      "subject_name": "Vanessa Redgrave",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3466,
+      "timestamp": "2026-04-02T15:51:37.763878+00:00"
+    },
+    {
+      "subject_id": 247635,
+      "subject_name": "Vanessa Redgrave",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3423,
+      "timestamp": "2026-04-02T15:51:38.164999+00:00"
+    },
+    {
+      "subject_id": 247635,
+      "subject_name": "Vanessa Redgrave",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3461,
+      "timestamp": "2026-04-02T15:51:38.557347+00:00"
+    },
+    {
+      "subject_id": 247635,
+      "subject_name": "Vanessa Redgrave",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3446,
+      "timestamp": "2026-04-02T15:51:38.969524+00:00"
+    },
+    {
+      "subject_id": 247635,
+      "subject_name": "Vanessa Redgrave",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3432,
+      "timestamp": "2026-04-02T15:51:39.449451+00:00"
+    },
+    {
+      "subject_id": 247635,
+      "subject_name": "Vanessa Redgrave",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3443,
+      "timestamp": "2026-04-02T15:51:39.834825+00:00"
+    },
+    {
+      "subject_id": 247635,
+      "subject_name": "Vanessa Redgrave",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3445,
+      "timestamp": "2026-04-02T15:51:40.227723+00:00"
+    },
+    {
+      "subject_id": 247635,
+      "subject_name": "Vanessa Redgrave",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3427,
+      "timestamp": "2026-04-02T15:51:40.903147+00:00"
+    },
+    {
+      "subject_id": 88045,
+      "subject_name": "Raymond Devos",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3424,
+      "timestamp": "2026-04-02T15:51:51.560887+00:00"
+    },
+    {
+      "subject_id": 88045,
+      "subject_name": "Raymond Devos",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3446,
+      "timestamp": "2026-04-02T15:51:51.952410+00:00"
+    },
+    {
+      "subject_id": 88045,
+      "subject_name": "Raymond Devos",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3441,
+      "timestamp": "2026-04-02T15:51:52.340238+00:00"
+    },
+    {
+      "subject_id": 88045,
+      "subject_name": "Raymond Devos",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3462,
+      "timestamp": "2026-04-02T15:51:52.817867+00:00"
+    },
+    {
+      "subject_id": 88045,
+      "subject_name": "Raymond Devos",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3417,
+      "timestamp": "2026-04-02T15:51:53.229674+00:00"
+    },
+    {
+      "subject_id": 88045,
+      "subject_name": "Raymond Devos",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3457,
+      "timestamp": "2026-04-02T15:51:53.673828+00:00"
+    },
+    {
+      "subject_id": 88045,
+      "subject_name": "Raymond Devos",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3442,
+      "timestamp": "2026-04-02T15:51:54.067693+00:00"
+    },
+    {
+      "subject_id": 88045,
+      "subject_name": "Raymond Devos",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3432,
+      "timestamp": "2026-04-02T15:51:54.464257+00:00"
+    },
+    {
+      "subject_id": 88045,
+      "subject_name": "Raymond Devos",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3439,
+      "timestamp": "2026-04-02T15:51:54.822603+00:00"
+    },
+    {
+      "subject_id": 88045,
+      "subject_name": "Raymond Devos",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3441,
+      "timestamp": "2026-04-02T15:51:55.229282+00:00"
+    },
+    {
+      "subject_id": 88045,
+      "subject_name": "Raymond Devos",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3423,
+      "timestamp": "2026-04-02T15:51:55.640312+00:00"
+    },
+    {
+      "subject_id": 115505,
+      "subject_name": "Giacomo Puccini",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3430,
+      "timestamp": "2026-04-02T15:52:05.943737+00:00"
+    },
+    {
+      "subject_id": 115505,
+      "subject_name": "Giacomo Puccini",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3450,
+      "timestamp": "2026-04-02T15:52:06.323500+00:00"
+    },
+    {
+      "subject_id": 115505,
+      "subject_name": "Giacomo Puccini",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3446,
+      "timestamp": "2026-04-02T15:52:06.698128+00:00"
+    },
+    {
+      "subject_id": 115505,
+      "subject_name": "Giacomo Puccini",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3465,
+      "timestamp": "2026-04-02T15:52:07.093485+00:00"
+    },
+    {
+      "subject_id": 115505,
+      "subject_name": "Giacomo Puccini",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3420,
+      "timestamp": "2026-04-02T15:52:07.482392+00:00"
+    },
+    {
+      "subject_id": 115505,
+      "subject_name": "Giacomo Puccini",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3460,
+      "timestamp": "2026-04-02T15:52:07.861945+00:00"
+    },
+    {
+      "subject_id": 115505,
+      "subject_name": "Giacomo Puccini",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3445,
+      "timestamp": "2026-04-02T15:52:08.588799+00:00"
+    },
+    {
+      "subject_id": 115505,
+      "subject_name": "Giacomo Puccini",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3433,
+      "timestamp": "2026-04-02T15:52:08.987293+00:00"
+    },
+    {
+      "subject_id": 115505,
+      "subject_name": "Giacomo Puccini",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3442,
+      "timestamp": "2026-04-02T15:52:09.419766+00:00"
+    },
+    {
+      "subject_id": 115505,
+      "subject_name": "Giacomo Puccini",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3444,
+      "timestamp": "2026-04-02T15:52:09.816136+00:00"
+    },
+    {
+      "subject_id": 115505,
+      "subject_name": "Giacomo Puccini",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3426,
+      "timestamp": "2026-04-02T15:52:10.193294+00:00"
+    },
+    {
+      "subject_id": 306855,
+      "subject_name": "Harry Bertoia",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3429,
+      "timestamp": "2026-04-02T15:52:21.932007+00:00"
+    },
+    {
+      "subject_id": 306855,
+      "subject_name": "Harry Bertoia",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3451,
+      "timestamp": "2026-04-02T15:52:22.332486+00:00"
+    },
+    {
+      "subject_id": 306855,
+      "subject_name": "Harry Bertoia",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3448,
+      "timestamp": "2026-04-02T15:52:22.727074+00:00"
+    },
+    {
+      "subject_id": 306855,
+      "subject_name": "Harry Bertoia",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3467,
+      "timestamp": "2026-04-02T15:52:23.126576+00:00"
+    },
+    {
+      "subject_id": 306855,
+      "subject_name": "Harry Bertoia",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3425,
+      "timestamp": "2026-04-02T15:52:23.536988+00:00"
+    },
+    {
+      "subject_id": 306855,
+      "subject_name": "Harry Bertoia",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3462,
+      "timestamp": "2026-04-02T15:52:23.937182+00:00"
+    },
+    {
+      "subject_id": 306855,
+      "subject_name": "Harry Bertoia",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3447,
+      "timestamp": "2026-04-02T15:52:24.331197+00:00"
+    },
+    {
+      "subject_id": 306855,
+      "subject_name": "Harry Bertoia",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3435,
+      "timestamp": "2026-04-02T15:52:24.757786+00:00"
+    },
+    {
+      "subject_id": 306855,
+      "subject_name": "Harry Bertoia",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3444,
+      "timestamp": "2026-04-02T15:52:25.634255+00:00"
+    },
+    {
+      "subject_id": 306855,
+      "subject_name": "Harry Bertoia",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3446,
+      "timestamp": "2026-04-02T15:52:26.031207+00:00"
+    },
+    {
+      "subject_id": 306855,
+      "subject_name": "Harry Bertoia",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3428,
+      "timestamp": "2026-04-02T15:52:26.409831+00:00"
+    },
+    {
+      "subject_id": 59060,
+      "subject_name": "John Sayles",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3416,
+      "timestamp": "2026-04-02T15:52:36.770105+00:00"
+    },
+    {
+      "subject_id": 59060,
+      "subject_name": "John Sayles",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3438,
+      "timestamp": "2026-04-02T15:52:37.158223+00:00"
+    },
+    {
+      "subject_id": 59060,
+      "subject_name": "John Sayles",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3435,
+      "timestamp": "2026-04-02T15:52:37.551576+00:00"
+    },
+    {
+      "subject_id": 59060,
+      "subject_name": "John Sayles",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3454,
+      "timestamp": "2026-04-02T15:52:37.953372+00:00"
+    },
+    {
+      "subject_id": 59060,
+      "subject_name": "John Sayles",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3411,
+      "timestamp": "2026-04-02T15:52:38.401606+00:00"
+    },
+    {
+      "subject_id": 59060,
+      "subject_name": "John Sayles",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3449,
+      "timestamp": "2026-04-02T15:52:38.798856+00:00"
+    },
+    {
+      "subject_id": 59060,
+      "subject_name": "John Sayles",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3434,
+      "timestamp": "2026-04-02T15:52:39.193898+00:00"
+    },
+    {
+      "subject_id": 59060,
+      "subject_name": "John Sayles",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3428,
+      "timestamp": "2026-04-02T15:52:39.580030+00:00"
+    },
+    {
+      "subject_id": 59060,
+      "subject_name": "John Sayles",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3431,
+      "timestamp": "2026-04-02T15:52:40.244153+00:00"
+    },
+    {
+      "subject_id": 59060,
+      "subject_name": "John Sayles",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3433,
+      "timestamp": "2026-04-02T15:52:40.644483+00:00"
+    },
+    {
+      "subject_id": 59060,
+      "subject_name": "John Sayles",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3415,
+      "timestamp": "2026-04-02T15:52:41.047645+00:00"
+    },
+    {
+      "subject_id": 55185,
+      "subject_name": "Hans Scholl",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3416,
+      "timestamp": "2026-04-02T15:52:51.867379+00:00"
+    },
+    {
+      "subject_id": 55185,
+      "subject_name": "Hans Scholl",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3437,
+      "timestamp": "2026-04-02T15:52:52.296697+00:00"
+    },
+    {
+      "subject_id": 55185,
+      "subject_name": "Hans Scholl",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3435,
+      "timestamp": "2026-04-02T15:52:52.680798+00:00"
+    },
+    {
+      "subject_id": 55185,
+      "subject_name": "Hans Scholl",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3454,
+      "timestamp": "2026-04-02T15:52:53.093952+00:00"
+    },
+    {
+      "subject_id": 55185,
+      "subject_name": "Hans Scholl",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3411,
+      "timestamp": "2026-04-02T15:52:53.477321+00:00"
+    },
+    {
+      "subject_id": 55185,
+      "subject_name": "Hans Scholl",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3449,
+      "timestamp": "2026-04-02T15:52:53.883475+00:00"
+    },
+    {
+      "subject_id": 55185,
+      "subject_name": "Hans Scholl",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3434,
+      "timestamp": "2026-04-02T15:52:54.576821+00:00"
+    },
+    {
+      "subject_id": 55185,
+      "subject_name": "Hans Scholl",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3428,
+      "timestamp": "2026-04-02T15:52:54.986086+00:00"
+    },
+    {
+      "subject_id": 55185,
+      "subject_name": "Hans Scholl",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3431,
+      "timestamp": "2026-04-02T15:52:55.373895+00:00"
+    },
+    {
+      "subject_id": 55185,
+      "subject_name": "Hans Scholl",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3433,
+      "timestamp": "2026-04-02T15:52:55.728629+00:00"
+    },
+    {
+      "subject_id": 55185,
+      "subject_name": "Hans Scholl",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3415,
+      "timestamp": "2026-04-02T15:52:56.123520+00:00"
+    },
+    {
+      "subject_id": 321800,
+      "subject_name": "Anthony Herman Gerard Fokker",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3426,
+      "timestamp": "2026-04-02T15:53:10.219326+00:00"
+    },
+    {
+      "subject_id": 321800,
+      "subject_name": "Anthony Herman Gerard Fokker",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3446,
+      "timestamp": "2026-04-02T15:53:10.573873+00:00"
+    },
+    {
+      "subject_id": 321800,
+      "subject_name": "Anthony Herman Gerard Fokker",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3443,
+      "timestamp": "2026-04-02T15:53:10.961429+00:00"
+    },
+    {
+      "subject_id": 321800,
+      "subject_name": "Anthony Herman Gerard Fokker",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3462,
+      "timestamp": "2026-04-02T15:53:11.356430+00:00"
+    },
+    {
+      "subject_id": 321800,
+      "subject_name": "Anthony Herman Gerard Fokker",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3419,
+      "timestamp": "2026-04-02T15:53:11.744818+00:00"
+    },
+    {
+      "subject_id": 321800,
+      "subject_name": "Anthony Herman Gerard Fokker",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3457,
+      "timestamp": "2026-04-02T15:53:12.131145+00:00"
+    },
+    {
+      "subject_id": 321800,
+      "subject_name": "Anthony Herman Gerard Fokker",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3442,
+      "timestamp": "2026-04-02T15:53:12.604920+00:00"
+    },
+    {
+      "subject_id": 321800,
+      "subject_name": "Anthony Herman Gerard Fokker",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3430,
+      "timestamp": "2026-04-02T15:53:12.996584+00:00"
+    },
+    {
+      "subject_id": 321800,
+      "subject_name": "Anthony Herman Gerard Fokker",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3439,
+      "timestamp": "2026-04-02T15:53:13.397303+00:00"
+    },
+    {
+      "subject_id": 321800,
+      "subject_name": "Anthony Herman Gerard Fokker",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3441,
+      "timestamp": "2026-04-02T15:53:13.789899+00:00"
+    },
+    {
+      "subject_id": 321800,
+      "subject_name": "Anthony Herman Gerard Fokker",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3423,
+      "timestamp": "2026-04-02T15:53:14.170418+00:00"
+    },
+    {
+      "subject_id": 56785,
+      "subject_name": "Barbara Walters",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3423,
+      "timestamp": "2026-04-02T15:53:24.749125+00:00"
+    },
+    {
+      "subject_id": 56785,
+      "subject_name": "Barbara Walters",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3444,
+      "timestamp": "2026-04-02T15:53:25.127586+00:00"
+    },
+    {
+      "subject_id": 56785,
+      "subject_name": "Barbara Walters",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3442,
+      "timestamp": "2026-04-02T15:53:25.807605+00:00"
+    },
+    {
+      "subject_id": 56785,
+      "subject_name": "Barbara Walters",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3461,
+      "timestamp": "2026-04-02T15:53:26.206091+00:00"
+    },
+    {
+      "subject_id": 56785,
+      "subject_name": "Barbara Walters",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3418,
+      "timestamp": "2026-04-02T15:53:26.616595+00:00"
+    },
+    {
+      "subject_id": 56785,
+      "subject_name": "Barbara Walters",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3456,
+      "timestamp": "2026-04-02T15:53:27.014990+00:00"
+    },
+    {
+      "subject_id": 56785,
+      "subject_name": "Barbara Walters",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3441,
+      "timestamp": "2026-04-02T15:53:27.407647+00:00"
+    },
+    {
+      "subject_id": 56785,
+      "subject_name": "Barbara Walters",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3435,
+      "timestamp": "2026-04-02T15:53:28.211457+00:00"
+    },
+    {
+      "subject_id": 56785,
+      "subject_name": "Barbara Walters",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3438,
+      "timestamp": "2026-04-02T15:53:28.606697+00:00"
+    },
+    {
+      "subject_id": 56785,
+      "subject_name": "Barbara Walters",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3440,
+      "timestamp": "2026-04-02T15:53:28.989666+00:00"
+    },
+    {
+      "subject_id": 56785,
+      "subject_name": "Barbara Walters",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3422,
+      "timestamp": "2026-04-02T15:53:29.408809+00:00"
+    },
+    {
+      "subject_id": 309190,
+      "subject_name": "Mike Love",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3423,
+      "timestamp": "2026-04-02T15:53:38.902215+00:00"
+    },
+    {
+      "subject_id": 309190,
+      "subject_name": "Mike Love",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3447,
+      "timestamp": "2026-04-02T15:53:39.304177+00:00"
+    },
+    {
+      "subject_id": 309190,
+      "subject_name": "Mike Love",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3445,
+      "timestamp": "2026-04-02T15:53:39.696094+00:00"
+    },
+    {
+      "subject_id": 309190,
+      "subject_name": "Mike Love",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3463,
+      "timestamp": "2026-04-02T15:53:40.084286+00:00"
+    },
+    {
+      "subject_id": 309190,
+      "subject_name": "Mike Love",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3420,
+      "timestamp": "2026-04-02T15:53:40.487528+00:00"
+    },
+    {
+      "subject_id": 309190,
+      "subject_name": "Mike Love",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3458,
+      "timestamp": "2026-04-02T15:53:40.875680+00:00"
+    },
+    {
+      "subject_id": 309190,
+      "subject_name": "Mike Love",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3443,
+      "timestamp": "2026-04-02T15:53:41.266001+00:00"
+    },
+    {
+      "subject_id": 309190,
+      "subject_name": "Mike Love",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3431,
+      "timestamp": "2026-04-02T15:53:41.659340+00:00"
+    },
+    {
+      "subject_id": 309190,
+      "subject_name": "Mike Love",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3440,
+      "timestamp": "2026-04-02T15:53:42.080427+00:00"
+    },
+    {
+      "subject_id": 309190,
+      "subject_name": "Mike Love",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3442,
+      "timestamp": "2026-04-02T15:53:42.460388+00:00"
+    },
+    {
+      "subject_id": 309190,
+      "subject_name": "Mike Love",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3424,
+      "timestamp": "2026-04-02T15:53:42.866294+00:00"
+    },
+    {
+      "subject_id": 383150,
+      "subject_name": "José María Pinedo Goycochea",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3442,
+      "timestamp": "2026-04-02T15:53:53.378599+00:00"
+    },
+    {
+      "subject_id": 383150,
+      "subject_name": "José María Pinedo Goycochea",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3458,
+      "timestamp": "2026-04-02T15:53:54.091497+00:00"
+    },
+    {
+      "subject_id": 383150,
+      "subject_name": "José María Pinedo Goycochea",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3455,
+      "timestamp": "2026-04-02T15:53:54.867216+00:00"
+    },
+    {
+      "subject_id": 383150,
+      "subject_name": "José María Pinedo Goycochea",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3474,
+      "timestamp": "2026-04-02T15:53:55.243403+00:00"
+    },
+    {
+      "subject_id": 383150,
+      "subject_name": "José María Pinedo Goycochea",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3432,
+      "timestamp": "2026-04-02T15:53:55.659743+00:00"
+    },
+    {
+      "subject_id": 383150,
+      "subject_name": "José María Pinedo Goycochea",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3469,
+      "timestamp": "2026-04-02T15:53:56.060990+00:00"
+    },
+    {
+      "subject_id": 383150,
+      "subject_name": "José María Pinedo Goycochea",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3454,
+      "timestamp": "2026-04-02T15:53:56.456976+00:00"
+    },
+    {
+      "subject_id": 383150,
+      "subject_name": "José María Pinedo Goycochea",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3445,
+      "timestamp": "2026-04-02T15:53:56.838562+00:00"
+    },
+    {
+      "subject_id": 383150,
+      "subject_name": "José María Pinedo Goycochea",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3451,
+      "timestamp": "2026-04-02T15:53:57.245972+00:00"
+    },
+    {
+      "subject_id": 383150,
+      "subject_name": "José María Pinedo Goycochea",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3453,
+      "timestamp": "2026-04-02T15:53:57.639724+00:00"
+    },
+    {
+      "subject_id": 383150,
+      "subject_name": "José María Pinedo Goycochea",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3435,
+      "timestamp": "2026-04-02T15:53:58.025324+00:00"
+    },
+    {
+      "subject_id": 242805,
+      "subject_name": "George Balanchine",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3430,
+      "timestamp": "2026-04-02T15:54:09.840346+00:00"
+    },
+    {
+      "subject_id": 242805,
+      "subject_name": "George Balanchine",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3451,
+      "timestamp": "2026-04-02T15:54:10.230163+00:00"
+    },
+    {
+      "subject_id": 242805,
+      "subject_name": "George Balanchine",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3446,
+      "timestamp": "2026-04-02T15:54:10.620507+00:00"
+    },
+    {
+      "subject_id": 242805,
+      "subject_name": "George Balanchine",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3467,
+      "timestamp": "2026-04-02T15:54:11.020558+00:00"
+    },
+    {
+      "subject_id": 242805,
+      "subject_name": "George Balanchine",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3424,
+      "timestamp": "2026-04-02T15:54:11.429014+00:00"
+    },
+    {
+      "subject_id": 242805,
+      "subject_name": "George Balanchine",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3462,
+      "timestamp": "2026-04-02T15:54:11.804201+00:00"
+    },
+    {
+      "subject_id": 242805,
+      "subject_name": "George Balanchine",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3447,
+      "timestamp": "2026-04-02T15:54:12.210914+00:00"
+    },
+    {
+      "subject_id": 242805,
+      "subject_name": "George Balanchine",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3435,
+      "timestamp": "2026-04-02T15:54:12.611685+00:00"
+    },
+    {
+      "subject_id": 242805,
+      "subject_name": "George Balanchine",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3444,
+      "timestamp": "2026-04-02T15:54:13.094826+00:00"
+    },
+    {
+      "subject_id": 242805,
+      "subject_name": "George Balanchine",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3446,
+      "timestamp": "2026-04-02T15:54:13.480712+00:00"
+    },
+    {
+      "subject_id": 242805,
+      "subject_name": "George Balanchine",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3428,
+      "timestamp": "2026-04-02T15:54:13.916091+00:00"
+    },
+    {
+      "subject_id": 20080,
+      "subject_name": "Georges Marchais",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3425,
+      "timestamp": "2026-04-02T15:54:24.282480+00:00"
+    },
+    {
+      "subject_id": 20080,
+      "subject_name": "Georges Marchais",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3447,
+      "timestamp": "2026-04-02T15:54:24.670111+00:00"
+    },
+    {
+      "subject_id": 20080,
+      "subject_name": "Georges Marchais",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3444,
+      "timestamp": "2026-04-02T15:54:25.059647+00:00"
+    },
+    {
+      "subject_id": 20080,
+      "subject_name": "Georges Marchais",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3463,
+      "timestamp": "2026-04-02T15:54:25.447013+00:00"
+    },
+    {
+      "subject_id": 20080,
+      "subject_name": "Georges Marchais",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3420,
+      "timestamp": "2026-04-02T15:54:25.847385+00:00"
+    },
+    {
+      "subject_id": 20080,
+      "subject_name": "Georges Marchais",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3458,
+      "timestamp": "2026-04-02T15:54:26.265863+00:00"
+    },
+    {
+      "subject_id": 20080,
+      "subject_name": "Georges Marchais",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3443,
+      "timestamp": "2026-04-02T15:54:26.675852+00:00"
+    },
+    {
+      "subject_id": 20080,
+      "subject_name": "Georges Marchais",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3437,
+      "timestamp": "2026-04-02T15:54:27.095239+00:00"
+    },
+    {
+      "subject_id": 20080,
+      "subject_name": "Georges Marchais",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3440,
+      "timestamp": "2026-04-02T15:54:27.518161+00:00"
+    },
+    {
+      "subject_id": 20080,
+      "subject_name": "Georges Marchais",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3442,
+      "timestamp": "2026-04-02T15:54:27.907464+00:00"
+    },
+    {
+      "subject_id": 20080,
+      "subject_name": "Georges Marchais",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3424,
+      "timestamp": "2026-04-02T15:54:28.299340+00:00"
+    },
+    {
+      "subject_id": 354710,
+      "subject_name": "Victoria Abril",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3420,
+      "timestamp": "2026-04-02T15:54:39.226898+00:00"
+    },
+    {
+      "subject_id": 354710,
+      "subject_name": "Victoria Abril",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3441,
+      "timestamp": "2026-04-02T15:54:39.647932+00:00"
+    },
+    {
+      "subject_id": 354710,
+      "subject_name": "Victoria Abril",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3440,
+      "timestamp": "2026-04-02T15:54:40.101266+00:00"
+    },
+    {
+      "subject_id": 354710,
+      "subject_name": "Victoria Abril",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3458,
+      "timestamp": "2026-04-02T15:54:40.490925+00:00"
+    },
+    {
+      "subject_id": 354710,
+      "subject_name": "Victoria Abril",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3416,
+      "timestamp": "2026-04-02T15:54:40.926489+00:00"
+    },
+    {
+      "subject_id": 354710,
+      "subject_name": "Victoria Abril",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3454,
+      "timestamp": "2026-04-02T15:54:41.593966+00:00"
+    },
+    {
+      "subject_id": 354710,
+      "subject_name": "Victoria Abril",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3439,
+      "timestamp": "2026-04-02T15:54:41.991446+00:00"
+    },
+    {
+      "subject_id": 354710,
+      "subject_name": "Victoria Abril",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3433,
+      "timestamp": "2026-04-02T15:54:42.382985+00:00"
+    },
+    {
+      "subject_id": 354710,
+      "subject_name": "Victoria Abril",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3436,
+      "timestamp": "2026-04-02T15:54:42.792336+00:00"
+    },
+    {
+      "subject_id": 354710,
+      "subject_name": "Victoria Abril",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3438,
+      "timestamp": "2026-04-02T15:54:43.174658+00:00"
+    },
+    {
+      "subject_id": 354710,
+      "subject_name": "Victoria Abril",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3420,
+      "timestamp": "2026-04-02T15:54:43.610713+00:00"
+    },
+    {
+      "subject_id": 380260,
+      "subject_name": "Remedios Varo",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3437,
+      "timestamp": "2026-04-02T15:54:53.418165+00:00"
+    },
+    {
+      "subject_id": 380260,
+      "subject_name": "Remedios Varo",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3458,
+      "timestamp": "2026-04-02T15:54:53.768626+00:00"
+    },
+    {
+      "subject_id": 380260,
+      "subject_name": "Remedios Varo",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3455,
+      "timestamp": "2026-04-02T15:54:54.159703+00:00"
+    },
+    {
+      "subject_id": 380260,
+      "subject_name": "Remedios Varo",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3473,
+      "timestamp": "2026-04-02T15:54:54.566728+00:00"
+    },
+    {
+      "subject_id": 380260,
+      "subject_name": "Remedios Varo",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3430,
+      "timestamp": "2026-04-02T15:54:55.024169+00:00"
+    },
+    {
+      "subject_id": 380260,
+      "subject_name": "Remedios Varo",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3468,
+      "timestamp": "2026-04-02T15:54:55.418357+00:00"
+    },
+    {
+      "subject_id": 380260,
+      "subject_name": "Remedios Varo",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3453,
+      "timestamp": "2026-04-02T15:54:55.803821+00:00"
+    },
+    {
+      "subject_id": 380260,
+      "subject_name": "Remedios Varo",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3447,
+      "timestamp": "2026-04-02T15:54:56.238675+00:00"
+    },
+    {
+      "subject_id": 380260,
+      "subject_name": "Remedios Varo",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3450,
+      "timestamp": "2026-04-02T15:54:56.636611+00:00"
+    },
+    {
+      "subject_id": 380260,
+      "subject_name": "Remedios Varo",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3452,
+      "timestamp": "2026-04-02T15:54:57.023547+00:00"
+    },
+    {
+      "subject_id": 380260,
+      "subject_name": "Remedios Varo",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3434,
+      "timestamp": "2026-04-02T15:54:57.419539+00:00"
+    },
+    {
+      "subject_id": 70155,
+      "subject_name": "Michael Collins",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3421,
+      "timestamp": "2026-04-02T15:55:07.785525+00:00"
+    },
+    {
+      "subject_id": 70155,
+      "subject_name": "Michael Collins",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3445,
+      "timestamp": "2026-04-02T15:55:08.170676+00:00"
+    },
+    {
+      "subject_id": 70155,
+      "subject_name": "Michael Collins",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3440,
+      "timestamp": "2026-04-02T15:55:08.521605+00:00"
+    },
+    {
+      "subject_id": 70155,
+      "subject_name": "Michael Collins",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3461,
+      "timestamp": "2026-04-02T15:55:08.911581+00:00"
+    },
+    {
+      "subject_id": 70155,
+      "subject_name": "Michael Collins",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3418,
+      "timestamp": "2026-04-02T15:55:09.307799+00:00"
+    },
+    {
+      "subject_id": 70155,
+      "subject_name": "Michael Collins",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3456,
+      "timestamp": "2026-04-02T15:55:09.707674+00:00"
+    },
+    {
+      "subject_id": 70155,
+      "subject_name": "Michael Collins",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3441,
+      "timestamp": "2026-04-02T15:55:10.095393+00:00"
+    },
+    {
+      "subject_id": 70155,
+      "subject_name": "Michael Collins",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3431,
+      "timestamp": "2026-04-02T15:55:10.500077+00:00"
+    },
+    {
+      "subject_id": 70155,
+      "subject_name": "Michael Collins",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3438,
+      "timestamp": "2026-04-02T15:55:10.878878+00:00"
+    },
+    {
+      "subject_id": 70155,
+      "subject_name": "Michael Collins",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3440,
+      "timestamp": "2026-04-02T15:55:11.263175+00:00"
+    },
+    {
+      "subject_id": 70155,
+      "subject_name": "Michael Collins",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3422,
+      "timestamp": "2026-04-02T15:55:11.669476+00:00"
+    },
+    {
+      "subject_id": 321365,
+      "subject_name": "Bette Davis",
+      "route": "screen-open",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3431,
+      "timestamp": "2026-04-02T15:55:23.637406+00:00"
+    },
+    {
+      "subject_id": 321365,
+      "subject_name": "Bette Davis",
+      "route": "planet",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3452,
+      "timestamp": "2026-04-02T15:55:24.064670+00:00"
+    },
+    {
+      "subject_id": 321365,
+      "subject_name": "Bette Davis",
+      "route": "technique_lot",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3450,
+      "timestamp": "2026-04-02T15:55:24.491017+00:00"
+    },
+    {
+      "subject_id": 321365,
+      "subject_name": "Bette Davis",
+      "route": "technique_firdaria",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3469,
+      "timestamp": "2026-04-02T15:55:24.880216+00:00"
+    },
+    {
+      "subject_id": 321365,
+      "subject_name": "Bette Davis",
+      "route": "technique_lunar",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3426,
+      "timestamp": "2026-04-02T15:55:25.282757+00:00"
+    },
+    {
+      "subject_id": 321365,
+      "subject_name": "Bette Davis",
+      "route": "city",
+      "model": "claude-haiku-4-5-20251001",
+      "tokens_input": 3464,
+      "timestamp": "2026-04-02T15:55:25.660167+00:00"
+    },
+    {
+      "subject_id": 321365,
+      "subject_name": "Bette Davis",
+      "route": "domain",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3449,
+      "timestamp": "2026-04-02T15:55:26.031285+00:00"
+    },
+    {
+      "subject_id": 321365,
+      "subject_name": "Bette Davis",
+      "route": "house",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3437,
+      "timestamp": "2026-04-02T15:55:26.420229+00:00"
+    },
+    {
+      "subject_id": 321365,
+      "subject_name": "Bette Davis",
+      "route": "sky",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3446,
+      "timestamp": "2026-04-02T15:55:26.826305+00:00"
+    },
+    {
+      "subject_id": 321365,
+      "subject_name": "Bette Davis",
+      "route": "transit",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3448,
+      "timestamp": "2026-04-02T15:55:27.217312+00:00"
+    },
+    {
+      "subject_id": 321365,
+      "subject_name": "Bette Davis",
+      "route": "chat",
+      "model": "claude-sonnet-4-6",
+      "tokens_input": 3430,
+      "timestamp": "2026-04-02T15:55:27.688477+00:00"
+    }
+  ]
+}
