@@ -77,7 +77,40 @@ completo (margen por plan). Eso es distinto y publicable.
 ## Estado
 
 Fase C completada como prerequisito (sesión 2026-04-02).
-Fase A en progreso — script de medición pendiente de ejecución.
+Fase A completada (sesión 2026-04-03).
+
+### Fase A — Resultados (commit 7c13a19)
+
+**Fase A-1** — medición de tokens de input ($0):
+- 495 records · 45 sujetos · seed=42
+- Output: `research/finops/token_distribution_input.json`
+- Limitación: `/biography` devolvió 401 en todos los sujetos (engine local con
+  `AUTH_ENABLED=true` en el momento del run) → timeline vacío → input tokens
+  subestimados ~500-800 tokens vs producción real.
+
+**Fase A-2** — medición de tokens de output (generación real):
+- 495 records · 45 sujetos · seed=42
+- Costo total real: **$13.44 USD** (dos runs completos por problema de encoding
+  en Windows — bash background tasks con cp1252 vs utf-8 causaron runs duplicados;
+  ambos usaron seed=42 → resultados idénticos, JSON final correcto)
+- Output: `research/finops/token_distribution_output.json`
+
+**Hallazgos clave Fase A-2:**
+- `P_CONTINUATION` real: **0.036** (supuesto simulador: 0.150 — 4× mayor al real)
+- `screen-open`: 40% truncación con max_tokens=1024 → **bug activo en producción**
+- `domain`: 4.4% truncación con max_tokens=1024 → monitorear
+- `technique_lot/firdaria`: p95=497 vs max_tokens=2048 → reducible a 512 (ahorro 75%)
+- Número del paper: **+$34.81 USD/hora** de margen adicional a N=1,000 usuarios
+  (greedy vs static) → extrapolado mensual **+$17,524 USD/mes**
+
+**Simulador de carga** (commit 1f31ff3):
+- `scripts/finops/load_simulator.py` — Poisson arrivals, cache hit, continuation,
+  R5 min_margin, shadow prices TPM/RPM
+- θ=700 usuarios: primer shadow price TPM activo ($0.0054/min pico)
+- Scaling: N=500-50,000 documentado en `research/finops/scaling_analysis.md`
+
+**Pendiente recalibración:** re-correr el simulador con P_CONTINUATION=0.036
+y distribución real de output tokens para producir números definitivos del paper.
 
 ---
 
@@ -87,7 +120,7 @@ Existen dos roadmaps con propósitos distintos:
 
 | Fase | COST_OPTIMIZATION.md (producto) | MILP_INITIATIVE.md (investigación) |
 |------|----------------------------------|-------------------------------------|
-| A | ✅ Caching mínimo (commit aedfe1a) | ⏳ TOKEN_EXPERIMENT: medir distribución real |
+| A | ✅ Caching mínimo (commit aedfe1a) | ✅ TOKEN_EXPERIMENT completo (2026-04-03) |
 | B | ✅ selectModel + Haiku (2026-04-02) | ⏳ Formular y resolver MILP con datos reales |
 | C | ⏳ Caching avanzado contextBlock | ✅ selectModel gateway — completado como Fase B de COST_OPT |
 | D | ⏳ Auditoría tokens contextBlock | — |
