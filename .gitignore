@@ -46,6 +46,7 @@ pip-wheel-metadata/
 docker-data/
 data/
 !/abu_engine/data/placeholder.txt
+# data/blind_validation/ se añade explícitamente con git add -f (ver BLIND_VALIDATION_PROTOCOL.md)
 
 # --- Databases ---
 *.sqlite3

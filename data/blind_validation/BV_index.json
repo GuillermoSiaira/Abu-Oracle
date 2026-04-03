@@ -1,0 +1,24 @@
+[
+  {
+    "id": "BV_001",
+    "alias": "Mr. X",
+    "subject_real": "Donald Trump",
+    "rodden": "AA",
+    "birth_date": "1946-06-14",
+    "birth_time": "10:54",
+    "birth_place": "New York, USA",
+    "lat": 40.7128,
+    "lon": -74.006,
+    "experiment_date": "2026-04-03",
+    "verifier": "Guillermo Siaira",
+    "status": "completed",
+    "score": {
+      "dimensions_passed": 4,
+      "dimensions_total": 5,
+      "validates": true
+    },
+    "file": "BV_001_trump.md",
+    "obsidian_file": "obsidian_vault/03_experimentos/BV_001_trump.md",
+    "notes": "Primera carta ciega completada. Lilly reconoció carta como pública pero operó bajo alias por instrucción."
+  }
+]

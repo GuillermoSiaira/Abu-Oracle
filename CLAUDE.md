@@ -355,6 +355,46 @@ H10: Cohen's d_global=+0.871 — separación real pero desbalance de valencias l
 
 ---
 
+### Validación cualitativa — Cartas ciegas
+
+Lilly se valida cualitativamente mediante **experimentos de carta ciega**: el agente lee una carta sin conocer la identidad del nativo; el operador (que sí conoce la identidad) verifica la coherencia entre inferencias doctrinales y hechos biográficos verificables.
+
+Esta línea de validación es **complementaria e independiente** de la validación cuantitativa del HF.
+
+| Tipo | Objeto | Método |
+|---|---|---|
+| Cuantitativa | Harmony Field (campo geográfico) | Correlación HF↔eventos; Cohen's d |
+| Cualitativa | Lilly (interpretación doctrinal) | Experimentos de carta ciega |
+
+**Estado del corpus:** 1/20 experimentos completados (objetivo: 20 antes de ronda seed).
+
+**Ubicación de archivos:**
+- `BLIND_VALIDATION_PROTOCOL.md` — protocolo completo, metodología, escala de scoring
+- `data/blind_validation/BV_index.json` — índice de todos los experimentos
+- `data/blind_validation/BV_NNN_*.md` — fichas individuales (incluyen subject_real para registro)
+- `analysis/blind_validation_summary.md` — tabla agregada de resultados
+- `obsidian_vault/03_experimentos/BV_NNN_*.md` — notas Obsidian con frontmatter YAML
+
+**Cómo ejecutar un nuevo experimento:**
+
+```bash
+cd d:/projects/ai-oracle
+python scripts/blind_validation/run_blind_validation.py \
+  --date YYYY-MM-DD --time HH:MM \
+  --lat <decimal> --lon <decimal> \
+  --alias "Alias Operativo" \
+  --subject-real "Nombre Real" \
+  --rodden AA
+```
+
+Requiere Abu Engine corriendo en local (`http://localhost:8000`) o especificar `--abu-url`.
+El script usa `claude-haiku-4-5-20251001` (análisis batch — no modifica rutas de producción).
+`subject_real` **nunca aparece en stdout** — solo en los archivos internos generados.
+
+Tras ejecutar el script, completar manualmente la sección "Verificación del operador" en la ficha generada.
+
+---
+
 ### Fase 4 — Correlación segmentada por dominio ✅ `[COMPLETA 2026-03-21]`
 
 Script: `scripts/correlate_by_domain.py` — z-score por sujeto, Pearson + Cohen's d + Mann-Whitney U + rank-biserial.
