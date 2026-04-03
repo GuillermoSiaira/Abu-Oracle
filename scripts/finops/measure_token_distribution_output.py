@@ -1,7 +1,7 @@
 """
-Fase A-2 — Medición de tokens de OUTPUT por ruta Lilly.
-⚠️  TIENE COSTO: llamadas reales de generación a Anthropic.
-Costo estimado: ~$5-6 (50 sujetos × 11 rutas, mix Haiku/Sonnet)
+Fase A-2 -- Medicion de tokens de OUTPUT por ruta Lilly.
+[!] TIENE COSTO: llamadas reales de generacion a Anthropic.
+Costo estimado: ~$5-6 (50 sujetos x 11 rutas, mix Haiku/Sonnet)
 
 NO ejecutar sin confirmación explícita.
 Ejecutar solo después de analizar los resultados de Fase A-1.
@@ -102,7 +102,7 @@ def main():
     # Safety gate: require explicit env var to prevent accidental execution
     if not os.environ.get("FINOPS_EXECUTE_A2"):
         print("=" * 60)
-        print("⚠️  FASE A-2 — TIENE COSTO REAL (~$5-6)")
+        print("[!]  FASE A-2 -- TIENE COSTO REAL (~$5-6)")
         print("Este script hace llamadas de generación a Anthropic.")
         print("Para ejecutar, setear: FINOPS_EXECUTE_A2=yes")
         print("Ejemplo:")
@@ -114,7 +114,7 @@ def main():
     try:
         r = requests.get(f"{ABU_URL}/health", timeout=5)
         r.raise_for_status()
-        print(f"✓ Abu Engine reachable at {ABU_URL}")
+        print(f"[OK] Abu Engine reachable at {ABU_URL}")
     except Exception as e:
         print(f"ERROR: Abu Engine no responde en {ABU_URL}: {e}")
         sys.exit(1)
@@ -129,7 +129,7 @@ def main():
 
     random.seed(RANDOM_SEED)
     sample = random.sample(all_subjects, min(SAMPLE_N, len(all_subjects)))
-    print(f"✓ Sampled {len(sample)} subjects (seed={RANDOM_SEED})")
+    print(f"[OK] Sampled {len(sample)} subjects (seed={RANDOM_SEED})")
 
     # Estimate cost before starting
     cost_sonnet_per_call = (4500 / 1e6) * 3.00 + (500 / 1e6) * 15.00
@@ -181,7 +181,7 @@ def main():
                 truncated = stop_reason == "max_tokens"
 
             except Exception as e:
-                print(f"  ✗ {route_name}: {e}")
+                print(f"  [ERR] {route_name}: {e}")
                 tokens_input = tokens_output = None
                 cost_usd = 0.0
                 truncated = None
@@ -201,7 +201,7 @@ def main():
                 "timestamp":     datetime.now(timezone.utc).isoformat(),
             }
             results.append(record)
-            trunc_flag = " ⚠️TRUNCATED" if truncated else ""
+            trunc_flag = " [TRUNCATED]" if truncated else ""
             status = f"{tokens_input:,} in / {tokens_output:,} out" if tokens_input else "ERROR"
             print(f"  {route_name:<25} {status}  ${cost_usd:.4f}{trunc_flag}")
 
@@ -223,7 +223,7 @@ def main():
         }, f, indent=2, ensure_ascii=False)
 
     print(f"\n{'='*60}")
-    print(f"✓ Results written to {OUTPUT_FILE}")
+    print(f"[OK] Results written to {OUTPUT_FILE}")
     print(f"  Records: {len(results)}  |  Skipped: {skipped}  |  Total cost: ${total_cost:.4f}")
 
     # Summary per route: mean, p95, p99, truncation rate
@@ -248,7 +248,7 @@ def main():
         p95  = vals[min(int(n * 0.95), n-1)]
         p99  = vals[min(int(n * 0.99), n-1)]
         trunc_pct = route_trunc.get(route_name, 0) / n * 100
-        flag = " ⚠️" if trunc_pct > 5 else ""
+        flag = " [!]" if trunc_pct > 5 else ""
         print(f"{route_name:<25} {n:>4} {mean:>6.0f} {p95:>6} {p99:>6} {max_tokens:>8} {trunc_pct:>7.1f}%{flag}")
 
 if __name__ == "__main__":
