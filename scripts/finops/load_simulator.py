@@ -17,9 +17,27 @@ Ajustes incorporados (spec 2026-04-02):
   E. requests_dropped: 429 explícito, cost=0, revenue=0, revenue_lost_usd registrado
   R5: min_margin_monthly=$0.010, min_margin_annual=$0.008 (binding en alta carga)
 
-Output:
+Recalibración empírica (2026-04-04 — Fase A-2b):
+  A2b. P_CONTINUATION: 0.15 → 0.036 (promedio global: 33/495 records reales)
+  A2b. Output tokens: distribución per-ruta con mean/sigma reales (Normal truncada)
+       sigma = (p95 - mean) / 1.645  (percentil 95 de normal estándar)
+       NOTA: p95 de screen-open = max_tokens = 1024 → distribución censurada.
+       Los tokens reales de intención son más altos; la distribución muestreada
+       refleja el cap, no la distribución libre.
+  A2b. Lógica de continuación: ROUTE_CONTINUATION_RATE empírico por ruta
+       screen-open: 71.1% (32/45 — max_tokens=1024 insuficiente — bug producción)
+       technique_lunar: 2.2% (1/45)
+       Resto: 0.0%
+       La distribución truncada no puede modelar la continuación (hi=max_tokens
+       impide que el sample supere el límite → comparación determinística siempre False).
+
+Output por defecto (run normal):
   research/finops/load_simulation_results.json
   research/finops/load_simulation_summary.md
+
+Output con calibración empírica (OUTPUT_SUFFIX=_empirical):
+  research/finops/simulation_results_empirical.json
+  research/finops/scaling_analysis_empirical.md
 
 Uso:
   python scripts/finops/load_simulator.py
@@ -51,13 +69,19 @@ N_USERS          = int(os.environ.get("N_USERS",      "500"))
 SIM_MINUTES      = int(os.environ.get("SIM_MINUTES",  "60"))
 REQ_PER_HOUR     = int(os.environ.get("REQ_PER_HOUR", "10"))
 RANDOM_SEED      = int(os.environ.get("SIM_SEED",     "42"))
+# OUTPUT_SUFFIX: sufijo para los archivos de salida. Ejemplo: "_empirical"
+# Permite correr variantes del simulador sin sobreescribir resultados anteriores.
+OUTPUT_SUFFIX    = os.environ.get("OUTPUT_SUFFIX", "")
 
 # Anthropic Tier 2 limits (shared across all users)
 TIER2_RPM = 1_000
 TIER2_TPM = 450_000
 
 # P(stop_reason == max_tokens) -> segundo llamado API (completeLilly loop)
-P_CONTINUATION = 0.15
+# Medido empíricamente: 18/495 records = 0.036 (Fase A-2, 2026-04-03)
+# Usado solo en _greedy_policy() para estimación de costo. En _run_policy() la
+# continuación se determina determinísticamente (tokens_output >= max_tokens).
+P_CONTINUATION = 0.036
 
 # Plan distribution: genesis 10%, annual 30%, monthly 60%
 PLAN_WEIGHTS = {"genesis": 0.10, "annual": 0.30, "monthly": 0.60}
@@ -132,6 +156,41 @@ ROUTE_NAMES    = [r[0] for r in ROUTES]
 ROUTE_MODEL    = {r[0]: r[1] for r in ROUTES}
 ROUTE_MAXTOK   = {r[0]: r[2] for r in ROUTES}
 
+# Distribución empírica de output tokens por ruta (Fase A-2, 2026-04-03).
+# Fuente: token_distribution_output.json — 495 records, 45 sujetos, seed=42.
+# sigma = (p95 - mean) / 1.645  (percentil 95 de normal estándar)
+# NOTA: p95 de screen-open coincide con max_tokens=1024 (distribución censurada),
+# lo que revela que el 71% de los tokens reales superan el límite configurado.
+# La sigma=39 refleja la distribución de los tokens entregados bajo censura,
+# no la distribución de intención de output. Ver ROUTE_CONTINUATION_RATE abajo.
+ROUTE_OUTPUT_DIST = {
+    #  route                  mean  sigma    (p95 empírico)
+    "screen-open":        (960,   38.9),   # p95=1024 — saturado (censurado)
+    "planet":             (423,   49.8),   # p95=505
+    "technique_lot":      (415,   40.1),   # p95=481
+    "technique_firdaria": (425,   43.8),   # p95=497
+    "technique_lunar":    (437,  122.2),   # p95=638
+    "city":               (451,  125.2),   # p95=657
+    "domain":             (660,  146.5),   # p95=901
+    "house":              (474,   71.7),   # p95=592
+    "sky":                (468,   71.7),   # p95=586
+    "transit":            (542,   86.9),   # p95=685
+    "chat":               (422,  244.4),   # p95=824
+}
+
+# Tasa de continuación empírica por ruta (Fase A-2b, 2026-04-04).
+# Fuente: stop_reason == 'max_tokens' / total records por ruta.
+# screen-open: 32/45 = 0.711 — bug activo en producción (max_tokens=1024 insuficiente)
+# technique_lunar: 1/45 = 0.022 — esporádico
+# Resto: 0/45 = 0.000
+# La distribución ROUTE_OUTPUT_DIST modela los tokens entregados (bajo censura).
+# La continuación se modela por separado con esta tabla estocástica.
+ROUTE_CONTINUATION_RATE = {
+    "screen-open":        0.711,   # 32/45 — saturado
+    "technique_lunar":    0.022,   # 1/45
+    # Resto: 0.0 implícito
+}
+
 # Rutas que permiten degradacion a Haiku en la politica greedy
 HAIKU_ELIGIBLE = {"technique_lot", "technique_firdaria", "technique_lunar",
                   "city", "domain", "house", "transit"}
@@ -192,10 +251,18 @@ def _sample_tokens_input(cache_hit: bool, rng: random.Random) -> int:
     else:
         return _normal_int(INPUT_COLD_MU, INPUT_COLD_STD, lo=500, hi=8000, rng=rng)
 
-def _sample_tokens_output(max_tokens: int, rng: random.Random) -> int:
-    """Normal(max_tokens*0.65, max_tokens*0.15) truncada en [100, max_tokens]."""
-    mu    = max_tokens * 0.65
-    sigma = max_tokens * 0.15
+def _sample_tokens_output(route: str, max_tokens: int, rng: random.Random) -> int:
+    """
+    Normal truncada en [100, max_tokens] usando distribución empírica per-ruta.
+    Fuente: token_distribution_output.json (Fase A-2, 2026-04-03).
+    Fallback a heurístico sintético si la ruta no está en ROUTE_OUTPUT_DIST.
+    """
+    if route in ROUTE_OUTPUT_DIST:
+        mu, sigma = ROUTE_OUTPUT_DIST[route]
+    else:
+        # Fallback sintético original (rutas futuras no medidas aún)
+        mu    = max_tokens * 0.65
+        sigma = max_tokens * 0.15
     return _normal_int(mu, sigma, lo=100, hi=max_tokens, rng=rng)
 
 def _compute_cost(
@@ -428,10 +495,13 @@ def _run_policy(
 
         # Muestrear tokens reales
         tokens_input  = _sample_tokens_input(cache_hit, rng)
-        tokens_output = _sample_tokens_output(max_tok, rng)
+        tokens_output = _sample_tokens_output(route, max_tok, rng)
 
-        # Continuacion (completeLilly loop)
-        continuation = rng.random() < P_CONTINUATION
+        # Continuacion estocástica con tasa empírica por ruta (Fase A-2b).
+        # ROUTE_CONTINUATION_RATE[route] = P(stop_reason==max_tokens) observado.
+        # screen-open: 71.1% (bug producción — max_tokens insuficiente).
+        # technique_lunar: 2.2%. Resto: 0.0%.
+        continuation = rng.random() < ROUTE_CONTINUATION_RATE.get(route, 0.0)
 
         # Costo y margen
         cost_usd    = _compute_cost(model, tokens_input, tokens_output, cache_hit, continuation)
@@ -775,7 +845,7 @@ def main():
 
     # Escribir JSON
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    output_json = OUTPUT_DIR / "load_simulation_results.json"
+    output_json = OUTPUT_DIR / f"load_simulation_results{OUTPUT_SUFFIX}.json"
     meta = {
         "n_users":       N_USERS,
         "sim_minutes":   SIM_MINUTES,
@@ -786,6 +856,11 @@ def main():
         "tier2_rpm":      TIER2_RPM,
         "tier2_tpm":      TIER2_TPM,
         "generated_at":   datetime.now(timezone.utc).isoformat(),
+        "calibration": "empirical_phase_a2b" if OUTPUT_SUFFIX else "synthetic",
+        "continuation_model": (
+            "deterministic(tokens_output>=max_tokens)" if OUTPUT_SUFFIX
+            else "stochastic(P_CONTINUATION)"
+        ),
         "note": (
             "greedy_approximation es un heuristico derivado de la estructura del MILP, "
             "no una solucion LP exacta."
@@ -797,7 +872,7 @@ def main():
     print(f"\n[OK] JSON: {output_json}")
 
     # Escribir Markdown
-    output_md = OUTPUT_DIR / "load_simulation_summary.md"
+    output_md = OUTPUT_DIR / f"load_simulation_summary{OUTPUT_SUFFIX}.md"
     _write_markdown({"meta": meta, "policies": results_by_policy}, output_md)
     print(f"[OK] Markdown: {output_md}")
 

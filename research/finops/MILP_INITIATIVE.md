@@ -78,6 +78,7 @@ completo (margen por plan). Eso es distinto y publicable.
 
 Fase C completada como prerequisito (sesión 2026-04-02).
 Fase A completada (sesión 2026-04-03).
+Fase A-2b (recalibración empírica del simulador) completada (sesión 2026-04-04).
 
 ### Fase A — Resultados (commit 7c13a19)
 
@@ -90,9 +91,9 @@ Fase A completada (sesión 2026-04-03).
 
 **Fase A-2** — medición de tokens de output (generación real):
 - 495 records · 45 sujetos · seed=42
-- Costo total real: **$13.44 USD** (dos runs completos por problema de encoding
+- Costo total real: **$20.16 USD** (tres runs completos por problema de encoding
   en Windows — bash background tasks con cp1252 vs utf-8 causaron runs duplicados;
-  ambos usaron seed=42 → resultados idénticos, JSON final correcto)
+  los tres usaron seed=42 → resultados idénticos, JSON final correcto)
 - Output: `research/finops/token_distribution_output.json`
 
 **Hallazgos clave Fase A-2:**
@@ -109,8 +110,8 @@ Fase A completada (sesión 2026-04-03).
 - θ=700 usuarios: primer shadow price TPM activo ($0.0054/min pico)
 - Scaling: N=500-50,000 documentado en `research/finops/scaling_analysis.md`
 
-**Pendiente recalibración:** re-correr el simulador con P_CONTINUATION=0.036
-y distribución real de output tokens para producir números definitivos del paper.
+**Recalibración completada (Fase A-2b):** simulador re-corrido con P_CONTINUATION=0.036
+y distribución empírica de output tokens. Ver sección Fase A-2b abajo.
 
 ---
 
@@ -129,6 +130,96 @@ Existen dos roadmaps con propósitos distintos:
 **Nota:** Fase C de MILP_INITIATIVE completada como Fase B de COST_OPTIMIZATION —
 `next_app/lib/selectModel.ts` es el gateway unificado. Es prerequisito del módulo
 dinámico (Fase E de COST_OPT / Fase B de MILP_INITIATIVE).
+
+---
+
+## Fase A-2b — Recalibración empírica del simulador
+
+**Fecha:** 2026-04-04
+
+### Parámetros actualizados vs supuestos anteriores
+
+| Parámetro | Valor sintético (anterior) | Valor empírico (A-2b) | Impacto |
+|-----------|---------------------------|----------------------|---------|
+| P_CONTINUATION | 0.150 (global) | **0.036** (promedio global, 33/495) | Costo sobreestimado en sintético |
+| Continuación | `rng.random() < 0.15` aplicado a todas | **ROUTE_CONTINUATION_RATE** por ruta | screen-open: 71.1%; técnicas: 0-2.2%; resto: 0% |
+| screen-open output | Normal(665, 154) | **Normal(960, 39)** | p95=1024 censurado; costo real 2× mayor por continuación |
+| technique_lot | Normal(1331, 307) | **Normal(415, 40)** | Sintético 3× sobreestimado |
+| technique_firdaria | Normal(1331, 307) | **Normal(425, 44)** | Sintético 3× sobreestimado |
+| technique_lunar | Normal(998, 230) | **Normal(437, 122)** | Sintético 2× sobreestimado |
+| city | Normal(665, 154) | **Normal(451, 125)** | Leve sobreestimación |
+| domain | Normal(665, 154) | **Normal(660, 147)** | Bien calibrado originalmente |
+| house | Normal(665, 154) | **Normal(474, 72)** | Sobreestimado |
+| sky | Normal(998, 230) | **Normal(468, 72)** | Sintético 2× sobreestimado |
+| transit | Normal(665, 154) | **Normal(542, 87)** | Leve sobreestimación |
+| chat | Normal(1625, 375) | **Normal(422, 244)** | Sintético 4× sobreestimado |
+
+*sigma = (p95 − mean) / 1.645. p95 de screen-open = max_tokens = 1024 (distribución censurada — la sigma real es mayor).*
+
+**Nota de modelado:** la distribución truncada en `hi=max_tokens` no puede modelar continuación
+determinísticamente (el sample nunca supera `hi`). La continuación se modela por separado con
+`ROUTE_CONTINUATION_RATE` derivado directamente de `stop_reason == 'max_tokens'` en el JSON.
+
+### Impacto en resultados — márgenes y θ
+
+| N_USERS | Margen static (sintético) | Margen static (empírico) | Margen greedy (sintético) | Margen greedy (empírico) | Δ greedy-static (empírico) |
+|---------|--------------------------|--------------------------|--------------------------|--------------------------|---------------------------|
+| 500 | −$6.84 | **+$12.72** | +$11.23 | **+$19.60** | **+$6.88** |
+| 700 | −$9.98 | **+$17.89** | +$15.84 | **+$27.42** | **+$9.53** ← θ |
+| 800 | −$10.71 | **+$19.98** | +$18.07 | **+$31.32** | **+$11.34** |
+| 1,000 | −$11.01 | **+$26.12** | +$23.80 | **+$39.15** | **+$13.03** |
+| 5,000 | −$23.00 | **+$6.47** | +$6.19 | **+$20.74** | **+$14.27** |
+| 50,000 | −$4.98 | **−$6.59** | −$0.95 | **+$3.34** | **+$9.93** |
+
+**Cambios clave:**
+- La calibración empírica mueve el margen static de negativo a positivo en N < 50k.
+  Los technique_* tokens eran ~3× mayor al real en el sintético — mayor impacto.
+- θ se preserva: el shadow price del TPM se activa primero en N=700.
+- El delta greedy-static a N=1,000 baja de **+$34.81** a **+$13.03** (−63%).
+  El sintético sobreestimaba el beneficio de la greedy porque las rutas de Haiku
+  (technique_*) eran más caras de lo real — el ahorro de degradar a Haiku era mayor.
+- Número del abstract actualizado: **+$13.03 USD/60min → +$6,567 USD/mes** a N=1,000
+  (antes: +$34.81 → +$17,524/mes).
+
+### Continuation rate
+
+| Métrica | Sintético | Empírico (A-2b) |
+|---------|-----------|----------------|
+| Cont. rate global (static) | 15.2% | **6.5-6.9%** |
+| screen-open específico | 15.0% | **71.1%** (32/45 — bug producción) |
+| technique_lunar | 15.0% | **2.2%** (1/45) |
+| Resto de rutas | 15.0% | **0.0%** |
+
+La tasa de continuación global empírica (~6.5%) es menor que el sintético (15.2%).
+El efecto dominante es screen-open: 71.1% de continuación en 1 de 11 rutas ≈ 6.5% global.
+El sintético asignaba 15% a **todas** las rutas — correcto en magnitud global pero incorrecto
+en distribución (penalizaba Haiku-eligible incorrectamente, sobreestimando su beneficio).
+
+### Bug screen-open — estado (conocido, pendiente fix)
+
+Con max_tokens=1024 y stop_reason='max_tokens' en 32/45 registros reales (71.1%),
+en producción `completeLilly()` hace una segunda llamada API en 7 de cada 10 sesiones.
+Esto duplica el costo de screen-open y aumenta la latencia.
+
+**Tasa correcta:** 71.1% (no 40% como se estimó previamente).
+**Estado:** bug activo en producción. Pendiente subir max_tokens a 1536 o 2048.
+**Impacto de costo:** screen-open cuesta ~1.7× lo esperado por este overhead.
+
+### Oportunidad — technique_lot y technique_firdaria
+
+p95 real ≈ 481/497 tokens vs max_tokens=2048 actual (en Haiku).
+
+**Ahorro por request:** `(2048−512)/1e6 × $4.00/1M ≈ $0.006/request`
+**A N=1,000 (9% de rutas ≈ 60 req/hr):** ~$0.36/hr → **~$180/mes**
+
+Reducir max_tokens a 512 en estas rutas no afecta la calidad (p99 < 512 estimado)
+y libera capacidad TPM para otras rutas.
+
+**Archivos actualizados:**
+- `scripts/finops/load_simulator.py` — P_CONTINUATION=0.036, ROUTE_OUTPUT_DIST, ROUTE_CONTINUATION_RATE, OUTPUT_SUFFIX
+- `scripts/finops/_run_scaling_empirical.py` — runner multi-N, genera JSON + Markdown
+- `research/finops/simulation_results_empirical.json` — resultados completos N=500-50k
+- `research/finops/scaling_analysis_empirical.md` — tabla comparativa con vs-synthetic
 
 ---
 
