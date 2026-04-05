@@ -31,6 +31,15 @@ export const LIMIT_MESSAGE =
 export async function applyRateLimit(req: Request): Promise<NextResponse | null> {
   const userId = await getUserIdFromRequest(req);
   if (!userId) return null; // anonymous — no rate limit applied
+
+  // Operator bypass
+  const operatorUid = process.env.OPERATOR_UID;
+  if (operatorUid) {
+    if (userId === operatorUid) return null;
+  } else {
+    console.warn("[usage-limiter] OPERATOR_UID not set — operator bypass unavailable");
+  }
+
   const allowed = await checkAndIncrementDailyUsage(userId);
   if (!allowed) {
     return NextResponse.json({ response: LIMIT_MESSAGE });
