@@ -75,7 +75,7 @@ Antes de cualquier feature que agregue una llamada nueva a Anthropic:
 3. Decidir modelo (Sonnet vs Haiku) según complejidad doctrinal requerida
 4. Documentar la decisión en este archivo
 
-### Fase F — Entry Point Inteligente (2026-04-04)
+### Fase F — Entry Point Inteligente ✅ COMPLETA (2026-04-04)
 
 **Motivación**: Análisis FinOps Fase A-2b (commit `54c8738`) reveló que `screen-open` tiene una tasa de continuación empírica del 71.1% (32/45 respuestas alcanzan el límite de 1024 tokens). `completeLilly()` dispara una segunda llamada automáticamente, duplicando el costo efectivo de la orientación inicial. Además, el disparo automático al montar el componente genera costo aunque el usuario no haya interactuado.
 
