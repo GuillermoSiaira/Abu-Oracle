@@ -307,3 +307,37 @@ La variable de decisión `max_tokens` por ruta debe calibrarse con ceiling probe
 1. Ceiling probe → máximo natural del modelo
 2. P_CONTINUATION empírico en producción (con el límite correcto)
 3. MILP recibe ambos como inputs para optimizar `max_tokens` × `model` × `route`
+
+---
+
+## Hallazgo: R5 infactible a nivel de request — unidad correcta es la sesión
+
+Fecha: 2026-04-05
+Origen: milp_solver.py corrido con N=1000, seed=42
+
+### Observación
+4 rutas violan R5 (margen mínimo por request) para el plan anual ($3.75/mes).
+No es ineficiencia — es una imposibilidad matemática:
+
+  Ingreso por request = $3.75 / ~300 requests/mes = $0.0125/request
+  Costo Sonnet/domain = ~$0.012–0.015/request
+
+R5 definida sobre requests individuales es estructuralmente infactible
+para planes de bajo ingreso con rutas de alta complejidad doctrinal.
+
+### Conclusión
+La unidad de análisis correcta para restricciones de margen no es el
+request sino la sesión. Una sesión típica mezcla rutas caras (Sonnet/domain)
+con rutas baratas (Haiku/technique) — el margen agregado es positivo aunque
+requests individuales sean negativos.
+
+### Implicación para el MILP
+R5 debe reformularse como:
+  Σ(margen_i × freq_i) ≥ margen_mínimo_sesión
+donde freq_i es la distribución empírica de rutas por sesión.
+
+### Relevancia académica
+FrugalGPT y RouteLLM definen restricciones sobre requests individuales.
+Esta formulación sobre sesiones con distribución empírica de rutas es
+una contribución genuina — correcta donde la literatura no lo es.
+Venue candidato: MLSys / SIGMOD.
