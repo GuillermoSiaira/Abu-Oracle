@@ -253,3 +253,57 @@ El análisis de continuación empírica de Fase A-2b reveló que `screen-open` n
 - Dato que motivó la decisión: `ROUTE_CONTINUATION_RATE["screen-open"] = 0.711` (32/45 en `token_distribution_output.json`)
 - Impacto estimado sobre el modelo N=700: reducción de $3-5/hr en costo flota (screen-open representa ~22% del costo total en N=700)
 - Esto desplaza θ (shadow price) hacia la derecha: la restricción de margen se activa a un N mayor, ampliando el rango de operación rentable del simulador.
+
+---
+
+## Metodología de validación — Ceiling Probe (2026-04-05)
+
+### Contexto
+
+Al validar el fix `68853f9` (max_tokens technique_lot/firdaria 2048 → 768), se descubrió un artefacto metodológico que invalida el enfoque naïve de validación. Documentado aquí como protocolo para futuras mediciones.
+
+### El artefacto
+
+**Run inicial (max_tokens=768):** 4 de 8 combinaciones truncaron (`stop_reason=max_tokens`). Parecía indicar que 768 era insuficiente.
+
+**Causa raíz:** el context block del script de validación era más corto que el que genera `assembleContextBlock()` en la route real. Con menos tokens de input, Haiku dispone de más "espacio de respuesta" relativo y lo llena hasta el límite configurado. Las truncaciones fueron **artificiales** — no reflejan el comportamiento del sistema en producción.
+
+### Protocolo correcto — Ceiling Probe
+
+Para validar un límite `max_tokens`:
+
+1. Correr con ceiling alto (ej. `max_tokens=1024` o `1536`) — suficientemente mayor al valor candidato
+2. Observar dónde termina el modelo naturalmente (`stop_reason=end_turn`)
+3. El límite de producción válido es: `max(output_tokens_observados) + margen`
+4. Margen recomendado: ≥20% sobre el máximo observado
+
+**No medir con el valor candidato como límite** — el modelo llena el espacio disponible y produce truncaciones que no predicen el comportamiento real.
+
+### Resultados del ceiling probe — technique_lot/firdaria con Haiku
+
+Ceiling=1024, 4 sujetos × 2 técnicas (Turing GS_003, Siaira GS_004, Einstein demo, Freud demo):
+
+| Sujeto | Técnica | output_tokens | stop_reason |
+|---|---|---|---|
+| Turing | lot | 431 | end_turn |
+| Turing | firdaria | 335 | end_turn |
+| Siaira | lot | 481 | end_turn |
+| Siaira | firdaria | 368 | end_turn |
+| Einstein | lot | **597** | end_turn |
+| Einstein | firdaria | 318 | end_turn |
+| Freud | lot | 335 | end_turn |
+| Freud | firdaria | 336 | end_turn |
+
+**Max observado: 597 tokens. Límite de producción: 768. Margen: 171 tokens (29%).**
+
+Datos completos: `research/finops/validate_technique_tokens_results.json`
+Script: `scripts/finops/validate_technique_tokens.py`
+
+### Implicación para el MILP
+
+La variable de decisión `max_tokens` por ruta debe calibrarse con ceiling probe, no con medición directa al límite candidato. El optimizador MILP que asigna `max_tokens` óptimo por ruta debe recibir como input el **máximo natural observado** (percentil 99 del ceiling probe), no el p95 del historial de producción — ya que el p95 histórico puede estar suprimido por un límite anterior demasiado bajo.
+
+**Orden correcto:**
+1. Ceiling probe → máximo natural del modelo
+2. P_CONTINUATION empírico en producción (con el límite correcto)
+3. MILP recibe ambos como inputs para optimizar `max_tokens` × `model` × `route`
