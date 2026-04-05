@@ -53,7 +53,8 @@ export async function POST(req: Request) {
 
     const maxTokens =
       ['lunar_transit', 'planetary_cycle'].includes(technique) ? 1536
-      : ['lot', 'sect', 'profection', 'firdaria'].includes(technique) ? 2048
+      : ['lot', 'firdaria'].includes(technique) ? 768
+      : ['sect', 'profection'].includes(technique) ? 2048
       : 1024;
 
     const { model } = selectModel('technique', 'genesis');
