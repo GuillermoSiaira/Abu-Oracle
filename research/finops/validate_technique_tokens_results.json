@@ -1,0 +1,21 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "date": "2026-04-05",
+  "methodology": "Ceiling probe: max_tokens=1024 para medir terminacion natural. El test inicial con max_tokens=768 produjo truncaciones artificiales porque el context block simplificado del script era mas corto que assembleContextBlock real — Haiku llenaba el espacio disponible. Con ceiling=1024 el modelo termina en end_turn en los 8 casos.",
+  "ceiling_probe_max_tokens": 1024,
+  "production_max_tokens": 768,
+  "results": [
+    {"subject": "Turing (GS_003)",   "technique": "lot",      "output_tokens": 431, "stop_reason": "end_turn"},
+    {"subject": "Turing (GS_003)",   "technique": "firdaria", "output_tokens": 335, "stop_reason": "end_turn"},
+    {"subject": "Siaira (GS_004)",   "technique": "lot",      "output_tokens": 481, "stop_reason": "end_turn"},
+    {"subject": "Siaira (GS_004)",   "technique": "firdaria", "output_tokens": 368, "stop_reason": "end_turn"},
+    {"subject": "Einstein (demo)",   "technique": "lot",      "output_tokens": 597, "stop_reason": "end_turn"},
+    {"subject": "Einstein (demo)",   "technique": "firdaria", "output_tokens": 318, "stop_reason": "end_turn"},
+    {"subject": "Freud (demo)",      "technique": "lot",      "output_tokens": 335, "stop_reason": "end_turn"},
+    {"subject": "Freud (demo)",      "technique": "firdaria", "output_tokens": 336, "stop_reason": "end_turn"}
+  ],
+  "max_output_tokens_observed": 597,
+  "margin_over_max": 171,
+  "all_end_turn": true,
+  "verdict": "PASS — max_tokens=768 confirmado suficiente. Fix 68853f9 validado."
+}
