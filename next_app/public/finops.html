@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Abu Oracle · FinOps Optimizer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+/* ── Variables exactas de abu-oracle.com/index.html ─────────────────── */
+:root {
+  --ink:        #0d0b08;
+  --parchment:  #f5efe2;
+  --gold:       #c9a96e;
+  --gold-dim:   #8b6f47;
+  --gold-bright:#e8c87a;
+  --night:      #06080f;
+  --night-2:    #0c0e18;
+  --night-3:    #111420;
+  --star:       rgba(255,255,255,0.75);
+  --muted:      rgba(201,169,110,0.55);
+  --rule:       rgba(201,169,110,0.25);
+  /* señales funcionales — mínimas, solo semáforo y deltas */
+  --pos:        #8fba8a;   /* verde musgo cálido */
+  --neg:        #c47a6a;   /* terracota */
+  --pos-fill:   rgba(143,186,138,0.10);
+  --neg-fill:   rgba(196,122,106,0.10);
+  --yel-fill:   rgba(201,169,110,0.12);
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--night);
+  color: var(--parchment);
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 17px;
+  line-height: 1.7;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* noise texture — idéntico a landing */
+body::after {
+  content: '';
+  position: fixed; inset: 0; z-index: 1; pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  opacity: 0.5;
+}
+
+/* ── Layout ──────────────────────────────────────────────────────────── */
+.container { position: relative; z-index: 2; max-width: 960px; margin: 0 auto; padding: 0 36px; }
+@media (max-width: 600px) { .container { padding: 0 20px; } }
+
+/* ── Nav ─────────────────────────────────────────────────────────────── */
+nav {
+  position: relative; z-index: 10;
+  padding: 28px 0 20px;
+  border-bottom: 1px solid var(--rule);
+}
+nav .container { display: flex; align-items: center; justify-content: space-between; }
+
+.nav-brand { display: flex; flex-direction: column; gap: 3px; }
+.nav-glyph {
+  font-family: 'IM Fell English SC', serif;
+  font-size: 10px; letter-spacing: 0.32em;
+  color: var(--gold); opacity: 0.65;
+}
+.nav-name {
+  font-family: 'IM Fell English SC', serif;
+  font-size: 17px; letter-spacing: 0.25em;
+  color: var(--gold); text-decoration: none;
+}
+.nav-tagline {
+  font-family: 'Courier Prime', monospace;
+  font-size: 10px; letter-spacing: 0.20em;
+  color: var(--muted); text-transform: uppercase;
+  max-width: 480px; text-align: right; line-height: 1.5;
+}
+@media (max-width: 680px) { .nav-tagline { display: none; } }
+
+/* ── Section ─────────────────────────────────────────────────────────── */
+.section { padding: 64px 0; border-bottom: 1px solid var(--rule); }
+
+.section-label {
+  font-family: 'Courier Prime', monospace;
+  font-size: 10px; letter-spacing: 0.30em;
+  text-transform: uppercase; color: var(--gold-dim);
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 36px;
+}
+.section-label::before,
+.section-label::after { content: '·'; opacity: 0.5; }
+.section-label .rule { flex: 1; height: 1px; background: var(--rule); }
+
+/* ── Simulator shell — gap:2px like landing grids ────────────────────── */
+.sim-shell {
+  display: grid;
+  grid-template-columns: 310px 1fr;
+  gap: 2px;
+  background: var(--rule);   /* creates the thin gold lines between panels */
+  border: 1px solid var(--rule);
+}
+@media (max-width: 820px) { .sim-shell { grid-template-columns: 1fr; } }
+
+/* ── Controls panel ──────────────────────────────────────────────────── */
+.controls-panel {
+  background: var(--night-2);
+  padding: 30px 26px;
+}
+
+.ctrl-block { margin-bottom: 26px; }
+.ctrl-block:last-child { margin-bottom: 0; }
+
+.ctrl-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin-bottom: 10px;
+}
+.ctrl-name {
+  font-family: 'Courier Prime', monospace;
+  font-size: 10px; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--muted);
+}
+.ctrl-val {
+  font-family: 'Courier Prime', monospace;
+  font-size: 12px; color: var(--gold); font-weight: 700;
+}
+
+/* slider — thumb in gold */
+input[type=range] {
+  -webkit-appearance: none; width: 100%;
+  height: 1px; background: var(--rule); border-radius: 1px;
+  outline: none; cursor: pointer;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 12px; height: 12px;
+  border-radius: 50%; background: var(--gold); cursor: pointer;
+  box-shadow: 0 0 0 3px rgba(201,169,110,0.15), 0 0 0 1px var(--gold-dim);
+  transition: transform .12s;
+}
+input[type=range]:hover::-webkit-slider-thumb { transform: scale(1.2); }
+input[type=range]::-moz-range-thumb {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--gold); border: none; cursor: pointer;
+}
+
+.mix-labels {
+  display: flex; justify-content: space-between;
+  font-family: 'Courier Prime', monospace;
+  font-size: 9px; color: rgba(201,169,110,0.30);
+  margin-top: 5px; letter-spacing: 0.08em;
+}
+
+/* policy toggle — ghost buttons like landing */
+.policy-toggle {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 2px; background: var(--rule);
+  padding: 2px; margin-top: 10px;
+}
+.pol-btn {
+  padding: 8px 10px; border: none; cursor: pointer;
+  font-family: 'IM Fell English SC', serif;
+  font-size: 12px; letter-spacing: 0.15em;
+  transition: all .18s; background: var(--night);
+  color: var(--muted);
+}
+.pol-btn.on {
+  background: rgba(201,169,110,0.10);
+  color: var(--gold);
+  border-bottom: 2px solid var(--gold-dim);
+}
+
+/* advanced panel */
+.adv-toggle {
+  display: flex; align-items: center; gap: 7px;
+  font-family: 'Courier Prime', monospace;
+  font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: rgba(201,169,110,0.35); cursor: pointer;
+  border: none; background: none; padding: 10px 0 0;
+  transition: color .15s; width: 100%;
+}
+.adv-toggle:hover { color: var(--muted); }
+.adv-arrow { transition: transform .25s; }
+.adv-arrow.open { transform: rotate(180deg); }
+
+.adv-body {
+  overflow: hidden; max-height: 0;
+  transition: max-height .32s ease, opacity .25s;
+  opacity: 0;
+}
+.adv-body.open { max-height: 380px; opacity: 1; }
+.adv-inner {
+  padding-top: 16px; margin-top: 14px;
+  border-top: 1px solid var(--rule);
+}
+
+.num-row {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 13px;
+}
+.num-row label {
+  font-family: 'Courier Prime', monospace;
+  font-size: 10px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--muted);
+}
+.num-input {
+  background: var(--night);
+  border: none; border-bottom: 1px solid var(--rule);
+  color: var(--gold);
+  font-family: 'Courier Prime', monospace; font-size: 12px;
+  width: 72px; text-align: right; outline: none;
+  padding: 3px 4px;
+  transition: border-color .15s;
+}
+.num-input:focus { border-color: var(--gold-dim); }
+
+/* ── Metrics panel ───────────────────────────────────────────────────── */
+.metrics-panel {
+  background: var(--night-3);
+  padding: 30px 28px;
+  display: flex; flex-direction: column; gap: 2px;
+}
+
+/* each row of metrics separated by 2px gap (creates thin lines) */
+.metrics-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2px; }
+.metrics-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+
+.metric {
+  background: var(--night-2);
+  border-top: none; padding: 18px 20px;
+}
+.metric-label {
+  font-family: 'Courier Prime', monospace;
+  font-size: 9px; letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--muted);
+  margin-bottom: 7px; opacity: 0.80;
+}
+.metric-val {
+  font-family: 'IM Fell English', serif;
+  font-size: 26px; font-weight: 400;
+  color: var(--parchment); line-height: 1.1;
+  transition: color .3s;
+}
+.metric-val.pos { color: var(--pos); }
+.metric-val.neg { color: var(--neg); }
+.metric-sub {
+  font-family: 'Courier Prime', monospace;
+  font-size: 9px; color: rgba(201,169,110,0.35);
+  margin-top: 4px; letter-spacing: 0.06em;
+}
+
+/* shadow price */
+.shadow-line {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--night-2); padding: 14px 20px;
+}
+.shadow-lbl {
+  font-family: 'Courier Prime', monospace;
+  font-size: 10px; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--muted); flex: 1;
+}
+.shadow-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 12px;
+  font-family: 'Courier Prime', monospace; font-size: 10px;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  border: 1px solid var(--rule); transition: all .3s;
+}
+.shadow-badge.on {
+  border-color: var(--gold-dim);
+  color: var(--gold);
+  background: rgba(201,169,110,0.08);
+}
+.shadow-badge.off {
+  color: rgba(201,169,110,0.35);
+  background: transparent;
+}
+.shadow-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+/* semaphore */
+.semaphore {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 20px;
+  border-left: 3px solid transparent;
+  transition: all .35s;
+}
+.semaphore.healthy  { background: var(--pos-fill); border-left-color: var(--pos); }
+.semaphore.marginal { background: var(--yel-fill);  border-left-color: var(--gold-dim); }
+.semaphore.negative { background: var(--neg-fill); border-left-color: var(--neg); }
+
+.sem-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.semaphore.healthy  .sem-dot { background: var(--pos); }
+.semaphore.marginal .sem-dot { background: var(--gold); }
+.semaphore.negative .sem-dot { background: var(--neg); }
+
+#sem-txt {
+  font-family: 'IM Fell English SC', serif;
+  font-size: 13px; letter-spacing: 0.15em;
+  color: var(--parchment);
+}
+.semaphore.healthy  #sem-txt { color: var(--pos); }
+.semaphore.marginal #sem-txt { color: var(--gold); }
+.semaphore.negative #sem-txt { color: var(--neg); }
+
+.sem-pct {
+  margin-left: auto;
+  font-family: 'IM Fell English', serif;
+  font-size: 20px; color: var(--gold);
+}
+
+@media (max-width: 680px) {
+  .metrics-row   { grid-template-columns: 1fr 1fr; }
+  .metrics-row-2 { grid-template-columns: 1fr; }
+  .metric-val    { font-size: 22px; }
+}
+
+/* ── Assignment table ────────────────────────────────────────────────── */
+.assign-wrap { border: 1px solid var(--rule); }
+
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+
+thead { background: var(--night-2); }
+th {
+  text-align: left; padding: 12px 18px;
+  font-family: 'Courier Prime', monospace;
+  font-size: 9px; letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--gold-dim); font-weight: 400;
+  border-bottom: 1px solid var(--rule);
+}
+td { padding: 15px 18px; border-bottom: 1px solid var(--rule); vertical-align: middle; }
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover td { background: rgba(201,169,110,0.025); }
+tbody tr.changed { border-left: 2px solid var(--gold-dim); }
+
+.route-name { font-style: italic; color: var(--parchment); }
+.route-sub {
+  font-family: 'Courier Prime', monospace;
+  font-size: 9px; color: rgba(201,169,110,0.35); margin-top: 2px;
+  letter-spacing: 0.06em;
+}
+
+.model-badge {
+  display: inline-flex; align-items: center;
+  padding: 2px 9px; border: 1px solid var(--rule);
+  font-family: 'IM Fell English SC', serif;
+  font-size: 11px; letter-spacing: 0.18em;
+}
+.model-badge.sonnet { color: var(--parchment); background: rgba(245,239,226,0.04); }
+.model-badge.haiku  { color: var(--gold-dim);   background: rgba(201,169,110,0.06); border-color: rgba(201,169,110,0.20); }
+
+.mt-tag {
+  font-family: 'Courier Prime', monospace;
+  font-size: 10px; color: rgba(201,169,110,0.40); margin-left: 6px;
+}
+.arrow-col { color: var(--rule); padding: 15px 6px; font-size: 13px; }
+
+.delta-col { font-family: 'Courier Prime', monospace; font-size: 11px; }
+.delta-col.pos  { color: var(--pos); }
+.delta-col.zero { color: rgba(201,169,110,0.30); }
+
+.risk-ok   { font-family: 'Courier Prime', monospace; font-size: 10px; letter-spacing: 0.10em; color: var(--pos); }
+.risk-warn { font-family: 'Courier Prime', monospace; font-size: 10px; letter-spacing: 0.10em; color: var(--gold); }
+.note-sub  { font-family: 'Courier Prime', monospace; font-size: 9px; color: rgba(201,169,110,0.30); margin-top: 3px; letter-spacing: 0.05em; }
+
+/* ── R5 section ──────────────────────────────────────────────────────── */
+.r5-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 2px; background: var(--rule);
+  border: 1px solid var(--rule);
+}
+@media (max-width: 680px) { .r5-grid { grid-template-columns: 1fr; } }
+
+.r5-col {
+  background: var(--night-2);
+  padding: 36px 32px;
+}
+.r5-eyebrow {
+  font-family: 'Courier Prime', monospace;
+  font-size: 9px; letter-spacing: 0.28em;
+  text-transform: uppercase; color: var(--gold-dim);
+  margin-bottom: 18px;
+}
+.r5-body {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 17.5px; line-height: 1.72;
+  color: rgba(245,239,226,0.70);
+  font-style: italic;
+}
+.r5-body strong { color: var(--parchment); font-style: normal; font-weight: 600; }
+.r5-body em { color: var(--gold); font-style: italic; }
+.r5-cite {
+  margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--rule);
+  font-family: 'Courier Prime', monospace;
+  font-size: 10px; letter-spacing: 0.08em;
+  color: rgba(201,169,110,0.40); line-height: 1.6;
+}
+
+/* ── Footer — matching landing ───────────────────────────────────────── */
+footer {
+  border-top: 1px solid var(--rule);
+  padding: 40px 0;
+  position: relative; z-index: 2;
+}
+footer .container { display: grid; grid-template-columns: 1fr auto; gap: 32px; align-items: start; }
+.footer-brand {
+  font-family: 'IM Fell English SC', serif;
+  font-size: 14px; letter-spacing: 0.22em; color: var(--gold-dim); margin-bottom: 6px;
+}
+.footer-sub {
+  font-size: 13px; font-style: italic;
+  color: rgba(201,169,110,0.35); line-height: 1.5;
+}
+.footer-links { display: flex; flex-direction: column; gap: 10px; align-items: flex-end; }
+.footer-links a {
+  font-family: 'Courier Prime', monospace;
+  font-size: 10px; letter-spacing: 0.18em;
+  text-transform: uppercase; color: rgba(201,169,110,0.40);
+  text-decoration: none; transition: color .22s;
+}
+.footer-links a:hover { color: var(--gold); }
+.footer-badge {
+  font-family: 'Courier Prime', monospace; font-size: 9px;
+  letter-spacing: 0.14em; color: rgba(201,169,110,0.25);
+  margin-top: 8px; text-align: right;
+}
+@media (max-width: 600px) {
+  footer .container { grid-template-columns: 1fr; }
+  .footer-links { align-items: flex-start; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── Nav ──────────────────────────────────────────────────────────── -->
+<nav>
+<div class="container">
+  <div class="nav-brand">
+    <span class="nav-glyph">Finops Module</span>
+    <span class="nav-name">Abu Oracle</span>
+  </div>
+  <p class="nav-tagline">
+    Optimizador LP · modelo × max_tokens por ruta ·
+    margen preservando calidad doctrinal
+  </p>
+</div>
+</nav>
+
+
+<!-- ── Simulator ────────────────────────────────────────────────────── -->
+<div class="section">
+<div class="container">
+
+  <div class="section-label">
+    <span>Simulador interactivo</span>
+    <span class="rule"></span>
+  </div>
+
+  <div class="sim-shell">
+
+    <!-- Controls -->
+    <div class="controls-panel">
+
+      <div class="ctrl-block">
+        <div class="ctrl-row">
+          <span class="ctrl-name">Usuarios activos</span>
+          <span class="ctrl-val" id="val-users">1 000</span>
+        </div>
+        <input type="range" id="sl-users" min="100" max="5000" step="50" value="1000">
+      </div>
+
+      <div class="ctrl-block">
+        <div class="ctrl-row">
+          <span class="ctrl-name">Mix de planes</span>
+          <span class="ctrl-val" id="val-mix">70% mensual</span>
+        </div>
+        <input type="range" id="sl-mix" min="0" max="100" step="5" value="70">
+        <div class="mix-labels">
+          <span>0% mensual</span><span>50·50</span><span>100% mensual</span>
+        </div>
+      </div>
+
+      <div class="ctrl-block">
+        <div class="ctrl-row" style="margin-bottom:8px">
+          <span class="ctrl-name">Política</span>
+        </div>
+        <div class="policy-toggle">
+          <button class="pol-btn" id="btn-baseline" onclick="setPolicy('baseline')">Baseline actual</button>
+          <button class="pol-btn on"  id="btn-optimal"  onclick="setPolicy('optimal')">LP Óptimo</button>
+        </div>
+      </div>
+
+      <button class="adv-toggle" onclick="toggleAdv(this)">
+        <span class="adv-arrow" id="adv-arrow">▾</span>
+        Parámetros del modelo
+      </button>
+
+      <div class="adv-body" id="adv-body">
+        <div class="adv-inner">
+          <div class="num-row">
+            <label>Plan Mensual (USD/mes)</label>
+            <input type="number" class="num-input" id="p-monthly" value="5.00" min="1" max="20" step="0.5" onchange="update()">
+          </div>
+          <div class="num-row">
+            <label>Plan Anual equiv. (USD/mes)</label>
+            <input type="number" class="num-input" id="p-annual" value="3.75" min="1" max="15" step="0.25" onchange="update()">
+          </div>
+          <div class="num-row">
+            <label>Sonnet input (USD/1M tok)</label>
+            <input type="number" class="num-input" id="p-sonnet" value="3.00" min="0.5" max="15" step="0.25" onchange="update()">
+          </div>
+          <div class="num-row">
+            <label>Haiku input (USD/1M tok)</label>
+            <input type="number" class="num-input" id="p-haiku" value="0.25" min="0.05" max="5" step="0.05" onchange="update()">
+          </div>
+          <div class="ctrl-block" style="margin-bottom:0">
+            <div class="ctrl-row">
+              <span class="ctrl-name">Rate limit TPM (×1000)</span>
+              <span class="ctrl-val" id="val-tpm">700k</span>
+            </div>
+            <input type="range" id="sl-tpm" min="100" max="2000" step="50" value="700">
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /controls -->
+
+    <!-- Metrics -->
+    <div class="metrics-panel">
+
+      <div class="metrics-row">
+        <div class="metric">
+          <div class="metric-label">Revenue mensual</div>
+          <div class="metric-val" id="m-revenue">—</div>
+          <div class="metric-sub" id="m-rev-sub"></div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Costo API mensual</div>
+          <div class="metric-val" id="m-cost">—</div>
+          <div class="metric-sub" id="m-cost-sub"></div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Margen bruto</div>
+          <div class="metric-val" id="m-margin">—</div>
+          <div class="metric-sub" id="m-margin-pct"></div>
+        </div>
+      </div>
+
+      <div class="metrics-row-2">
+        <div class="metric">
+          <div class="metric-label">Ahorro vs baseline</div>
+          <div class="metric-val pos" id="m-savings">—</div>
+          <div class="metric-sub">política LP óptima</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Costo por request</div>
+          <div class="metric-val" id="m-cost-req">—</div>
+          <div class="metric-sub" id="m-cost-req-sub"></div>
+        </div>
+      </div>
+
+      <div class="metrics-row-2">
+        <div class="metric">
+          <div class="metric-label">Precio mín. viable — Mensual</div>
+          <div class="metric-val" id="m-min-monthly">—</div>
+          <div class="metric-sub">equilibrio costo API</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Precio mín. viable — Anual/mes</div>
+          <div class="metric-val" id="m-min-annual">—</div>
+          <div class="metric-sub">equilibrio costo API</div>
+        </div>
+      </div>
+
+      <div class="shadow-line">
+        <span class="shadow-lbl">Shadow price TPM</span>
+        <span class="shadow-badge off" id="shadow-badge">
+          <span class="shadow-dot"></span>
+          <span id="shadow-txt">inactivo</span>
+        </span>
+      </div>
+
+      <div class="semaphore healthy" id="semaphore">
+        <span class="sem-dot"></span>
+        <span id="sem-txt">Modelo sostenible</span>
+        <span class="sem-pct" id="sem-pct"></span>
+      </div>
+
+    </div><!-- /metrics -->
+
+  </div><!-- /sim-shell -->
+</div>
+</div><!-- /simulator -->
+
+
+<!-- ── Assignment table ──────────────────────────────────────────────── -->
+<div class="section">
+<div class="container">
+
+  <div class="section-label">
+    <span>Asignación óptima</span>
+    <span class="rule"></span>
+    <span style="font-family:'Courier Prime',monospace;font-size:9px;letter-spacing:0.20em;color:rgba(201,169,110,0.35)">5 rutas · recomendación del solver</span>
+  </div>
+
+  <div class="assign-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Ruta</th>
+          <th>Actual</th>
+          <th></th>
+          <th>LP Óptimo</th>
+          <th>Ahorro / req</th>
+          <th>Riesgo doctrinal</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <tr class="changed">
+          <td>
+            <div class="route-name">Apertura de sesión</div>
+            <div class="route-sub">screen-open</div>
+          </td>
+          <td><span class="model-badge sonnet">Sonnet</span><span class="mt-tag">1024</span></td>
+          <td class="arrow-col">→</td>
+          <td><span class="model-badge sonnet">Sonnet</span><span class="mt-tag">2048</span></td>
+          <td class="delta-col pos">−$0.003513</td>
+          <td>
+            <div class="risk-ok">✓ validado</div>
+            <div class="note-sub">fix bug continuación 71% → 5%</div>
+          </td>
+        </tr>
+
+        <tr class="changed">
+          <td>
+            <div class="route-name">Análisis de dominio vital</div>
+            <div class="route-sub">domain</div>
+          </td>
+          <td><span class="model-badge sonnet">Sonnet</span><span class="mt-tag">1024</span></td>
+          <td class="arrow-col">→</td>
+          <td><span class="model-badge haiku">Haiku</span><span class="mt-tag">1024</span></td>
+          <td class="delta-col pos">−$0.012285</td>
+          <td>
+            <div class="risk-warn">⚠ revisar</div>
+            <div class="note-sub">validar con cartas ciegas</div>
+          </td>
+        </tr>
+
+        <tr class="changed">
+          <td>
+            <div class="route-name">Análisis de casa</div>
+            <div class="route-sub">house</div>
+          </td>
+          <td><span class="model-badge sonnet">Sonnet</span><span class="mt-tag">1024</span></td>
+          <td class="arrow-col">→</td>
+          <td><span class="model-badge haiku">Haiku</span><span class="mt-tag">1024</span></td>
+          <td class="delta-col pos">−$0.010217</td>
+          <td><div class="risk-warn">⚠ revisar</div></td>
+        </tr>
+
+        <tr class="changed">
+          <td>
+            <div class="route-name">Tránsitos planetarios</div>
+            <div class="route-sub">transit</div>
+          </td>
+          <td><span class="model-badge sonnet">Sonnet</span><span class="mt-tag">1024</span></td>
+          <td class="arrow-col">→</td>
+          <td><span class="model-badge haiku">Haiku</span><span class="mt-tag">1024</span></td>
+          <td class="delta-col pos">−$0.010965</td>
+          <td><div class="risk-warn">⚠ revisar</div></td>
+        </tr>
+
+        <tr class="changed">
+          <td>
+            <div class="route-name">Técnicas cronométricas</div>
+            <div class="route-sub">technique_lot · technique_firdaria</div>
+          </td>
+          <td><span class="model-badge haiku">Haiku</span><span class="mt-tag">2048</span></td>
+          <td class="arrow-col">→</td>
+          <td><span class="model-badge haiku">Haiku</span><span class="mt-tag">768</span></td>
+          <td class="delta-col zero">—</td>
+          <td>
+            <div class="risk-ok">✓ validado</div>
+            <div class="note-sub">max_tokens sobre-provisionado · mean 420 tok</div>
+          </td>
+        </tr>
+
+      </tbody>
+    </table>
+  </div>
+
+  <p style="font-family:'Courier Prime',monospace;font-size:9px;letter-spacing:0.10em;color:rgba(201,169,110,0.28);margin-top:12px;line-height:1.6">
+    Asignación fija del solver LP · ahorro/req calculado con parámetros baseline ·
+    cambios Sonnet→Haiku requieren confirmación manual del operador
+  </p>
+
+</div>
+</div>
+
+
+<!-- ── Hallazgo R5 ───────────────────────────────────────────────────── -->
+<div class="section">
+<div class="container">
+
+  <div class="section-label">
+    <span>Hallazgo R5 · Unidad de margen</span>
+    <span class="rule"></span>
+  </div>
+
+  <div class="r5-grid">
+    <div class="r5-col">
+      <div class="r5-eyebrow">· Literatura existente ·</div>
+      <p class="r5-body">
+        La literatura de optimización LLM (<strong>FrugalGPT</strong>,
+        <strong>RouteLLM</strong>) define restricciones de margen sobre
+        <em>requests individuales</em>. Abu Oracle demuestra empíricamente
+        que esta formulación es <strong>infactible para planes de bajo
+        ingreso</strong> con rutas de alta complejidad doctrinal: el costo
+        de un único request Sonnet supera el ingreso por request del plan anual.
+      </p>
+      <div class="r5-cite">
+        Ingreso anual/req = $45 ÷ (365 × 10 req/día) = $0.0123/req<br>
+        Costo Sonnet/domain = $0.012–0.015/req → R5 estructuralmente infactible
+      </div>
+    </div>
+
+    <div class="r5-col">
+      <div class="r5-eyebrow">· Contribución Abu Oracle ·</div>
+      <p class="r5-body">
+        La unidad de análisis correcta es la <em>sesión</em>. Una sesión
+        típica combina rutas de alto costo (Sonnet/domain) con rutas de
+        bajo costo (Haiku/technique), produciendo
+        <strong>margen agregado positivo</strong> aunque requests individuales
+        sean negativos. Esta reformulación —
+        <em>Σ(margen<sub>i</sub> × freq<sub>i</sub>) ≥ margen_mínimo_sesión</em>
+        — distingue el modelo de Abu Oracle de los enfoques existentes.
+      </p>
+      <div class="r5-cite">
+        Venue candidato: <strong>MLSys / SIGMOD</strong> ·
+        scripts/finops/milp_solver.py · PuLP 3.3 / CBC 2.10
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+
+<!-- ── Footer ───────────────────────────────────────────────────────── -->
+<footer>
+<div class="container">
+  <div>
+    <div class="footer-brand">Abu Oracle</div>
+    <div class="footer-sub">Motor de inteligencia astrológica computacional</div>
+  </div>
+  <div class="footer-links">
+    <a href="mailto:contacto@abu-oracle.com">contacto@abu-oracle.com</a>
+    <a href="https://abu-oracle.com" target="_blank">abu-oracle.com</a>
+    <div class="footer-badge">finops.abu-oracle.com</div>
+  </div>
+</div>
+</footer>
+
+
+<script>
+/* ─── State ──────────────────────────────────────────────────────────── */
+const S = {
+  users:    1000,
+  pctM:     70,         // % monthly
+  policy:   'optimal',
+  priceM:   5.00,
+  priceA:   3.75,
+  priceSon: 3.00,
+  priceHai: 0.25,
+  tpmK:     700,        // threshold × 1000
+};
+
+/* ─── LP weights from solver (empirical route traffic N=1000, seed=42) ─ */
+const W_SONNET_BASE = 0.6334;  // baseline: 7 sonnet routes
+const W_HAIKU_BASE  = 0.3562;  // baseline: 4 haiku routes
+const W_SONNET_OPT  = 0.3704;  // optimal:  4 sonnet routes
+const W_HAIKU_OPT   = 0.6292;  // optimal:  7 haiku routes
+
+const REQ_PER_USER_MONTH = 300;
+
+/* ─── Compute ────────────────────────────────────────────────────────── */
+function compute() {
+  const pctA = 100 - S.pctM;
+
+  // Dynamic cost/req using adjustable pricing params
+  // Input tokens: 4200 avg · Output: 380 avg (fixed output prices per spec)
+  const costSon = (4200 / 1e6 * S.priceSon) + (380 / 1e6 * 15.00);
+  const costHai = (4200 / 1e6 * S.priceHai) + (380 / 1e6 *  1.25);
+
+  const costBase = W_SONNET_BASE * costSon + W_HAIKU_BASE * costHai;
+  const costOpt  = W_SONNET_OPT  * costSon + W_HAIKU_OPT  * costHai;
+  const costReq  = S.policy === 'optimal' ? costOpt : costBase;
+
+  // Revenue/user/month
+  const revUser = (S.pctM / 100) * S.priceM + (pctA / 100) * S.priceA;
+  const revenue = S.users * revUser;
+  const apiCost = S.users * REQ_PER_USER_MONTH * costReq;
+  const margin  = revenue - apiCost;
+  const marginP = revenue > 0 ? margin / revenue * 100 : 0;
+
+  // Savings vs baseline (policy-independent — always optimal vs baseline)
+  const savings = S.users * REQ_PER_USER_MONTH * (costBase - costOpt);
+
+  // Break-even prices (API cost only, policy=optimal)
+  const minM = REQ_PER_USER_MONTH * costOpt;
+  const minA = REQ_PER_USER_MONTH * costOpt;
+
+  // Shadow price: active when users > tpm threshold (simplified)
+  const shadowOn = S.users > S.tpmK;
+
+  // Sustainability
+  let status = 'healthy';
+  if (margin < 0) status = 'negative';
+  else if (marginP < 12) status = 'marginal';
+
+  return { revenue, apiCost, margin, marginP, costReq, savings,
+           costBase, costOpt, minM, minA, shadowOn, status };
+}
+
+/* ─── Animated numbers ───────────────────────────────────────────────── */
+const _live  = {};   // current displayed value
+const _target = {};  // target value
+let _raf = null;
+
+function animTo(id, val) {
+  _target[id] = val;
+  if (_live[id] === undefined) _live[id] = 0;
+  if (!_raf) _raf = requestAnimationFrame(_step);
+}
+
+function _step() {
+  _raf = null;
+  let more = false;
+  for (const id of Object.keys(_target)) {
+    const t = _target[id];
+    const c = _live[id];
+    const d = t - c;
+    if (Math.abs(d) < Math.abs(t) * 0.0005 + 0.0001) {
+      _live[id] = t;
+    } else {
+      _live[id] = c + d * 0.22;
+      more = true;
+    }
+    const el = document.getElementById(id);
+    if (el) el.textContent = _fmt(id, _live[id]);
+  }
+  if (more) _raf = requestAnimationFrame(_step);
+}
+
+function _fmt(id, v) {
+  if (id === 'm-revenue' || id === 'm-cost' || id === 'm-margin' || id === 'm-savings')
+    return fmtUSD(v);
+  if (id === 'm-min-monthly' || id === 'm-min-annual')
+    return '$' + v.toFixed(2);
+  if (id === 'm-cost-req')
+    return '$' + v.toFixed(5);
+  return v.toFixed(2);
+}
+
+function fmtUSD(v) {
+  const abs = Math.abs(v);
+  const sign = v < 0 ? '−' : '';
+  if (abs >= 1e6) return sign + '$' + (abs/1e6).toFixed(2) + 'M';
+  if (abs >= 1e3) return sign + '$' + (abs/1e3).toFixed(1) + 'k';
+  return sign + '$' + abs.toFixed(0);
+}
+
+function fmtInt(v) {
+  return Math.round(v).toLocaleString('es');
+}
+
+/* ─── Render ─────────────────────────────────────────────────────────── */
+function render() {
+  const M = compute();
+
+  animTo('m-revenue',     M.revenue);
+  animTo('m-cost',        -M.apiCost);
+  animTo('m-margin',      M.margin);
+  animTo('m-savings',     M.savings);
+  animTo('m-cost-req',    M.costReq);
+  animTo('m-min-monthly', M.minM);
+  animTo('m-min-annual',  M.minA);
+
+  // Margin color
+  const mEl = document.getElementById('m-margin');
+  mEl.className = 'metric-val' + (M.margin >= 0 ? ' pos' : ' neg');
+  setText('m-margin-pct', M.marginP.toFixed(1) + '% del revenue');
+
+  // Subtexts
+  setText('m-rev-sub', fmtInt(S.users) + ' usuarios · ' + fmtInt(S.users * 300) + ' req/mes');
+  setText('m-cost-sub', (M.costReq * 1e4).toFixed(2) + ' ×10⁻⁴ USD/req');
+  setText('m-cost-req-sub', S.policy === 'optimal' ? 'política LP óptima' : 'política baseline');
+
+  // Shadow price
+  const sb = document.getElementById('shadow-badge');
+  const st = document.getElementById('shadow-txt');
+  sb.className = 'shadow-badge ' + (M.shadowOn ? 'on' : 'off');
+  st.textContent = M.shadowOn ? 'activo — degradar a Haiku' : 'inactivo';
+
+  // Semaphore
+  const sem = document.getElementById('semaphore');
+  sem.className = 'semaphore ' + M.status;
+  const labels = { healthy: 'Modelo sostenible', marginal: 'Margen ajustado', negative: 'No sostenible' };
+  setText('sem-txt', labels[M.status]);
+  setText('sem-pct', M.marginP.toFixed(1) + '%');
+}
+
+function setText(id, txt) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = txt;
+}
+
+/* ─── Event bindings ─────────────────────────────────────────────────── */
+function update() {
+  S.priceM   = parseFloat(document.getElementById('p-monthly').value) || 5;
+  S.priceA   = parseFloat(document.getElementById('p-annual').value) || 3.75;
+  S.priceSon = parseFloat(document.getElementById('p-sonnet').value) || 3.00;
+  S.priceHai = parseFloat(document.getElementById('p-haiku').value) || 0.25;
+  render();
+}
+
+function setPolicy(p) {
+  S.policy = p;
+  document.getElementById('btn-baseline').className = 'pol-btn' + (p === 'baseline' ? ' on' : '');
+  document.getElementById('btn-optimal').className  = 'pol-btn' + (p === 'optimal'  ? ' on' : '');
+  render();
+}
+
+function toggleAdv(btn) {
+  const body  = document.getElementById('adv-body');
+  const arrow = document.getElementById('adv-arrow');
+  const open  = body.classList.toggle('open');
+  arrow.classList.toggle('open', open);
+}
+
+// Sliders
+document.getElementById('sl-users').addEventListener('input', function() {
+  S.users = parseInt(this.value);
+  document.getElementById('val-users').textContent = fmtInt(S.users);
+  render();
+});
+
+document.getElementById('sl-mix').addEventListener('input', function() {
+  S.pctM = parseInt(this.value);
+  const pctA = 100 - S.pctM;
+  document.getElementById('val-mix').textContent = S.pctM + '% mensual · ' + pctA + '% anual';
+  render();
+});
+
+document.getElementById('sl-tpm').addEventListener('input', function() {
+  S.tpmK = parseInt(this.value);
+  document.getElementById('val-tpm').textContent = S.tpmK + 'k';
+  render();
+});
+
+/* ─── Init ───────────────────────────────────────────────────────────── */
+document.getElementById('val-users').textContent = fmtInt(S.users);
+document.getElementById('val-mix').textContent = '70% mensual · 30% anual';
+render();
+</script>
+</body>
+</html>
