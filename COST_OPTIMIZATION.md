@@ -74,3 +74,21 @@ Antes de cualquier feature que agregue una llamada nueva a Anthropic:
 2. Calcular costo por sesión con y sin caching
 3. Decidir modelo (Sonnet vs Haiku) según complejidad doctrinal requerida
 4. Documentar la decisión en este archivo
+
+### Fase F — Entry Point Inteligente (2026-04-04)
+
+**Motivación**: Análisis FinOps Fase A-2b (commit `54c8738`) reveló que `screen-open` tiene una tasa de continuación empírica del 71.1% (32/45 respuestas alcanzan el límite de 1024 tokens). `completeLilly()` dispara una segunda llamada automáticamente, duplicando el costo efectivo de la orientación inicial. Además, el disparo automático al montar el componente genera costo aunque el usuario no haya interactuado.
+
+**Cambios implementados:**
+
+| Cambio | Archivo | Impacto |
+|---|---|---|
+| `max_tokens: 1024 → 1536` en screen-open | `app/api/lilly/screen-open/route.ts` | Elimina el 71.1% de continuaciones (sin costo extra si la respuesta cabe) |
+| screen-open automático → opt-in explícito | `components/OracleChat.tsx` | Elimina el 100% de las llamadas a screen-open en usuarios que no presionan "Panorama actual" |
+| `EntryNav.tsx` con 4 botones persistentes | `components/EntryNav.tsx` | UX neutral — los demás botones dispatchen `pendingLillyEvent` (sin costo adicional) |
+| `GET /api/lilly/greeting` | `app/api/lilly/greeting/route.ts` | Sin costo LLM — solo Firestore read para Estado A/B |
+
+**Ahorro estimado:**
+- Screen-open consumía ~$0.006 por carga de carta. Con opt-in, solo los usuarios que explícitamente presionan "Panorama" pagan ese costo.
+- Eliminación continuaciones: el 71.1% de duplicaciones desaparece con `max_tokens=1536` (Normal(960,39) tiene masa < 1% por encima de 1536).
+- Ahorro combinado estimado: 40-60% del costo de screen-open a nivel flota.

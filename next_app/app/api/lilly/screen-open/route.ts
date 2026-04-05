@@ -166,7 +166,7 @@ export async function POST(req: Request) {
     const client = new Anthropic({ apiKey });
     const rawText = await completeLilly(client, {
       model,
-      max_tokens: 1024,
+      max_tokens: 1536,
       system: [{ type: 'text', text: LILLY_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
       messages: [...history, { role: 'user', content: block }],
     });

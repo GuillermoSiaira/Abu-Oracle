@@ -236,3 +236,20 @@ de piso de margen. Útil para:
 - Diagnóstico: cuánto cuesta el sistema sin restricciones
 - Paper: caracterizar el espacio de soluciones completo
 - Comparar con modo prescriptivo para cuantificar el costo de calidad
+
+### Decisión de producto derivada de A-2b
+
+El análisis de continuación empírica de Fase A-2b reveló que `screen-open` no es solo la ruta más cara del sistema — es la única con tasa de continuación del 71.1%. Esto convierte el disparo automático en un multiplicador de costo oculto.
+
+**Decisión tomada (2026-04-04, commit pendiente):**
+
+| Variable de decisión | Valor anterior | Valor nuevo | Fundamento |
+|---|---|---|---|
+| `max_tokens` screen-open | 1024 | 1536 | Normal(960,39) tiene P(x>1536) < 0.001 → elimina continuaciones |
+| Modo de disparo | automático (mount) | opt-in explícito (EntryNav) | Elimina costo cuando el usuario no interactúa con el panel |
+| Rate greeting | N/A | 1 Firestore read (sin LLM) | Estado A/B sin costo API |
+
+**Trazabilidad:**
+- Dato que motivó la decisión: `ROUTE_CONTINUATION_RATE["screen-open"] = 0.711` (32/45 en `token_distribution_output.json`)
+- Impacto estimado sobre el modelo N=700: reducción de $3-5/hr en costo flota (screen-open representa ~22% del costo total en N=700)
+- Esto desplaza θ (shadow price) hacia la derecha: la restricción de margen se activa a un N mayor, ampliando el rango de operación rentable del simulador.

@@ -36,6 +36,7 @@ import { Send, Terminal } from "lucide-react";
 import { UI } from '@/lib/i18n';
 import { getAbuAuthHeaders } from '@/lib/abu-auth';
 import { ABU_BASE_URL } from '@/services/abu';
+import EntryNav, { type EntryKey } from '@/components/EntryNav';
 
 /* ---------------------------------------------------------
    TerminalMessage
@@ -123,13 +124,18 @@ export default function OracleChat() {
   const [messages, setMessages] = useState<any[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [activeEntry, setActiveEntry] = useState<EntryKey | null>(null);
+  // true until getRecentHistory confirms exchanges > 0 or summary exists
+  const [isNewUser, setIsNewUser] = useState<boolean>(true);
 
   // Evita doble inicialización en React.StrictMode
   const initialized = useRef(false);
   // Detecta cambio de sujeto para resetear el chat
   const prevAbuRef = useRef<any>(undefined);
-  // Detecta cambio de idioma para re-disparar screen_open en el nuevo idioma
+  // Detecta cambio de idioma para limpiar historial y calledEntries
   const initializedLangRef = useRef<string>('');
+  // Entries que ya recibieron respuesta esta sesión → no vuelven a llamar la API
+  const calledEntries = useRef<Set<EntryKey>>(new Set());
 
   // Store global (NO asumir tipos internos)
   // @ts-ignore
@@ -142,17 +148,22 @@ export default function OracleChat() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   /* -----------------------------------------------------
-     SCREEN_OPEN — LILLY INITIAL ORIENTATION
+     INIT — RESET ON SUBJECT/LANG CHANGE + BIOGRAPHY + GREETING
      -----------------------------------------------------
-     Fires once when abuData + birthData are available.
-     Calls /api/lilly/screen-open with minimal AbuContext
-     and injects the LLM response with typewriter effect.
+     - Resets messages/state when the user loads a new chart.
+     - Fetches biography (timeline) once per subject.
+     - Fetches /api/lilly/greeting to determine Estado A/B.
+     - Does NOT auto-fire screen-open. The user selects an
+       entry point explicitly via EntryNav.
   ----------------------------------------------------- */
   useEffect(() => {
     // Reset chat when subject changes (new abuData object)
     if (prevAbuRef.current !== undefined && prevAbuRef.current !== abuData) {
       initialized.current = false;
       setMessages([]);
+      setActiveEntry(null);
+      setIsNewUser(true);
+      calledEntries.current.clear();
       setLastLillyEvent(null);
       setLillySuggestions(null);
       setTimeline(null);
@@ -161,8 +172,8 @@ export default function OracleChat() {
 
     const isComplete = (d: any) => Array.isArray(d?.chart?.planets) && d.chart.planets.length > 0;
 
-    // Si el idioma cambió mientras el chat ya estaba inicializado → resetear para
-    // re-disparar screen_open en el nuevo idioma (el usuario espera respuesta en ese idioma)
+    // Si el idioma cambió → resetear historial y calledEntries para que el
+    // usuario pueda recibir respuestas en el nuevo idioma al re-seleccionar entrada
     if (
       initialized.current &&
       initializedLangRef.current !== '' &&
@@ -171,6 +182,8 @@ export default function OracleChat() {
     ) {
       initialized.current = false;
       setMessages([]);
+      setActiveEntry(null);
+      calledEntries.current.clear();
       setLastLillyEvent(null);
       setLillySuggestions(null);
     }
@@ -196,75 +209,63 @@ export default function OracleChat() {
           .catch(err => console.error('[biography]', err));
       }
 
-      // --- Build minimal context from abuData ---
-      const name =
-        (birthData as any)?.userName ||
-        (abuData as any)?.person?.name ||
-        'Anónimo';
+      // --- Greeting: determinar Estado A (usuario nuevo) o B (usuario que regresa) ---
+      getAbuAuthHeaders()
+        .then(headers => fetch('/api/lilly/greeting', { headers }))
+        .then(res => res.ok ? res.json() : Promise.resolve({ isNewUser: true, lastTopic: null }))
+        .then(data => setIsNewUser(data.isNewUser ?? true))
+        .catch(() => setIsNewUser(true));
+    }
+  }, [abuData, birthData, lang, isChartPage]);
 
-      const sect = (abuData as any)?.derived?.sect ?? null;
-      const sectMaster = sect === 'diurnal' ? 'Jupiter' : 'Venus';
+  /* -----------------------------------------------------
+     HANDLE ENTRY SELECT
+     -----------------------------------------------------
+     Called by EntryNav when the user clicks a button.
+     Panorama → direct /api/lilly/screen-open call.
+     Others → dispatch via pendingLillyEvent (routeMap).
+     Guard: if the entry was already called this session,
+     do nothing (the response is already in messages[]).
+  ----------------------------------------------------- */
+  const handleEntrySelect = async (entry: EntryKey) => {
+    if (isLoading) return;
+    setActiveEntry(entry);
+    if (calledEntries.current.has(entry)) return;
+    calledEntries.current.add(entry);
 
-      const SIGNS = [
-        'Aries','Taurus','Gemini','Cancer','Leo','Virgo',
-        'Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces',
-      ];
-      const RULERSHIPS: Record<string, string> = {
-        Aries: 'Mars', Taurus: 'Venus', Gemini: 'Mercury', Cancer: 'Moon',
-        Leo: 'Sun', Virgo: 'Mercury', Libra: 'Venus', Scorpio: 'Mars',
-        Sagittarius: 'Jupiter', Capricorn: 'Saturn', Aquarius: 'Saturn', Pisces: 'Jupiter',
-      };
+    if (entry === 'transits') {
+      setPendingLillyEvent({ type: 'sky_open', payload: {} });
+      return;
+    }
+    if (entry === 'natal') {
+      const profection = (abuData as any)?.derived?.profection ?? {};
+      setPendingLillyEvent({ type: 'click_technique', payload: { technique: 'profection', data: profection } });
+      return;
+    }
+    if (entry === 'relocation') {
+      setPendingLillyEvent({ type: 'domain_select', payload: { domain: 'global', activeDomain: 'global' } });
+      return;
+    }
 
-      const houses = (abuData as any)?.chart?.houses;
-      const ascLon: number | null = houses?.asc ?? null;
-      const mcLon: number | null = houses?.mc ?? null;
-      const ascSign = ascLon != null ? SIGNS[Math.floor(ascLon / 30) % 12] : null;
-      const mcSign = mcLon != null ? SIGNS[Math.floor(mcLon / 30) % 12] : null;
-      const ascRuler = ascSign ? (RULERSHIPS[ascSign] ?? null) : null;
-      const mcRuler = mcSign ? (RULERSHIPS[mcSign] ?? null) : null;
+    // panorama → direct call to /api/lilly/screen-open (max_tokens=1536)
+    const name =
+      (birthData as any)?.userName ||
+      (abuData as any)?.person?.name ||
+      'Anónimo';
+    const sect = (abuData as any)?.derived?.sect ?? null;
+    const sectMaster = sect === 'diurnal' ? 'Jupiter' : 'Venus';
+    const firdaria = (abuData as any)?.derived?.firdaria?.current ?? null;
 
-      const planets: any[] = (abuData as any)?.chart?.planets ?? [];
-
-      const dignityKind = (d: any): string | null => {
-        if (!d) return null;
-        if (d.domicile || d.kind === 'domicile') return 'Domicile';
-        if (d.exaltation || d.kind === 'exaltation') return 'Exaltation';
-        return null;
-      };
-      const planetDignity = (pName: string): string => {
-        const p = planets.find((pl: any) => pl.name === pName);
-        if (!p?.dignity) return 'Peregrine';
-        const d = p.dignity;
-        if (d.domicile || d.kind === 'domicile') return 'Domicile';
-        if (d.exaltation || d.kind === 'exaltation') return 'Exaltation';
-        if (d.detriment || d.kind === 'detriment') return 'Detriment';
-        if (d.fall || d.kind === 'fall') return 'Fall';
-        return 'Peregrine';
-      };
-
-      const strongDignities = planets
-        .filter((p: any) => dignityKind(p.dignity) !== null)
-        .slice(0, 2)
-        .map((p: any) => ({ planet: p.name, dignity: dignityKind(p.dignity)! }));
-
-      const firdaria = (abuData as any)?.derived?.firdaria?.current ?? null;
-
-      // Show loading indicator immediately
-      setIsLoading(true);
-
-      getAbuAuthHeaders({ 'Content-Type': 'application/json' }).then(authHeaders =>
-      fetch('/api/lilly/screen-open', {
+    setIsLoading(true);
+    try {
+      const authHeaders = await getAbuAuthHeaders({ 'Content-Type': 'application/json' });
+      const res = await fetch('/api/lilly/screen-open', {
         method: 'POST',
         headers: authHeaders,
         body: JSON.stringify({
           name,
           sect,
           sect_master: sectMaster,
-          asc_ruler: ascRuler,
-          asc_ruler_dignity: ascRuler ? planetDignity(ascRuler) : null,
-          mc_ruler: mcRuler,
-          mc_ruler_dignity: mcRuler ? planetDignity(mcRuler) : null,
-          strong_dignities: strongDignities,
           firdaria_major: firdaria?.major ?? null,
           firdaria_minor: firdaria?.sub ?? null,
           lang,
@@ -273,29 +274,28 @@ export default function OracleChat() {
           timeline:  timeline ?? undefined,
           messages,
         }),
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          const text: string = data.response || '> ✦ *Los astros tardan un momento en alinearse. Intentá de nuevo en unos segundos.*';
-          setMessages([
-            { id: `screen-open-user-${Date.now()}`, role: 'user', content: '[carta_cargada]', hidden: true },
-            { id: 'screen-open', role: 'assistant', content: text },
-          ]);
-          if (Array.isArray(data.suggestions) && data.suggestions.length > 0) {
-            setLillySuggestions(data.suggestions);
-          }
-        })
-        .catch(() => {
-          setMessages([{
-            id: 'screen-open',
-            role: 'assistant',
-            content: '> ✦ *Los astros tardan un momento en alinearse. Intentá de nuevo en unos segundos.*',
-          }]);
-        })
-        .finally(() => setIsLoading(false))
-      );  // end getAbuAuthHeaders().then
+      });
+      const data = await res.json();
+      const text: string = data.response || '> ✦ *Los astros tardan un momento en alinearse. Intentá de nuevo en unos segundos.*';
+      const ts = Date.now();
+      setMessages(prev => [
+        ...prev,
+        { id: `screen-open-user-${ts}`, role: 'user', content: '[carta_cargada]', hidden: true },
+        { id: `screen-open-${ts}`, role: 'assistant', content: text },
+      ]);
+      if (Array.isArray(data.suggestions) && data.suggestions.length > 0) {
+        setLillySuggestions(data.suggestions);
+      }
+    } catch {
+      setMessages(prev => [...prev, {
+        id: `screen-open-err-${Date.now()}`,
+        role: 'assistant',
+        content: '> ✦ *Los astros tardan un momento en alinearse. Intentá de nuevo en unos segundos.*',
+      }]);
+    } finally {
+      setIsLoading(false);
     }
-  }, [abuData, birthData, lang, isChartPage]);
+  };
 
   /* -----------------------------------------------------
      LILLY EVENT — REACTIVE (click_planet, etc.)
@@ -487,13 +487,33 @@ export default function OracleChat() {
         </div>
       </div>
 
+      {/* ENTRY NAV */}
+      <EntryNav
+        activeEntry={activeEntry}
+        onSelect={handleEntrySelect}
+        disabled={isLoading}
+      />
+
       {/* CHAT AREA */}
       <div className="flex-1 overflow-y-auto p-4 space-y-5 scrollbar-thin scrollbar-thumb-slate-800">
-        {messages.length === 0 && (
-          <div className="p-4 mt-4 font-mono text-xs text-green-500/70 space-y-1">
-            <p>&gt; SYSTEM_READY</p>
-            <p>&gt; ABU ENGINE: CONNECTED</p>
-            <p>&gt; AWAITING INPUT</p>
+        {messages.length === 0 && !abuData && (
+          <LillyWelcome t={t} />
+        )}
+        {messages.length === 0 && abuData && (
+          <div className="p-4 mt-4 font-mono text-xs space-y-1">
+            {isNewUser ? (
+              <>
+                <p className="text-green-500/70">&gt; SYSTEM_READY</p>
+                <p className="text-green-500/70">&gt; ABU ENGINE: CONNECTED</p>
+                <p className="text-amber-400/60 mt-2">&gt; Seleccioná una entrada para comenzar</p>
+              </>
+            ) : (
+              <>
+                <p className="text-green-500/70">&gt; SYSTEM_READY</p>
+                <p className="text-amber-400/60">&gt; BIENVENIDO DE VUELTA</p>
+                <p className="text-slate-500">&gt; Seleccioná una entrada para continuar</p>
+              </>
+            )}
           </div>
         )}
         {messages.filter(m => !m.hidden).map((m) => (
