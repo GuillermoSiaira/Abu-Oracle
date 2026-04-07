@@ -95,7 +95,7 @@ def main() -> None:
     parser.add_argument('--instance', choices=['abu_oracle', 'paperclip', 'both'], default='both')
     parser.add_argument('--b-total',      type=float, default=3000.0)
     parser.add_argument('--b-produccion', type=float, default=None)
-    parser.add_argument('--b-interno',    type=float, default=200.0)
+    parser.add_argument('--b-interno',    type=float, default=500.0)
     parser.add_argument('--heartbeat',    type=float, default=1.0, help='Heartbeat en horas')
     parser.add_argument('--output', choices=['text', 'json'], default='text')
     args = parser.parse_args()

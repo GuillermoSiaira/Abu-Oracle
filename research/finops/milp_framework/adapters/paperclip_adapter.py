@@ -28,6 +28,7 @@ def get_agent_config(
         u: {
             'model':      result.model_by_unit[u],
             'max_tokens': result.max_tokens_by_unit[u],
+            'forced':     result.forced_by_unit.get(u, False),
         }
         for u in result.model_by_unit
     }

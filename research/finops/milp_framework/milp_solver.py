@@ -54,7 +54,7 @@ CURRENT_PRICES = {'monthly': 5.00, 'annual': 45.00 / 12, 'genesis': 0.0}
 MARGIN_FLOOR   = {'monthly': 0.50, 'annual': 0.40, 'genesis': 0.0}
 
 # Presupuesto interno Paperclip (USD/mes)
-B_INTERNO_DEFAULT = 200.0
+B_INTERNO_DEFAULT = 500.0
 
 
 # ---------------------------------------------------------------------------
@@ -66,6 +66,7 @@ class MILPResult:
     instance_type: str
     model_by_unit: dict[str, str]          # unit → 'sonnet' | 'haiku'
     max_tokens_by_unit: dict[str, int]     # unit → t_u (valor del dominio)
+    forced_by_unit: dict[str, bool]        # unit → True si modelo fue forzado
     pricing: dict[str, dict]               # solo abu_oracle
     total_cost_monthly: float
     b_interno: float                       # solo paperclip
@@ -88,14 +89,18 @@ class MILPInstance:
         b_produccion: float | None = None,
         b_interno: float = B_INTERNO_DEFAULT,
         heartbeat_hours: float = 1.0,
+        quality_constraints: dict | None = None,
     ):
         assert instance_type in ('abu_oracle', 'paperclip')
         self.instance_type = instance_type
         self.demand = demand
         self.b_total = b_total
         self.b_produccion = b_produccion if b_produccion is not None else b_total * 0.93
-        self.b_interno = min(b_interno, b_total - self.b_produccion - 50.0)
+        # Solo capeamos b_interno si se especificó b_produccion explícitamente (modo both)
+        self.b_interno = min(b_interno, b_total - self.b_produccion - 50.0) \
+            if b_produccion is not None else b_interno
         self.heartbeat_hours = heartbeat_hours
+        self.quality_constraints = quality_constraints
         self._result: MILPResult | None = None
 
     # ------------------------------------------------------------------
@@ -260,11 +265,14 @@ class MILPInstance:
             if not name.startswith('_') and c.pi is not None and abs(c.pi) > 1e-9:
                 shadow[name] = round(c.pi, 6)
 
+        forced_by_unit = {u: (u in CRITICAL_ROUTES) for u in units}
+
         return MILPResult(
             status=pulp.LpStatus[status],
             instance_type='abu_oracle',
             model_by_unit=model_by_unit,
             max_tokens_by_unit=max_tokens_by_unit,
+            forced_by_unit=forced_by_unit,
             pricing=pricing,
             total_cost_monthly=round(total_cost, 2),
             b_interno=0.0,
@@ -291,6 +299,14 @@ class MILPInstance:
         # One-hot
         for u in units:
             prob += pulp.lpSum(z[u].values()) == 1
+
+        # ---- Constraints de calidad (config override o paperclip_config.py) ----
+        from config.paperclip_config import QUALITY_CONSTRAINTS as _DEFAULT_QC
+        qc = self.quality_constraints or _DEFAULT_QC
+        for u in units:
+            forced = qc.get(u)
+            if forced == 'sonnet':   prob += x[u] == 1, f"quality_{u}"
+            elif forced == 'haiku':  prob += x[u] == 0, f"quality_{u}"
 
         # No-truncación
         for u in units:
@@ -361,11 +377,14 @@ class MILPInstance:
             if not name.startswith('_') and c.pi is not None and abs(c.pi) > 1e-9:
                 shadow[name] = round(c.pi, 6)
 
+        forced_by_unit = {u: (qc.get(u) is not None) for u in units}
+
         return MILPResult(
             status=pulp.LpStatus[status],
             instance_type='paperclip',
             model_by_unit=model_by_unit,
             max_tokens_by_unit=max_tokens_by_unit,
+            forced_by_unit=forced_by_unit,
             pricing={},
             total_cost_monthly=round(total_cost, 2),
             b_interno=self.b_interno,
