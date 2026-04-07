@@ -220,7 +220,16 @@ class MILPInstance:
         # Precio mínimo sostenible se deriva post-hoc:
         #   cost_per_session = total_cost / total_sessions
         #   min_price_k = cost_per_session × sessions_per_month_k + MARGIN_FLOOR_k
-        prob += cost_total
+        #
+        # Regularización: rompe empates en favor del bin mínimo válido.
+        # λ << costo_unitario_mínimo (~$0.002) — no altera decisiones costo-óptimas.
+        # Sin esto, CBC elige arbitrariamente entre bins de costo idéntico.
+        _lambda = 1e-5
+        t_reg = pulp.lpSum(
+            T_DOMAIN[j] * z[u][j]
+            for u in units for j in range(len(T_DOMAIN))
+        )
+        prob += cost_total + _lambda * t_reg
 
         status = prob.solve(pulp.PULP_CBC_CMD(msg=0))
 
