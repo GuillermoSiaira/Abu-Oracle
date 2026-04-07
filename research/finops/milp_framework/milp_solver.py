@@ -351,8 +351,17 @@ class MILPInstance:
         # Supply: B_interno disponible
         prob += cost_total <= self.b_interno, "supply_interno"
 
-        # Objetivo: minimizar costo
-        prob += cost_total
+        # Regularización: rompe empates en favor del bin mínimo válido.
+        # λ << costo_unitario_mínimo (~$0.002) — no altera decisiones costo-óptimas.
+        # Sin esto, CBC elige arbitrariamente entre bins de costo idéntico.
+        _lambda = 1e-5
+        t_reg = pulp.lpSum(
+            T_DOMAIN[j] * z[u][j]
+            for u in units for j in range(len(T_DOMAIN))
+        )
+
+        # Objetivo: minimizar costo + regularización de bins
+        prob += cost_total + _lambda * t_reg
 
         status = prob.solve(pulp.PULP_CBC_CMD(msg=0))
 
