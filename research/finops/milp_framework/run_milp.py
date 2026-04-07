@@ -3,17 +3,21 @@ CLI principal del MILP Framework.
 
 Uso:
   python run_milp.py --instance abu_oracle
-  python run_milp.py --instance paperclip --heartbeat 1.0 --b-interno 200
+  python run_milp.py --instance paperclip --heartbeat 1.0 --b-interno 500
   python run_milp.py --instance both --b-total 3000
   python run_milp.py --instance abu_oracle --output json
+  python run_milp.py --instance abu_oracle --output-config
+  python run_milp.py --instance paperclip --output-config
+  python run_milp.py --instance both --output-config
 """
 from __future__ import annotations
 import argparse, json, sys, os
+from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(__file__))
 
-from adapters.abu_oracle_adapter import get_recommendations
-from adapters.paperclip_adapter import get_agent_config
+from adapters.abu_oracle_adapter import get_recommendations, get_config_json as abu_config_json
+from adapters.paperclip_adapter import get_agent_config, get_config_json as paperclip_config_json
 
 
 # ---------------------------------------------------------------------------
@@ -98,8 +102,28 @@ def main() -> None:
     parser.add_argument('--b-interno',    type=float, default=500.0)
     parser.add_argument('--heartbeat',    type=float, default=1.0, help='Heartbeat en horas')
     parser.add_argument('--output', choices=['text', 'json'], default='text')
+    parser.add_argument('--output-config', action='store_true',
+                        help='Escribe JSON ejecutable en output/ (consumible por dashboard y Paperclip)')
     args = parser.parse_args()
 
+    out_dir = Path(__file__).parent / 'output'
+
+    # ---- Modo --output-config: genera archivos JSON directamente consumibles ----
+    if args.output_config:
+        out_dir.mkdir(exist_ok=True)
+        if args.instance in ('abu_oracle', 'both'):
+            data = abu_config_json(b_total=args.b_total, b_produccion=args.b_produccion)
+            path = out_dir / 'abu_oracle_config.json'
+            path.write_text(json.dumps(data, indent=2, default=str), encoding='utf-8')
+            print(f'Escrito: {path}')
+        if args.instance in ('paperclip', 'both'):
+            data = paperclip_config_json(b_interno=args.b_interno, heartbeat_hours=args.heartbeat, b_total=args.b_total)
+            path = out_dir / 'paperclip_config.json'
+            path.write_text(json.dumps(data, indent=2, default=str), encoding='utf-8')
+            print(f'Escrito: {path}')
+        return
+
+    # ---- Modos text / json ----
     results = {}
 
     if args.instance in ('abu_oracle', 'both'):

@@ -72,3 +72,43 @@ def get_recommendations(
         'data_source':         demand.get_source(),
         'generated_at':        result_milp.generated_at,
     }
+
+
+def get_config_json(
+    b_total: float = 3000.0,
+    b_produccion: float | None = None,
+) -> dict:
+    """
+    Produce el JSON ejecutable para el dashboard de Fase 5.
+    Ambos escenarios en un solo dict — el dashboard togglea sin recalcular.
+    """
+    rec = get_recommendations(b_total=b_total, b_produccion=b_produccion)
+
+    def _fmt_scenario(key: str) -> dict:
+        s = rec[key]
+        # Reformatear pricing: min_sustainable → min_viable + margin_pct
+        pricing_out = {}
+        for plan, p in s['pricing'].items():
+            cur  = p['current']
+            minv = p.get('min_sustainable', p.get('min_viable', 0.0))
+            margin_pct = round((cur / minv - 1) * 100) if minv > 0 else None
+            pricing_out[plan] = {
+                'min_viable':  round(minv, 2),
+                'current':     cur,
+                'margin_pct':  margin_pct,
+            }
+        return {
+            'routes':        s['routes'],
+            'cost_monthly':  s['total_cost_monthly'],
+            'pricing':       pricing_out,
+        }
+
+    return {
+        'scenarios': {
+            'sonnet_everywhere': _fmt_scenario('scenario_sonnet_everywhere'),
+            'milp_optimized':    _fmt_scenario('scenario_milp_optimized'),
+        },
+        'active_scenario': 'sonnet_everywhere',
+        'generated_at':    rec['generated_at'],
+        'data_source':     rec['data_source'],
+    }

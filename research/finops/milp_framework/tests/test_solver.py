@@ -64,3 +64,52 @@ def test_shadow_prices_exist():
     assert isinstance(sp, dict)
     # Supply constraint siempre existe (puede ser 0 si no binding)
     # Solo verificamos que se devuelve el dict sin error
+
+
+def test_paperclip_quality_constraints():
+    """CEO, investigador y redactor deben ser Sonnet por constraint de calidad."""
+    sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+    from adapters.paperclip_adapter import get_agent_config
+    cfg = get_agent_config()
+    for agent in ['ceo', 'investigador', 'redactor']:
+        assert cfg['agents'][agent]['model'] == 'sonnet', \
+            f"{agent} debería ser sonnet (quality constraint)"
+        assert cfg['agents'][agent]['forced'] is True, \
+            f"{agent} debería tener forced=True"
+    for agent in ['revisor', 'rutinario']:
+        assert cfg['agents'][agent]['forced'] is False, \
+            f"{agent} debería tener forced=False (libre)"
+
+
+def test_output_config_produces_files():
+    """--output-config genera JSON válido y parseable para ambas instancias."""
+    import subprocess, json
+    framework_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    result = subprocess.run(
+        [sys.executable, 'run_milp.py', '--instance', 'both', '--output-config'],
+        capture_output=True, text=True, cwd=framework_dir,
+    )
+    assert result.returncode == 0, f"CLI falló: {result.stderr}"
+
+    for fname, required_keys in [
+        ('output/abu_oracle_config.json', ['scenarios', 'active_scenario', 'generated_at', 'data_source']),
+        ('output/paperclip_config.json',  ['agents', 'heartbeat_hours', 'b_interno_used', 'b_interno_limit']),
+    ]:
+        path = os.path.join(framework_dir, fname)
+        assert os.path.exists(path), f"Archivo no generado: {fname}"
+        with open(path, encoding='utf-8') as f:
+            data = json.load(f)
+        assert isinstance(data, dict), f"{fname} no es un dict"
+        for k in required_keys:
+            assert k in data, f"Clave '{k}' faltante en {fname}"
+
+    # Verificar estructura interna de abu_oracle_config
+    path = os.path.join(framework_dir, 'output/abu_oracle_config.json')
+    with open(path, encoding='utf-8') as f:
+        abu = json.load(f)
+    assert 'sonnet_everywhere' in abu['scenarios']
+    assert 'milp_optimized'    in abu['scenarios']
+    for scenario in abu['scenarios'].values():
+        assert 'routes' in scenario
+        assert 'cost_monthly' in scenario
+        assert 'pricing' in scenario

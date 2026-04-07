@@ -45,3 +45,22 @@ def get_agent_config(
         'data_source':                  result.data_source,
         'generated_at':                 result.generated_at,
     }
+
+
+def get_config_json(
+    b_interno: float = 500.0,
+    heartbeat_hours: float = 1.0,
+    b_total: float = 3000.0,
+) -> dict:
+    """Produce el JSON ejecutable para Paperclip (formato spec Ajuste 2)."""
+    cfg = get_agent_config(b_interno=b_interno, heartbeat_hours=heartbeat_hours, b_total=b_total)
+    return {
+        'generated_at':      cfg['generated_at'],
+        'data_source':       cfg['data_source'],
+        'agents':            cfg['agents'],
+        'heartbeat_hours':   heartbeat_hours,
+        'b_interno_used':    cfg['b_interno_monthly'],
+        'b_interno_limit':   cfg['b_interno_budget'],
+        'utilization_pct':   cfg['utilization_pct'],
+        'congestion_signal': cfg['congestion_signal'],
+    }
