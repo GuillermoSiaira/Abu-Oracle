@@ -1,10 +1,18 @@
-"""Tests mínimos del solver MILP."""
+"""Tests del solver MILP."""
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 import pytest
 from demand_model import SyntheticAbuOracleDemandModel, SyntheticPaperclipDemandModel
 from milp_solver import MILPInstance, CRITICAL_ROUTES, T_DOMAIN
+
+
+# ---------------------------------------------------------------------------
+# Helper compartido — evita repetir la construcción del solver en cada test
+# ---------------------------------------------------------------------------
+def solve_paperclip():
+    from adapters.paperclip_adapter import get_agent_config
+    return get_agent_config()
 
 
 def test_synthetic_demand_loads():
@@ -66,9 +74,8 @@ def test_shadow_prices_exist():
     # Solo verificamos que se devuelve el dict sin error
 
 
-def test_paperclip_quality_constraints():
-    """CEO, investigador y redactor deben ser Sonnet por constraint de calidad."""
-    sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+def test_paperclip_quality_via_adapter():
+    """CEO, investigador y redactor deben ser Sonnet — verificado via adaptador."""
     from adapters.paperclip_adapter import get_agent_config
     cfg = get_agent_config()
     for agent in ['ceo', 'investigador', 'redactor']:
@@ -113,3 +120,56 @@ def test_output_config_produces_files():
         assert 'routes' in scenario
         assert 'cost_monthly' in scenario
         assert 'pricing' in scenario
+
+
+# ---------------------------------------------------------------------------
+# Ajuste 3 — tests quality constraints, bin tiebreak y output config
+# ---------------------------------------------------------------------------
+
+def test_paperclip_quality_constraints():
+    """CEO, investigador y redactor deben ser Sonnet por quality constraints."""
+    result = solve_paperclip()
+    for agent in ['ceo', 'investigador', 'redactor']:
+        assert result['agents'][agent]['model'] == 'sonnet'
+        assert result['agents'][agent]['forced'] == True
+
+
+def test_paperclip_free_agents_haiku():
+    """Revisor y rutinario deben ser Haiku — MILP decide libremente."""
+    result = solve_paperclip()
+    for agent in ['revisor', 'rutinario']:
+        assert result['agents'][agent]['model'] == 'haiku'
+        assert result['agents'][agent]['forced'] == False
+
+
+def test_bin_tiebreak_minimum():
+    """Con bins de costo idéntico, el solver debe elegir el bin mínimo válido."""
+    result = solve_paperclip()
+    assert result['agents']['revisor']['max_tokens'] == 1024
+    assert result['agents']['rutinario']['max_tokens'] == 512
+
+
+def test_output_config_produces_valid_json():
+    """--output-config genera JSON parseable para ambas instancias."""
+    import json, subprocess
+    framework_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    for instance in ['abu_oracle', 'paperclip']:
+        proc = subprocess.run(
+            [sys.executable, 'run_milp.py', '--instance', instance, '--output-config'],
+            capture_output=True, text=True, cwd=framework_dir,
+        )
+        assert proc.returncode == 0, f"CLI falló ({instance}): {proc.stderr}"
+    abu = json.loads(open(os.path.join(framework_dir, 'output/abu_oracle_config.json'), encoding='utf-8').read())
+    pc  = json.loads(open(os.path.join(framework_dir, 'output/paperclip_config.json'),  encoding='utf-8').read())
+    assert 'scenarios' in abu
+    assert 'agents'    in pc
+
+
+def test_abu_oracle_both_scenarios_present():
+    """JSON de Abu Oracle debe contener ambos escenarios."""
+    import json
+    framework_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    config = json.loads(open(os.path.join(framework_dir, 'output/abu_oracle_config.json'), encoding='utf-8').read())
+    assert 'sonnet_everywhere' in config['scenarios']
+    assert 'milp_optimized'    in config['scenarios']
+    assert config['active_scenario'] == 'sonnet_everywhere'
