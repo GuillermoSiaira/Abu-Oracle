@@ -76,6 +76,51 @@ los logs de producción.
 
 ---
 
+## Precios por plan — variables de decisión principales (2026-04-05)
+
+**Origen:** diálogo estratégico 2026-04-05. Ver [[finops_milp]] § Reformulación v2.
+
+La reformulación v2 del MILP establece que la variable de decisión correcta no es
+el modelo por ruta sino el precio por plan. Las variables `x_r` (modelo) pasan a
+ser **constantes** fijadas en Sonnet, y las variables de precio pasan al frente.
+
+### Variables
+
+$$p_{genesis},\ p_{monthly},\ p_{annual} \in \mathbb{R}^+$$
+
+— precios por plan (USD/mes o USD/acceso único para Genesis).
+
+### Supply constraint
+
+$$\sum_{p} N_p \cdot \bar{q}(p) \leq B$$
+
+donde:
+- $N_p$ = usuarios activos del plan $p$
+- $\bar{q}(p)$ = tokens esperados por usuario activo del plan $p$ (de demand observable)
+- $B$ = presupuesto mensual Anthropic
+
+### Demand observable
+
+Los logs JSON de `next_app/lib/selectModel.ts` registran por cada request:
+`route`, `plan`, `model_selected`, `tokens_input_est`, `cost_est_usd`.
+
+Esto produce la distribución empírica `freq(r | p)` — fracción de requests por ruta
+condicional en el plan del usuario. Es el input directo para calibrar el MILP de precios.
+
+### Floor de precio
+
+$$p_p \geq \sum_r freq(r|p) \cdot E[\text{costo}(r,\text{Sonnet})] \cdot requests\_mes(p) + \mu_p$$
+
+donde $\mu_p$ es el margen mínimo requerido por plan.
+
+### Señal de precio ante congestión
+
+Cuando la demanda agregada se acerca a $B$, el shadow price de la supply constraint
+se vuelve positivo. El MILP debe aumentar $p_p$ de nuevos ingresos antes de
+comprometer calidad a usuarios existentes.
+
+---
+
 ## max_tokens como variable de decisión
 
 **Origen:** sesión 2026-04-02. Contexto: `max_tokens` no es un parámetro técnico

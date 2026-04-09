@@ -1,6 +1,87 @@
-# CLAUDE.md — AI Oracle / Abu Engine
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 > Leer este archivo antes de cualquier tarea. Contiene el estado actual del proyecto, arquitectura, convenciones y el plan de desarrollo activo.
 > **Para tareas de integración Abu↔Lilly, leer también `ARCHITECTURE.md` (raíz del repo).**
+
+---
+
+## Comandos de desarrollo
+
+### Abu Engine (Python / FastAPI)
+
+```bash
+# Arrancar Abu Engine en dev local
+cd d:/projects/ai-oracle/abu_engine
+uvicorn main:app --reload --port 8000
+
+# Correr todos los tests
+cd d:/projects/ai-oracle
+python -m pytest abu_engine/tests/ -v
+
+# Correr un test específico
+python -m pytest abu_engine/tests/test_harmony_core.py -v
+
+# Correr tests de un módulo con output verbose
+python -m pytest abu_engine/tests/test_scoring.py -v -s
+```
+
+Entorno virtual: usar `.venv311` (Python 3.11). Activar con `source .venv311/Scripts/activate` (Git Bash) o `.venv311\Scripts\activate` (PowerShell).
+
+### Next.js (TypeScript / React)
+
+```bash
+# Dev server (siempre desde next_app/, minúscula — case-sensitive en Windows)
+cd d:/projects/ai-oracle/next_app
+npx next dev --port 3001
+
+# Type check (no hay ESLint configurado)
+npx tsc --noEmit
+
+# Limpiar caché si hay errores de hidratación o case-mismatch
+rm -rf .next
+```
+
+URL local: `http://localhost:3001` (Docker ocupa :3000 si está corriendo).
+
+### Deploy a producción (siempre Cloud Build — no buildear local)
+
+```bash
+# Next.js app
+gcloud builds submit --config=cloudbuild-app.yaml --project=abu-oracle .
+
+# Abu Engine
+gcloud builds submit --config=cloudbuild-engine.yaml --project=abu-oracle .
+```
+
+---
+
+## Arquitectura en capas — resumen rápido
+
+```
+Abu Engine (Python/FastAPI :8000)
+  └── /analyze          → carta natal completa (fuente de abuData en frontend)
+  └── /api/astro/biography → profecciones + firdaria + transits_window (fuente de timeline)
+  └── /api/astro/lunar  → fase lunar, lunaciones, eclipses
+  └── /api/astro/relocation-field → campo HF on-demand con soporte domain
+
+Next.js (TypeScript :3001/:3000)
+  └── app/api/lilly/*   → routes Lilly (todas usan Anthropic SDK claude-sonnet-4-6)
+  └── app/api/chat/     → chat conversacional (Anthropic SDK directo)
+  └── app/api/webhook/  → crypto-payment (Alchemy) + Paddle
+  └── lib/context-builder.ts → assembleContextBlock() — fuente única de contexto para Lilly
+  └── lib/store.ts      → Zustand: abuData + birthData PERSISTEN, pendingLillyEvent NO persiste
+  └── lib/lilly-prompt.ts → LILLY_SYSTEM_PROMPT v1.0 compartido por todas las routes
+```
+
+**Flujo de datos principal:**
+1. Usuario ingresa datos → `POST /analyze` → `abuData` en store
+2. OracleChat monta → `GET /api/astro/biography` → `timeline` en store
+3. Usuario interactúa → `setPendingLillyEvent({ type, payload })` en cualquier componente
+4. OracleChat consume el evento → llama route `/api/lilly/{type}` → `assembleContextBlock()` → Anthropic → typewriter
+
+**Patrón Lilly Event System:** cualquier componente puede disparar una interpretación sin acoplarse a OracleChat. Ver `lib/store.ts:pendingLillyEvent`.
 
 ---
 
@@ -236,6 +317,8 @@ Raíz del repo: `D:\projects\ai-oracle`
 | `ARCHITECTURE.md` | Tareas que tocan la integración Abu↔Lilly, el Event System, el Context Builder o los endpoints que Lilly consume |
 | `AXIOMATICS_OF_HEAVENS_v0_4.md` | Tareas que tocan scoring, dominios, HF o cualquier decisión doctrinal |
 | `COST_OPTIMIZATION.md` | Estrategia de optimización de costos API, proyecciones de margen por plan, roadmap Fases A-E. Leer antes de cualquier tarea que agregue llamadas a Anthropic. |
+| `obsidian_vault/ANTHROPIC_STRATEGY.md` | Estrategia de relación con Anthropic — tres ejes publicables (FinOps MILP, Blind Validation, HF stats) + vías Anthology Fund / Partner Network / Contenido. Leer antes de cualquier acción de outreach. |
+| `obsidian_vault/03_experimentos/BLIND_VALIDATION_EXPERIMENT.md` | Protocolo detallado del experimento de validación ciega — diseño binario progresivo, variables registradas, dimensión meta-experimental, orden de implementación. |
 
 ---
 
@@ -1136,6 +1219,7 @@ Marcar con ✅ al resolver. No eliminar — mover a historial abajo.
 | BUG-07 | Top 3 ciudades no cambia al seleccionar dominio — muestra siempre el ranking global. Debería recalcularse por dominio activo | RelocationClient.tsx o lógica de ranking | Media | ⬜ Descartado · /relocation eliminado del navbar (redirect a /chart) |
 | BUG-08 | Oracle Interface muestra historial de conversación al volver de /chart a Home — los mensajes no se borran al cambiar de ruta | OracleChat.tsx | Media | 🟢 Resuelto · Decisión de diseño: mensajes persisten en sesión activa mientras el sujeto no cambie. Reset solo al cambiar abuData. |
 | BUG-09 | Error al generar carta no indica la causa específica — el mensaje genérico `formErrorGeneric` no diferencia entre "fecha inválida", "ciudad no seleccionada", "error de red" o "403 del engine". El usuario no sabe qué corregir. | `birth-data-panel.tsx` + `services/abu.ts` | Baja | 🔴 Abierto |
+| BUG-10 | `--alias` en Abu Engine puede filtrar nombre u otros campos identificables del nativo en el output (subject_name, birth_city). **CRÍTICO para Blind Validation** — no iniciar sesiones BV hasta resolverlo. Fix: auto-generar alias opaco `NTV-{hash[:4].upper()}` y limpiar todos los campos de texto libre. | `abu_engine/` (script run_blind_validation.py) | Alta — bloqueante para BV | 🔴 Abierto |
 
 ### Historial bugs resueltos
 (vacío por ahora)
@@ -1598,6 +1682,61 @@ Una vez que el Context Builder canónico esté funcionando, dedicar una sesión 
 Estos conceptos deben integrarse en:
 - `AXIOMATICS_OF_HEAVENS`: nuevo Axioma 9
 - Canon (ES + EN): sección nueva "Navegación Temporal"
+
+---
+
+### PENDIENTE — Experimento Blind Validation (BV) + Estrategia Anthropic
+
+**Blind Validation Experiment:**
+Protocolo de validación ciega donde Lilly identifica al nativo siguiendo exclusivamente
+la cadena doctrinal (Ptolomeo, Al-Biruni, Lilly 1647), sin acceso al nombre.
+Demuestra simultáneamente: (1) la doctrina como sistema inferencial con poder discriminativo
+real, (2) el LLM como razonador dentro de sistemas axiomáticos formales.
+
+- Protocolo completo: `obsidian_vault/03_experimentos/BLIND_VALIDATION_EXPERIMENT.md`
+- **Prerequisito bloqueante:** fix BUG-10 (`--alias` opaco)
+- Casos iniciales: Jung (NTV-A001) · Tesla (NTV-A002) · Turing (NTV-A003)
+- Orden: fix alias → sesión piloto Jung → hilo X → arXiv preprint (10+ sesiones)
+
+**Estrategia Anthropic:**
+Abu Oracle como caso de referencia técnico del ecosistema Claude en tres ejes publicables:
+FinOps MILP (MLSys/SIGMOD) · Blind Validation (NeurIPS/ACL) · HF estadístico.
+Vía prioritaria: **Anthology Fund** — $25k créditos + rate limits premium + equipo técnico.
+
+- Documento completo: `obsidian_vault/ANTHROPIC_STRATEGY.md`
+- Cuándo ejecutar: **después del 18 de abril** con 2-4 semanas de datos de producción reales
+- Prerequisito para Anthology Fund: tracción real + logs de producción (30+ días)
+
+---
+
+### PENDIENTE — Módulo Astrología Mundana
+
+Investigación activa: correlación entre configuraciones planetarias históricas
+(conjunciones Júpiter-Saturno, oposiciones Marte-Saturno) y clusters de eventos
+de alta intensidad en el dataset histórico (23,636 eventos, año 8–2069).
+
+- Hipótesis: `H_mundana_A` — resultados preliminares en `obsidian_vault/05_resultados/MUNDANA_H_A_RESULTADOS.md`
+- Dataset: `data/mundana/eventos_raw.jsonl`
+- Scripts: `scripts/mundana/`
+- Sesión dedicada requerida para integrar al motor Abu Engine como módulo
+
+---
+
+### PENDIENTE — MILP de Precios (Reformulación v2 FinOps)
+
+El MILP no optimiza calidad — optimiza precio. El modelo es Sonnet en todas
+las rutas de interpretación doctrinal. La calidad es fija; el precio es la
+variable de decisión.
+
+- **Supply:** presupuesto mensual Anthropic (conocido)
+- **Demand:** distribución empírica de requests por ruta × plan (logs `selectModel.ts`)
+- **Variables:** `{p_genesis, p_monthly, p_annual}` — precios que hacen Sonnet everywhere sostenible
+- Sesión estratégica dedicada requerida
+- Spec completa: `research/finops/MILP_INITIATIVE.md § Reformulación v2`
+- Vault: `obsidian_vault/06_engineering/finops_milp.md`
+
+**Acción pendiente derivada:** revisar política Haiku en `technique` y `city`
+(`next_app/lib/selectModel.ts`) — heurística provisional, no decisión de producto.
 
 ---
 

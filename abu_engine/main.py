@@ -418,9 +418,15 @@ def forecast_timeseries_endpoint(
     if not all([birthDate, lat, lon, start, end]):
         raise HTTPException(status_code=400, detail="Missing birthDate/lat/lon/start/end")
     try:
-        birth_dt = datetime.fromisoformat(birthDate.replace("Z", "+00:00"))
-        start_dt = datetime.fromisoformat(start.replace("Z", "+00:00"))
-        end_dt = datetime.fromisoformat(end.replace("Z", "+00:00"))
+        from datetime import timezone as _tz
+        def _parse_dt(s: str) -> datetime:
+            dt = datetime.fromisoformat(s.replace("Z", "+00:00"))
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=_tz.utc)
+            return dt
+        birth_dt = _parse_dt(birthDate)
+        start_dt = _parse_dt(start)
+        end_dt   = _parse_dt(end)
     except Exception:
         raise HTTPException(status_code=422, detail="Invalid date format")
     _natal = _get_natal_pos(birth_dt, lat, lon)

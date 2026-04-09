@@ -61,11 +61,21 @@ Precios Sonnet 4.6: input $3.00/1M tok · cache write $3.75/1M · cache read $0.
 - Ejecutar junto con Fase C
 
 ### Fase E — Módulo de optimización dinámica 🔭 ESTRATÉGICO
-- Optimizador que conoce costo por ruta, plan del usuario y margen objetivo
-- Decide en tiempo real qué modelo usar por request
-- Basado en programación lineal
-- Potencialmente extrapolable como producto independiente
-- Sesión estratégica separada requerida
+
+**Reformulación (2026-04-05):** la variable de decisión correcta no es el modelo
+por ruta — es el precio por plan. Ver `research/finops/MILP_INITIATIVE.md § Reformulación v2`.
+
+**Axioma de producto:** la calidad de Lilly no se degrada por ruta. El modelo es
+Sonnet en todas las rutas de interpretación doctrinal. La calidad es fija; el precio
+es la variable que el MILP debe optimizar.
+
+- Dados el patrón de demanda observado (logs `selectModel.ts`) y el presupuesto
+  Anthropic (supply), el MILP resuelve el precio mínimo por plan que hace el sistema
+  sostenible con Sonnet everywhere.
+- La política actual Fase B (Haiku en `technique` y `city`) es una heurística
+  provisional — pendiente de revisión una vez que el MILP de precios esté formulado.
+- Potencialmente publicable y extrapolable como producto independiente.
+- Sesión estratégica separada requerida.
 
 ## Regla operativa
 

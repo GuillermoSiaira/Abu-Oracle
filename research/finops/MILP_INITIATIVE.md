@@ -310,6 +310,92 @@ La variable de decisión `max_tokens` por ruta debe calibrarse con ceiling probe
 
 ---
 
+## Reformulación v2 — Precio como variable de decisión principal (2026-04-05)
+
+### Problema con la formulación v1
+
+La formulación original trata la elección de modelo (Haiku/Sonnet) como variable de
+decisión principal. El objetivo implícito es reducir costos degradando calidad en rutas
+consideradas "simples".
+
+**El problema fundamental:** en Abu Oracle, la calidad interpretativa no es
+distribuible entre rutas. La ruta `technique` contiene la síntesis de profección +
+firdaria + lot — la interpretación doctrinal más densa del sistema. `city` produce
+lecturas de relocalización geográfica que requieren cruce de HF + dominio + tránsitos
+activos. Degradar cualquiera de ellas a Haiku destruye la coherencia del instrumento.
+
+**Axioma de producto:**
+> La calidad de Lilly no se degrada por ruta. El modelo es Sonnet en todas las
+> rutas de interpretación doctrinal. El MILP no optimiza calidad — optimiza precio.
+
+### Nueva formulación
+
+**Variables de decisión:**
+- `p_genesis`, `p_monthly`, `p_annual` — precios por plan (continuas)
+
+**Supply (oferta):**
+- `B` = presupuesto mensual Anthropic: tokens disponibles × costo por token (conocido)
+- Rate limits como restricciones duras: TPM/RPM por tier
+
+**Demand (demanda):**
+- Distribución empírica de requests por ruta × plan — **ya observable** desde logs
+  de `next_app/lib/selectModel.ts` (logging JSON estructurado por request)
+- Patrón de uso medio por usuario activo: requests/mes por ruta
+
+**Función objetivo:**
+```
+Maximizar: Σ_p (p_p - cost_p) × N_p
+sujeto a:
+  cost_p = Σ_r freq(r|p) × E[costo(r, Sonnet)] × requests_mes(p)
+  p_p ≥ cost_p + margen_mínimo_p          (floor de precio por plan)
+  Σ_p N_p × E[tokens(r)] ≤ B             (supply constraint)
+  p_p ≥ 0                                 (no hay precios negativos)
+```
+
+**Pregunta que responde:**
+"Dado que el modelo es Sonnet en todas las rutas, y dado este patrón de uso
+observado, ¿cuál es el precio mínimo por plan que hace el sistema sostenible?"
+
+### Supply/demand como señal de precio ante congestión
+
+Cuando la demanda agregada se acerca a `B`, el MILP puede sugerir ajustar precios
+de nuevos planes antes de degradar calidad a los usuarios existentes. El precio es
+el mecanismo de equilibrio — no la calidad.
+
+A escala, esto deriva en **precio dinámico por cohorte**: si usuarios Genesis
+consumen 40 req/mes y los monthly 8, el precio óptimo no es proporcional al acceso
+declarado sino a la demanda real observada. El MILP lo resuelve exactamente.
+
+### Implicación para la política actual de selectModel.ts
+
+La política Fase B (Haiku en `technique` y `city`) es conceptualmente incorrecta
+bajo esta formulación. Fue una heurística de reducción de costos, no una decisión
+de producto informada.
+
+**Pendiente de decisión:** revertir `technique` y `city` a Sonnet y recalcular el
+precio sostenible con el MILP reformulado. El ahorro de Haiku en esas rutas no
+justifica la pérdida de profundidad doctrinal cuando el instrumento correcto es
+cobrar el precio que hace Sonnet sostenible.
+
+### Diferenciación respecto a la literatura
+
+| Sistema | Variable de decisión | Calidad |
+|---|---|---|
+| FrugalGPT | Modelo por request | Fungible (minimiza costo dado nivel) |
+| RouteLLM | Trade-off calidad/costo | Optimizable por request |
+| **Abu Oracle v2** | **Precio por plan** | **Fija (Sonnet everywhere)** |
+
+FrugalGPT y RouteLLM asumen que los modelos son sustituibles. Abu Oracle establece
+que en un sistema de interpretación doctrinal, la calidad no es sustituible — es el
+producto. La variable de decisión debe ser externa (precio al usuario), no interna
+(modelo usado).
+
+Este encuadre es distinto y publicable. Venue: MLSys / SIGMOD / ICML Economics Track.
+
+Ver también: `COST_OPTIMIZATION.md § Fase E` · `obsidian_vault/06_engineering/finops_milp.md`
+
+---
+
 ## Hallazgo: R5 infactible a nivel de request — unidad correcta es la sesión
 
 Fecha: 2026-04-05
