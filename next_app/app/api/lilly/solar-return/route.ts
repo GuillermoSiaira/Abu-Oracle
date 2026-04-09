@@ -13,6 +13,7 @@ import { completeLilly } from '../../../../lib/lilly-complete';
 import { logLillyUsage } from '../../../../lib/lilly-usage-logger';
 import { getUserIdFromRequest } from '../../../../lib/get-user-id';
 import { selectModel } from '../../../../lib/selectModel';
+import { applyRateLimit } from '../../../../lib/usage-limiter';
 
 const EMPTY_TIMELINE: BiographicalTimeline = {
   profections: [],
@@ -27,6 +28,9 @@ export async function POST(req: Request) {
   }
 
   try {
+    const limitRes = await applyRateLimit(req);
+    if (limitRes) return limitRes;
+
     const body = await req.json();
     const {
       domain,

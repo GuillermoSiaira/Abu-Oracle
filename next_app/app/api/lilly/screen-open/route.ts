@@ -10,7 +10,7 @@ import {
 } from '../../../../lib/context-builder';
 import { getUserIdFromRequest } from '../../../../lib/get-user-id';
 import { getRecentHistory, formatMemoryForPrompt } from '../../../../lib/chat-memory';
-import { checkAndIncrementDailyUsage, LIMIT_MESSAGE } from '../../../../lib/usage-limiter';
+import { applyRateLimit } from '../../../../lib/usage-limiter';
 import { completeLilly } from '../../../../lib/lilly-complete';
 import { logLillyUsage } from '../../../../lib/lilly-usage-logger';
 import { selectModel } from '../../../../lib/selectModel';
@@ -95,13 +95,9 @@ export async function POST(req: Request) {
     } = body;
 
     // ── Rate limit + memoria biográfica (si el usuario está autenticado) ─────
+    const limitRes = await applyRateLimit(req);
+    if (limitRes) return limitRes;
     const userId = await getUserIdFromRequest(req);
-    if (userId) {
-      const allowed = await checkAndIncrementDailyUsage(userId);
-      if (!allowed) {
-        return NextResponse.json({ response: LIMIT_MESSAGE, suggestions: [] });
-      }
-    }
     const memoryCtx = userId ? await getRecentHistory(userId) : null;
     const memoryBlock = memoryCtx ? formatMemoryForPrompt(memoryCtx) : '';
 

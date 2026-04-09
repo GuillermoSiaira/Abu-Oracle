@@ -15,7 +15,7 @@ import {
   saveExchange,
   summarizeIfNeeded,
 } from "@/lib/chat-memory";
-import { checkAndIncrementDailyUsage, LIMIT_MESSAGE } from "@/lib/usage-limiter";
+import { applyRateLimit } from "@/lib/usage-limiter";
 import { completeLilly } from "@/lib/lilly-complete";
 import { logLillyUsage } from "@/lib/lilly-usage-logger";
 import { selectModel } from "@/lib/selectModel";
@@ -42,14 +42,10 @@ export async function POST(req: Request) {
     }
 
     // ── Auth + rate limit + memory ───────────────────────────────────────────
+    const limitRes = await applyRateLimit(reqClone);
+    if (limitRes) return limitRes;
     const userId = await getUserIdFromRequest(reqClone);
     console.log("[chat-memory] userId:", userId);
-    if (userId) {
-      const allowed = await checkAndIncrementDailyUsage(userId);
-      if (!allowed) {
-        return NextResponse.json({ response: LIMIT_MESSAGE });
-      }
-    }
     const memoryCtx = userId ? await getRecentHistory(userId) : null;
     const memoryBlock = memoryCtx ? formatMemoryForPrompt(memoryCtx) : '';
 
