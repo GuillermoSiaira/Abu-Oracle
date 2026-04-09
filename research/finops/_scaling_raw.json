@@ -1,0 +1,182 @@
+{
+  "500_60": {
+    "static_baseline": {
+      "margin": -6.84,
+      "cost": 77.07,
+      "revenue": 70.22,
+      "max_tpm_pct": 94.72,
+      "shadow_tpm": 0.0,
+      "shadow_first_min": null,
+      "shadow_first_val": 0.0,
+      "dropped": 0,
+      "drop_rate": 0.0,
+      "revenue_lost": 0,
+      "r5": 0,
+      "served": 5008
+    },
+    "greedy_approximation": {
+      "margin": 11.23,
+      "cost": 59.0,
+      "revenue": 70.22,
+      "max_tpm_pct": 88.38,
+      "shadow_tpm": 0.0,
+      "shadow_first_min": null,
+      "shadow_first_val": 0.0,
+      "dropped": 0,
+      "drop_rate": 0.0,
+      "revenue_lost": 0,
+      "r5": 1552,
+      "served": 5008
+    }
+  },
+  "600_60": {
+    "static_baseline": {
+      "margin": -9.76,
+      "cost": 93.98,
+      "revenue": 84.22,
+      "max_tpm_pct": 99.75,
+      "shadow_tpm": 0.0,
+      "shadow_first_min": null,
+      "shadow_first_val": 0.0,
+      "dropped": 14,
+      "drop_rate": 0.23,
+      "revenue_lost": 0.19,
+      "r5": 0,
+      "served": 6052
+    },
+    "greedy_approximation": {
+      "margin": 12.63,
+      "cost": 71.65,
+      "revenue": 84.28,
+      "max_tpm_pct": 99.39,
+      "shadow_tpm": 0.0,
+      "shadow_first_min": null,
+      "shadow_first_val": 0.0,
+      "dropped": 8,
+      "drop_rate": 0.13,
+      "revenue_lost": 0.13,
+      "r5": 1853,
+      "served": 6058
+    }
+  },
+  "700_60": {
+    "static_baseline": {
+      "margin": -9.98,
+      "cost": 108.37,
+      "revenue": 98.39,
+      "max_tpm_pct": 99.55,
+      "shadow_tpm": 0.0,
+      "shadow_first_min": null,
+      "shadow_first_val": 0.0,
+      "dropped": 50,
+      "drop_rate": 0.71,
+      "revenue_lost": 0.71,
+      "r5": 0,
+      "served": 6999
+    },
+    "greedy_approximation": {
+      "margin": 15.84,
+      "cost": 82.87,
+      "revenue": 98.71,
+      "max_tpm_pct": 99.64,
+      "shadow_tpm": 0.00543,
+      "shadow_first_min": 1,
+      "shadow_first_val": 0.00543,
+      "dropped": 28,
+      "drop_rate": 0.4,
+      "revenue_lost": 0.4,
+      "r5": 2094,
+      "served": 7021
+    }
+  },
+  "800_60": {
+    "static_baseline": {
+      "margin": -10.71,
+      "cost": 120.4,
+      "revenue": 109.69,
+      "max_tpm_pct": 99.98,
+      "shadow_tpm": 0.0,
+      "shadow_first_min": null,
+      "shadow_first_val": 0.0,
+      "dropped": 230,
+      "drop_rate": 2.87,
+      "revenue_lost": 3.21,
+      "r5": 0,
+      "served": 7786
+    },
+    "greedy_approximation": {
+      "margin": 18.07,
+      "cost": 92.72,
+      "revenue": 110.79,
+      "max_tpm_pct": 100.0,
+      "shadow_tpm": 0.018329,
+      "shadow_first_min": 3,
+      "shadow_first_val": 0.002357,
+      "dropped": 153,
+      "drop_rate": 1.91,
+      "revenue_lost": 2.12,
+      "r5": 2354,
+      "served": 7863
+    }
+  },
+  "1000_60": {
+    "static_baseline": {
+      "margin": -11.01,
+      "cost": 136.93,
+      "revenue": 125.92,
+      "max_tpm_pct": 99.97,
+      "shadow_tpm": 0.004733,
+      "shadow_first_min": 23,
+      "shadow_first_val": 0.001167,
+      "dropped": 1151,
+      "drop_rate": 11.54,
+      "revenue_lost": 16.36,
+      "r5": 0,
+      "served": 8826
+    },
+    "greedy_approximation": {
+      "margin": 23.8,
+      "cost": 107.01,
+      "revenue": 130.81,
+      "max_tpm_pct": 99.97,
+      "shadow_tpm": 0.032966,
+      "shadow_first_min": 1,
+      "shadow_first_val": 0.001775,
+      "dropped": 805,
+      "drop_rate": 8.07,
+      "revenue_lost": 11.47,
+      "r5": 2663,
+      "served": 9172
+    }
+  },
+  "5000_60": {
+    "static_baseline": {
+      "margin": -23.0,
+      "cost": 118.19,
+      "revenue": 95.19,
+      "max_tpm_pct": 100.02,
+      "shadow_tpm": -0.005736,
+      "shadow_first_min": null,
+      "shadow_first_val": 0.0,
+      "dropped": 42875,
+      "drop_rate": 86.37,
+      "revenue_lost": 602.73,
+      "r5": 0,
+      "served": 6767
+    },
+    "greedy_approximation": {
+      "margin": 6.19,
+      "cost": 94.23,
+      "revenue": 100.42,
+      "max_tpm_pct": 100.01,
+      "shadow_tpm": 0.018546,
+      "shadow_first_min": 2,
+      "shadow_first_val": 0.004594,
+      "dropped": 42509,
+      "drop_rate": 85.63,
+      "revenue_lost": 597.5,
+      "r5": 2056,
+      "served": 7133
+    }
+  }
+}
