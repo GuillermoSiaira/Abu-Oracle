@@ -8,7 +8,9 @@ import {
   type BiographicalTimeline,
 } from '../../../../lib/context-builder';
 import { applyRateLimit } from '../../../../lib/usage-limiter';
+import { getUserIdFromRequest } from '../../../../lib/get-user-id';
 import { completeLilly } from '../../../../lib/lilly-complete';
+import { logLillyUsage } from '../../../../lib/lilly-usage-logger';
 import { selectModel } from '../../../../lib/selectModel';
 
 export const dynamic = 'force-dynamic';
@@ -81,12 +83,13 @@ export async function POST(req: Request) {
 
     const { model } = selectModel('sky', 'genesis');
     const client = new Anthropic({ apiKey });
-    const text = await completeLilly(client, {
+    const { text, usage } = await completeLilly(client, {
       model,
       max_tokens: 1536,
       system: [{ type: 'text', text: LILLY_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
       messages: [...history, { role: 'user', content: block }],
     });
+        logLillyUsage('sky', model, usage, await getUserIdFromRequest(req).catch(() => null));
     return NextResponse.json({ response: text });
   } catch (err: any) {
     console.error('[lilly/sky]', err);

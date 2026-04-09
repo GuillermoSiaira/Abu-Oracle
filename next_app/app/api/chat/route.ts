@@ -17,6 +17,7 @@ import {
 } from "@/lib/chat-memory";
 import { checkAndIncrementDailyUsage, LIMIT_MESSAGE } from "@/lib/usage-limiter";
 import { completeLilly } from "@/lib/lilly-complete";
+import { logLillyUsage } from "@/lib/lilly-usage-logger";
 import { selectModel } from "@/lib/selectModel";
 
 export const dynamic = "force-dynamic";
@@ -126,12 +127,14 @@ export async function POST(req: Request) {
     }
 
     const { model } = selectModel('chat', 'genesis');
-    const text = await completeLilly(client, {
+    const { text, usage } = await completeLilly(client, {
       model,
       max_tokens: parseInt(process.env.LILLY_CHAT_MAX_TOKENS ?? "2500"),
       system: systemBlocks,
       messages: anthropicMessages,
     });
+
+    logLillyUsage('chat', model, usage, userId ?? null);
 
     // ── Persist exchange to Firestore (fire-and-forget) ──────────────────────
     if (userId && text) {

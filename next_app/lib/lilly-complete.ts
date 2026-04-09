@@ -20,16 +20,30 @@ type CreateParams = Anthropic.MessageCreateParamsNonStreaming;
 
 const MAX_CONTINUATIONS = 3;
 
+export interface LillyUsage {
+  input_tokens:  number;
+  output_tokens: number;
+  continuations: number; // 0 = respuesta en un solo turno
+}
+
+export interface LillyResult {
+  text:  string;
+  usage: LillyUsage;
+}
+
 export async function completeLilly(
   client: Anthropic,
   params: CreateParams,
-): Promise<string> {
+): Promise<LillyResult> {
   // Shallow-copy messages array so el caller no es mutado
   const messages: Anthropic.MessageParam[] = [
     ...(params.messages as Anthropic.MessageParam[]),
   ];
 
   let fullText = '';
+  let totalInput  = 0;
+  let totalOutput = 0;
+  let continuations = 0;
 
   for (let i = 0; i <= MAX_CONTINUATIONS; i++) {
     const response = await client.messages.create({ ...params, messages });
@@ -39,16 +53,22 @@ export async function completeLilly(
       .map(b => b.text)
       .join('');
 
-    fullText += chunk;
+    fullText      += chunk;
+    totalInput    += response.usage.input_tokens;
+    totalOutput   += response.usage.output_tokens;
 
     if (response.stop_reason !== 'max_tokens') break;
     if (i === MAX_CONTINUATIONS) break;
 
+    continuations++;
     // claude-sonnet-4-6 no soporta prefill (array terminando en assistant).
     // Patrón correcto: assistant partial → user 'Continúa.' → el modelo retoma.
     messages.push({ role: 'assistant', content: chunk });
     messages.push({ role: 'user',      content: 'Continúa.' });
   }
 
-  return fullText;
+  return {
+    text:  fullText,
+    usage: { input_tokens: totalInput, output_tokens: totalOutput, continuations },
+  };
 }

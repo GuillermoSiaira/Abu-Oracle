@@ -12,6 +12,7 @@ import { getUserIdFromRequest } from '../../../../lib/get-user-id';
 import { getRecentHistory, formatMemoryForPrompt } from '../../../../lib/chat-memory';
 import { checkAndIncrementDailyUsage, LIMIT_MESSAGE } from '../../../../lib/usage-limiter';
 import { completeLilly } from '../../../../lib/lilly-complete';
+import { logLillyUsage } from '../../../../lib/lilly-usage-logger';
 import { selectModel } from '../../../../lib/selectModel';
 
 export const dynamic = 'force-dynamic';
@@ -164,7 +165,7 @@ export async function POST(req: Request) {
 
     const { model } = selectModel('screen-open', 'genesis');
     const client = new Anthropic({ apiKey });
-    const rawText = await completeLilly(client, {
+    const { text: rawText, usage } = await completeLilly(client, {
       model,
       max_tokens: 1536,
       system: [{ type: 'text', text: LILLY_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
@@ -189,6 +190,7 @@ export async function POST(req: Request) {
       }
     }
 
+    logLillyUsage('screen-open', model, usage, userId ?? null);
     return NextResponse.json({ response: text, suggestions });
   } catch (err: any) {
     console.error('[screen-open]', err);

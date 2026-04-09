@@ -10,6 +10,8 @@ import {
 
 export const dynamic = 'force-dynamic';
 import { completeLilly } from '../../../../lib/lilly-complete';
+import { logLillyUsage } from '../../../../lib/lilly-usage-logger';
+import { getUserIdFromRequest } from '../../../../lib/get-user-id';
 import { selectModel } from '../../../../lib/selectModel';
 
 const EMPTY_TIMELINE: BiographicalTimeline = {
@@ -64,12 +66,13 @@ export async function POST(req: Request) {
 
     const { model } = selectModel('solar-return', 'genesis');
     const client = new Anthropic({ apiKey });
-    const text = await completeLilly(client, {
+    const { text, usage } = await completeLilly(client, {
       model,
       max_tokens: 1024,
       system: [{ type: 'text', text: LILLY_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
       messages: [...history, { role: 'user', content: block }],
     });
+        logLillyUsage('solar-return', model, usage, await getUserIdFromRequest(req).catch(() => null));
     return NextResponse.json({ response: text });
   } catch (err: any) {
     console.error('[lilly/solar-return]', err);
