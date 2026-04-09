@@ -32,6 +32,10 @@
     relocationPreference?: string
   }
 
+  export type ChartTabKey = "chart" | "persian" | "transits" | "relocation" | "sky"
+
+  export type ChartTabKey = "chart" | "persian" | "transits" | "relocation" | "sky"
+
   // ======================================================
   //  APP STATE
   // ======================================================
@@ -47,6 +51,9 @@
     includeTransits: boolean
     transitDate: string | null
     lang: "es" | "en" | "pt" | "fr"
+    chartTab: ChartTabKey
+    chartSidebarExpanded: boolean
+    chartTab: ChartTabKey
 
     userName: string
     isDemo: boolean
@@ -66,6 +73,9 @@
     setIncludeTransits: (value: boolean) => void
     setTransitDate: (date: string | null) => void
     setLang: (lang: "es" | "en" | "pt" | "fr") => void
+    setChartTab: (tab: ChartTabKey) => void
+    setChartSidebarExpanded: (expanded: boolean) => void
+    setChartTab: (tab: ChartTabKey) => void
     addChatMessage: (msg: ChatMessage) => void
     setUserName: (name: string) => void
     setIsDemo: (value: boolean) => void
@@ -86,6 +96,7 @@
 
   const STORAGE_KEY = "ai-oracle-store-v1"
   const PROFILE_KEY = "ai-oracle-profile-v1"
+  const CHART_SIDEBAR_KEY = "chartSidebarExpanded"
 
   function loadPersisted() {
     if (typeof window === "undefined") return {}
@@ -118,6 +129,11 @@
       console.error("[Store] Error leyendo localStorage:", e)
       return {}
     }
+  }
+
+  function loadChartSidebarExpanded(): boolean {
+    if (typeof window === "undefined") return true
+    return window.localStorage.getItem(CHART_SIDEBAR_KEY) !== "false"
   }
 
   function loadUserName(): string {
@@ -177,6 +193,9 @@
       includeTransits: true,
       transitDate: null,
       lang: (persisted as any).lang ?? "es",
+      chartTab: "persian",
+      chartSidebarExpanded: loadChartSidebarExpanded(),
+      chartTab: "persian",
 
       userName: loadUserName(),
       isDemo: false,
@@ -223,6 +242,14 @@
       setTransitDate: (date) => set({ transitDate: date }),
 
       setLang: (lang) => set({ lang }),
+      setChartTab: (tab) => set({ chartTab: tab }),
+      setChartSidebarExpanded: (expanded) => {
+        if (typeof window !== "undefined") {
+          window.localStorage.setItem(CHART_SIDEBAR_KEY, String(expanded))
+        }
+        set({ chartSidebarExpanded: expanded })
+      },
+      setChartTab: (tab) => set({ chartTab: tab }),
 
       addChatMessage: (msg) =>
         set((state) => {
@@ -286,6 +313,9 @@
           isDemo: false,
           onboardingStage: "idle",
           onboardingData: {},
+          chartTab: "persian",
+          chartSidebarExpanded: true,
+          chartTab: "persian",
           // userName se preserva
         })
       },

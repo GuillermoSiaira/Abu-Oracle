@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useAppStore } from "@/lib/store";
 import { UI } from "@/lib/i18n";
 import { LunarDial, type LunarData } from "@/components/LunarDial";
@@ -28,11 +28,10 @@ const PLANET_SYMBOLS: Record<string, string> = {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function CieloHoyTab() {
-  const { abuData, birthData, timeline, lang, setPendingLillyEvent } = useAppStore();
+  const { birthData, timeline, setTimeline, lang, setPendingLillyEvent } = useAppStore();
   const t = UI[lang];
 
   const [lunarData, setLunarData] = useState<LunarData | null>(null);
-  const initializedRef = useRef(false);
 
   // ── Fetch lunar data ────────────────────────────────────────────────────────
   useEffect(() => {
@@ -49,23 +48,27 @@ export function CieloHoyTab() {
     });
   }, [birthData?.birthDate, birthData?.lat, birthData?.lon]);
 
-  // ── Auto-trigger sky_open once on first mount (when data is available) ──────
+  // ── Ensure timeline is loaded (Cielo Hoy needs fast/lunar transits) ──────────
   useEffect(() => {
-    if (initializedRef.current) return;
-    if (!abuData || !birthData) return;
-    initializedRef.current = true;
-    setPendingLillyEvent({ type: 'sky_open', payload: { lang } });
-  }, [abuData, birthData, lang, setPendingLillyEvent]);
-
-  // ── Reset initialized when subject changes ───────────────────────────────────
-  const prevAbuRef = useRef<typeof abuData | undefined>(undefined);
-  useEffect(() => {
-    if (prevAbuRef.current !== undefined && prevAbuRef.current !== abuData) {
-      initializedRef.current = false;
-      setLunarData(null);
-    }
-    prevAbuRef.current = abuData;
-  }, [abuData]);
+    if (timeline !== null) return;
+    if (!birthData?.birthDate || birthData.lat == null || birthData.lon == null) return;
+    let cancelled = false;
+    getAbuAuthHeaders()
+      .then((headers) => {
+        const bioUrl = new URL(`${ABU_BASE_URL}/api/astro/biography`);
+        bioUrl.searchParams.set("birthDate", birthData.birthDate);
+        bioUrl.searchParams.set("birthLat",  String(birthData.lat));
+        bioUrl.searchParams.set("birthLon",  String(birthData.lon));
+        bioUrl.searchParams.set("window_months", "18");
+        return fetch(bioUrl.toString(), { headers });
+      })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!cancelled && data) setTimeline(data);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [timeline, birthData?.birthDate, birthData?.lat, birthData?.lon, setTimeline]);
 
   // ── Active fast + lunar transits from store timeline ────────────────────────
   const fastTransits = (timeline?.transits_window ?? []).filter(

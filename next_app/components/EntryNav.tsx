@@ -1,5 +1,8 @@
 'use client';
 
+import { useAppStore } from '@/lib/store';
+import { UI } from '@/lib/i18n';
+
 export type EntryKey = 'panorama' | 'transits' | 'natal' | 'relocation';
 
 export interface EntryNavProps {
@@ -15,14 +18,37 @@ interface EntryDef {
   labelMobile: string;
 }
 
-const ENTRIES: EntryDef[] = [
-  { key: 'panorama',    icon: '🔭', labelDesktop: 'Panorama actual', labelMobile: 'Panorama'  },
-  { key: 'transits',   icon: '⚡', labelDesktop: 'Tránsitos',        labelMobile: 'Tránsitos' },
-  { key: 'natal',      icon: '☿', labelDesktop: 'Carta natal',       labelMobile: 'Carta'     },
-  { key: 'relocation', icon: '🌍', labelDesktop: 'Relocalización',   labelMobile: 'Reloc.'    },
-];
-
 export function EntryNav({ activeEntry, onSelect, disabled }: EntryNavProps) {
+  const lang = useAppStore((s) => s.lang);
+  const t = UI[lang];
+
+  const entries: EntryDef[] = [
+    {
+      key: 'panorama',
+      icon: '🔭',
+      labelDesktop: t.entryPanorama,
+      labelMobile: t.entryPanoramaShort ?? t.entryPanorama,
+    },
+    {
+      key: 'transits',
+      icon: '⚡',
+      labelDesktop: t.entryTransits,
+      labelMobile: t.entryTransitsShort ?? t.entryTransits,
+    },
+    {
+      key: 'natal',
+      icon: '☿',
+      labelDesktop: t.entryNatal,
+      labelMobile: t.entryNatalShort ?? t.entryNatal,
+    },
+    {
+      key: 'relocation',
+      icon: '🌍',
+      labelDesktop: t.entryRelocation,
+      labelMobile: t.entryRelocationShort ?? t.entryRelocation,
+    },
+  ];
+
   return (
     <>
       {/* ── Desktop: vertical stack ─────────────────────────────── */}
@@ -31,7 +57,7 @@ export function EntryNav({ activeEntry, onSelect, disabled }: EntryNavProps) {
         className={`hidden md:flex flex-col gap-0.5 px-2 py-2 border-b border-slate-800 shrink-0
           ${disabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}
       >
-        {ENTRIES.map(({ key, icon, labelDesktop }) => {
+        {entries.map(({ key, icon, labelDesktop }) => {
           const isActive = activeEntry === key;
           return (
             <button
@@ -60,7 +86,7 @@ export function EntryNav({ activeEntry, onSelect, disabled }: EntryNavProps) {
           ${disabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}
         style={{ height: '56px' }}
       >
-        {ENTRIES.map(({ key, icon, labelMobile }) => {
+        {entries.map(({ key, icon, labelMobile }) => {
           const isActive = activeEntry === key;
           return (
             <button

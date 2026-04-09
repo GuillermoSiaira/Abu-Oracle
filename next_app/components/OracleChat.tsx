@@ -234,16 +234,22 @@ export default function OracleChat() {
     calledEntries.current.add(entry);
 
     if (entry === 'transits') {
-      setPendingLillyEvent({ type: 'sky_open', payload: {} });
+      setPendingLillyEvent({ type: 'sky_open', payload: { lang } });
       return;
     }
     if (entry === 'natal') {
       const profection = (abuData as any)?.derived?.profection ?? {};
-      setPendingLillyEvent({ type: 'click_technique', payload: { technique: 'profection', data: profection } });
+      setPendingLillyEvent({
+        type: 'click_technique',
+        payload: { technique: 'profection', data: profection, lang },
+      });
       return;
     }
     if (entry === 'relocation') {
-      setPendingLillyEvent({ type: 'domain_select', payload: { domain: 'global', activeDomain: 'global' } });
+      setPendingLillyEvent({
+        type: 'domain_select',
+        payload: { domain: 'global', activeDomain: 'global', lang },
+      });
       return;
     }
 

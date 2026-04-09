@@ -34,6 +34,7 @@ export default function ChartPage() {
   const birthData = useAppStore((s) => s.birthData);
   const abuData = useAppStore((s) => s.abuData);
   const timeline = useAppStore((s) => s.timeline);
+  const chartTab = useAppStore((s) => s.chartTab);
 
   const ready = !!abuData;
 
@@ -104,7 +105,11 @@ export default function ChartPage() {
         </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
+      <div
+        className={`flex-1 px-4 py-6 space-y-6 ${
+          chartTab === 'chart' ? 'overflow-hidden' : 'overflow-y-auto'
+        }`}
+      >
         <div className="w-full min-h-[520px] border border-slate-800/60 rounded-lg bg-slate-900/20 flex items-center justify-center">
           <ChartTabs />
         </div>

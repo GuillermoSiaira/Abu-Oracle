@@ -380,7 +380,7 @@ export function NatalChartTab() {
           {/* Angles panel — ASC/MC with dual rulers */}
           {(chart.houses?.asc != null || chart.houses?.mc != null) && (
             <div className="mb-3 p-2 rounded-sm border border-slate-800 bg-[#080808]">
-              <h3 className="text-[10px] font-mono uppercase tracking-widest text-slate-600 mb-1.5">
+              <h3 className="text-[10px] font-mono uppercase tracking-widest text-amber-400/80 mb-1.5">
                 Ángulos
               </h3>
               {chart.houses?.asc != null && (
@@ -404,7 +404,7 @@ export function NatalChartTab() {
             </div>
           )}
 
-          <h3 className="text-xs font-mono uppercase tracking-widest text-slate-600 mb-3">
+          <h3 className="text-xs font-mono uppercase tracking-widest text-amber-300/80 mb-3">
             Posiciones planetarias
             <span className="ml-2 text-slate-700 normal-case">— click para interpretar</span>
           </h3>

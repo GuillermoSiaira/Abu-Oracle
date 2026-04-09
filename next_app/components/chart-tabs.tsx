@@ -1,23 +1,15 @@
 'use client'
 
-import {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  TabsContent
-} from "@/components/ui/simple-tabs"
-
 import { NatalChartTab } from './natal-chart-tab'
 import { PersianTechniquesTab } from './persian-techniques-tab'
 import { TransitsTab } from './transits-tab'
 import { RelocationTab } from './relocation-tab'
 import { CieloHoyTab } from './cielo-hoy-tab'
 import { useAppStore } from '@/lib/store'
-import { UI } from '@/lib/i18n'
+import { useEffect } from 'react'
 
 export function ChartTabs() {
-  const { abuData, includeTransits, lang } = useAppStore()
-  const t = UI[lang]
+  const { abuData, includeTransits, chartTab, setChartTab } = useAppStore()
 
   if (!abuData) {
     return (
@@ -27,44 +19,21 @@ export function ChartTabs() {
     )
   }
 
-  const gridCols = includeTransits ? "grid-cols-5" : "grid-cols-4"
+  const activeTab = chartTab ?? 'persian'
+
+  useEffect(() => {
+    if (!includeTransits && activeTab === 'transits') {
+      setChartTab('persian')
+    }
+  }, [includeTransits, activeTab, setChartTab])
 
   return (
-    <Tabs defaultValue="persian" className="w-full">
-      <div className="flex items-center gap-2 mb-1">
-        <TabsList className={`grid flex-1 ${gridCols}`}>
-          <TabsTrigger value="chart">{t.tabChart}</TabsTrigger>
-          <TabsTrigger value="persian">{t.tabPersian}</TabsTrigger>
-          {includeTransits && (
-            <TabsTrigger value="transits">{t.tabTransits}</TabsTrigger>
-          )}
-          <TabsTrigger value="relocation">{t.tabRelocation}</TabsTrigger>
-          <TabsTrigger value="sky">{t.tabSky}</TabsTrigger>
-        </TabsList>
-
-      </div>
-
-      <TabsContent value="chart" className="space-y-4">
-        <NatalChartTab />
-      </TabsContent>
-
-      <TabsContent value="persian" className="space-y-4">
-        <PersianTechniquesTab />
-      </TabsContent>
-
-      {includeTransits && (
-        <TabsContent value="transits" className="space-y-4">
-          <TransitsTab />
-        </TabsContent>
-      )}
-
-      <TabsContent value="relocation" className="space-y-4">
-        <RelocationTab />
-      </TabsContent>
-
-      <TabsContent value="sky" className="space-y-4">
-        <CieloHoyTab />
-      </TabsContent>
-    </Tabs>
+    <div className="h-full w-full">
+      {activeTab === 'chart'      && <NatalChartTab />}
+      {activeTab === 'persian'    && <PersianTechniquesTab />}
+      {activeTab === 'transits'   && includeTransits && <TransitsTab />}
+      {activeTab === 'relocation' && <RelocationTab />}
+      {activeTab === 'sky'        && <CieloHoyTab />}
+    </div>
   )
 }

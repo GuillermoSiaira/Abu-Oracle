@@ -134,6 +134,15 @@ export const UI: Record<Lang, {
   demoLoading: string;
   // Navigation
   navChart: string;
+  // Oracle chat entry nav
+  entryPanorama: string;
+  entryTransits: string;
+  entryNatal: string;
+  entryRelocation: string;
+  entryPanoramaShort: string;
+  entryTransitsShort: string;
+  entryNatalShort: string;
+  entryRelocationShort: string;
   // Birth data form
   formName: string;
   formNamePlaceholder: string;
@@ -208,6 +217,14 @@ export const UI: Record<Lang, {
     demoPageSubtitle: "10 sujetos con datos verificados (Rodden AA/A/B). Carta calculada on-demand.",
     demoLoading: "Calculando carta…",
     navChart: "Carta",
+    entryPanorama: "Panorama actual",
+    entryTransits: "Tránsitos",
+    entryNatal: "Carta natal",
+    entryRelocation: "Relocalización",
+    entryPanoramaShort: "Panorama",
+    entryTransitsShort: "Tránsitos",
+    entryNatalShort: "Carta",
+    entryRelocationShort: "Reloc.",
     formName: "Tu nombre",
     formNamePlaceholder: "¿Cómo te llamás?",
     formNameHint: "Abu recordará tu nombre entre sesiones.",
@@ -348,6 +365,14 @@ export const UI: Record<Lang, {
     demoPageSubtitle: "10 subjects with verified data (Rodden AA/A/B). Chart computed on-demand.",
     demoLoading: "Computing chart…",
     navChart: "Chart",
+    entryPanorama: "Current panorama",
+    entryTransits: "Transits",
+    entryNatal: "Birth chart",
+    entryRelocation: "Relocation",
+    entryPanoramaShort: "Panorama",
+    entryTransitsShort: "Transits",
+    entryNatalShort: "Chart",
+    entryRelocationShort: "Reloc.",
     formName: "Your name",
     formNamePlaceholder: "What's your name?",
     formNameHint: "Abu will remember your name between sessions.",
@@ -488,6 +513,14 @@ export const UI: Record<Lang, {
     demoPageSubtitle: "10 sujeitos com dados verificados (Rodden AA/A/B). Carta calculada sob demanda.",
     demoLoading: "Calculando carta…",
     navChart: "Carta",
+    entryPanorama: "Panorama atual",
+    entryTransits: "Trânsitos",
+    entryNatal: "Carta natal",
+    entryRelocation: "Relocalização",
+    entryPanoramaShort: "Panorama",
+    entryTransitsShort: "Trânsitos",
+    entryNatalShort: "Carta",
+    entryRelocationShort: "Reloc.",
     formName: "Seu nome",
     formNamePlaceholder: "Como você se chama?",
     formNameHint: "Abu lembrará seu nome entre sessões.",
@@ -628,6 +661,14 @@ export const UI: Record<Lang, {
     demoPageSubtitle: "10 sujets avec données vérifiées (Rodden AA/A/B). Thème calculé à la demande.",
     demoLoading: "Calcul du thème…",
     navChart: "Thème",
+    entryPanorama: "Panorama actuel",
+    entryTransits: "Transits",
+    entryNatal: "Thème natal",
+    entryRelocation: "Relocalisation",
+    entryPanoramaShort: "Panorama",
+    entryTransitsShort: "Transits",
+    entryNatalShort: "Thème",
+    entryRelocationShort: "Reloc.",
     formName: "Votre prénom",
     formNamePlaceholder: "Comment vous appelez-vous ?",
     formNameHint: "Abu mémorisera votre prénom entre les sessions.",

@@ -4,12 +4,14 @@ import { ReactNode, useState, useRef, useEffect } from 'react';
 import Navigation from './Navigation';
 import OracleChat from './OracleChat';
 import TechnicalPanel from './TechnicalPanel';
+import { useAppStore } from '@/lib/store';
 
 const MIN_WIDTH = 300;
 const MAX_WIDTH = 700;
 const DEFAULT_WIDTH = 440;
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
+  const chartSidebarExpanded = useAppStore((s) => s.chartSidebarExpanded);
   const [oracleWidth, setOracleWidth] = useState(() => {
     if (typeof window !== 'undefined') {
       return parseInt(localStorage.getItem('oracleWidth') ?? String(DEFAULT_WIDTH));
@@ -62,12 +64,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       <div className="flex flex-1 overflow-hidden relative">
 
         {/* COLUMNA IZQUIERDA: Contexto Técnico */}
-        <aside className="
-            hidden lg:flex flex-col
-            w-[220px] shrink-0
-            bg-[#050505] border-r border-slate-800
-            z-10
-        ">
+        <aside
+          className={`hidden lg:flex flex-col shrink-0 bg-[#050505] border-r border-slate-800
+            transition-all duration-200 z-10
+            ${chartSidebarExpanded ? 'w-[220px]' : 'w-[48px]'}
+          `}
+        >
           <TechnicalPanel />
         </aside>
 

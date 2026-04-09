@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { Cpu } from 'lucide-react';
+import { Cpu, Star, Moon, Activity, Globe, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 import { UI } from '@/lib/i18n';
 import { ABU_BASE_URL } from '@/services/abu';
@@ -50,8 +50,27 @@ const ROUTE_MAP: Record<string, string> = {
   click_domain: '/api/lilly/domain',
 };
 
+const CHART_TABS = [
+  { key: 'chart',      Icon: Star,     labelKey: 'tabChart',      conditional: false },
+  { key: 'persian',    Icon: Moon,     labelKey: 'tabPersian',    conditional: false },
+  { key: 'transits',   Icon: Activity, labelKey: 'tabTransits',   conditional: true  },
+  { key: 'relocation', Icon: Globe,    labelKey: 'tabRelocation', conditional: false },
+  { key: 'sky',        Icon: Eye,      labelKey: 'tabSky',        conditional: false },
+];
+
 export default function TechnicalPanel() {
-  const { abuData, lang, lastLillyEvent, lillySuggestions, setPendingLillyEvent } = useAppStore() as any;
+  const {
+    abuData,
+    lang,
+    lastLillyEvent,
+    lillySuggestions,
+    setPendingLillyEvent,
+    includeTransits,
+    chartTab,
+    setChartTab,
+    chartSidebarExpanded,
+    setChartSidebarExpanded,
+  } = useAppStore() as any;
   const t = UI[lang as keyof typeof UI] ?? UI.es;
   const pathname = usePathname();
   const isChartPage = pathname === '/chart';
@@ -81,6 +100,7 @@ export default function TechnicalPanel() {
 
   const hasChart = isChartPage && !!abuData?.chart?.planets?.length;
   const planets: any[] = abuData?.chart?.planets ?? [];
+  const visibleTabs = CHART_TABS.filter((tab) => !tab.conditional || includeTransits);
 
   // --- Year lord from profection ---
   const profectionHouse: number | null = abuData?.derived?.profection?.house ?? null;
@@ -105,46 +125,105 @@ export default function TechnicalPanel() {
 
   function fireSuggestion(sug: { type: string; target: string; label: string }) {
     if (sug.type === 'click_planet') {
-      setPendingLillyEvent({ type: 'click_planet', payload: { planet_name: sug.target, label: sug.label } });
+      setPendingLillyEvent({
+        type: 'click_planet',
+        payload: { planet_name: sug.target, label: sug.label, lang },
+      });
     } else if (sug.type === 'click_technique') {
       setPendingLillyEvent({ type: 'click_technique', payload: { technique: sug.target, data: {}, subject_name: '', lang } });
     } else if (sug.type === 'click_domain') {
-      setPendingLillyEvent({ type: 'domain_select', payload: { domain: sug.target, label: sug.label } });
+      setPendingLillyEvent({
+        type: 'domain_select',
+        payload: { domain: sug.target, label: sug.label, lang },
+      });
     }
   }
 
-  return (
-    <div className="h-full bg-[#050505] text-slate-400 p-4 font-mono text-sm overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800 flex flex-col gap-4">
+  const handleChartNavToggle = () => {
+    setChartSidebarExpanded(!chartSidebarExpanded);
+  };
 
-      {/* CONNECTION STATUS */}
-      <div className="border-b border-slate-900 pb-3">
-        <div className="flex items-center justify-between mb-2">
-          <StatusDot status={abuStatus} label="Abu" />
-          <StatusDot status={lillyStatus} label="Lilly" />
-        </div>
-        <button
-          onClick={() => setIsArchOpen(v => !v)}
-          className="w-full flex items-center justify-between text-[10px] uppercase tracking-widest text-slate-700 hover:text-slate-500 transition-colors py-0.5"
-        >
-          <span className="flex items-center gap-1.5">
-            <Cpu className="w-3 h-3" /> {t.tpSysArch}
-          </span>
-          <span>{isArchOpen ? '▲' : '▼'}</span>
-        </button>
-        {isArchOpen && (
-          <div className="space-y-1.5 text-[10px] mt-2 text-slate-600">
-            <div className="flex justify-between"><span>Kernel:</span><span className="text-green-600">Python + Skyfield</span></div>
-            <div className="flex justify-between"><span>Ephem:</span><span>Swiss DE440s</span></div>
-            <div className="flex justify-between"><span>Ref:</span><span>Topocentric</span></div>
-            <div className="flex justify-between"><span>Houses:</span><span>Placidus</span></div>
+  return (
+    <div
+      className={`h-full bg-[#050505] text-slate-400 font-mono text-sm overflow-y-auto
+        scrollbar-thin scrollbar-thumb-slate-800 flex flex-col gap-4 transition-all
+        ${chartSidebarExpanded ? 'p-4' : 'p-2 items-center'}
+      `}
+    >
+
+      {chartSidebarExpanded && (
+        <div className="border-b border-slate-900 pb-3 w-full">
+          <div className="flex items-center justify-between mb-2">
+            <StatusDot status={abuStatus} label="Abu" />
+            <StatusDot status={lillyStatus} label="Lilly" />
           </div>
-        )}
-      </div>
+          <button
+            onClick={() => setIsArchOpen(v => !v)}
+            className="w-full flex items-center justify-between text-[10px] uppercase tracking-widest text-slate-700 hover:text-slate-500 transition-colors py-0.5"
+          >
+            <span className="flex items-center gap-1.5">
+              <Cpu className="w-3 h-3" /> {t.tpSysArch}
+            </span>
+            <span>{isArchOpen ? '▲' : '▼'}</span>
+          </button>
+          {isArchOpen && (
+            <div className="space-y-1.5 text-[10px] mt-2 text-slate-600">
+              <div className="flex justify-between"><span>Kernel:</span><span className="text-green-600">Python + Skyfield</span></div>
+              <div className="flex justify-between"><span>Ephem:</span><span>Swiss DE440s</span></div>
+              <div className="flex justify-between"><span>Ref:</span><span>Topocentric</span></div>
+              <div className="flex justify-between"><span>Houses:</span><span>Placidus</span></div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* GUIDE PANEL — only when chart loaded */}
       {hasChart && (
         <>
+          {/* NAV CHART */}
+          <div className={`${chartSidebarExpanded ? 'w-full' : ''}`}>
+            <div className="flex items-center justify-between mb-2 w-full">
+              {chartSidebarExpanded && (
+                <h3 className="text-[9px] uppercase tracking-widest text-slate-600">
+                  {t.tabChart}
+                </h3>
+              )}
+              <button
+                onClick={handleChartNavToggle}
+                className="flex items-center justify-center h-5 w-5 rounded border border-slate-800 text-slate-600 hover:text-amber-400 hover:border-amber-500/40 transition-colors"
+                aria-label={chartSidebarExpanded ? 'Contraer menú' : 'Expandir menú'}
+              >
+                {chartSidebarExpanded ? <ChevronLeft size={12} /> : <ChevronRight size={12} />}
+              </button>
+            </div>
+            <div className="flex flex-col gap-1">
+              {visibleTabs.map(({ key, Icon, labelKey }) => {
+                const isActive = chartTab === key;
+                return (
+                  <button
+                    key={key}
+                    onClick={() => setChartTab(key)}
+                    className={`flex items-center gap-2 px-2.5 py-2 rounded border transition-colors
+                      ${chartSidebarExpanded ? 'justify-start' : 'justify-center'}
+                      ${isActive
+                        ? 'text-amber-300 bg-amber-500/10 border-amber-500/30'
+                        : 'text-slate-500 border-slate-800 hover:text-slate-300 hover:bg-slate-800/30'
+                      }`}
+                  >
+                    <Icon size={14} className="shrink-0" />
+                    {chartSidebarExpanded && (
+                      <span className="text-[11px] font-medium tracking-wide truncate">
+                        {t[labelKey as keyof typeof t] as string}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           {/* LEYENDO AHORA */}
+          {chartSidebarExpanded && (
           <div>
             <h3 className="text-[9px] uppercase tracking-widest text-slate-600 mb-2">
               {t.tpReadingNow}
@@ -159,8 +238,10 @@ export default function TechnicalPanel() {
               )}
             </div>
           </div>
+          )}
 
           {/* SEÑOR DEL AÑO */}
+          {chartSidebarExpanded && (
           <div>
             <h3 className="text-[9px] uppercase tracking-widest text-slate-600 mb-2">
               {t.tpYearLord}
@@ -188,8 +269,10 @@ export default function TechnicalPanel() {
               )}
             </div>
           </div>
+          )}
 
           {/* EXPLORAR */}
+          {chartSidebarExpanded && (
           <div>
             <h3 className="text-[9px] uppercase tracking-widest text-slate-600 mb-2">
               {t.tpExplore}
@@ -210,6 +293,7 @@ export default function TechnicalPanel() {
               )}
             </div>
           </div>
+          )}
         </>
       )}
 
