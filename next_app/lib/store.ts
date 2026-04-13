@@ -51,7 +51,6 @@
     lang: "es" | "en" | "pt" | "fr"
     chartTab: ChartTabKey
     chartSidebarExpanded: boolean
-    chartTab: ChartTabKey
 
     userName: string
     isDemo: boolean
@@ -73,7 +72,6 @@
     setLang: (lang: "es" | "en" | "pt" | "fr") => void
     setChartTab: (tab: ChartTabKey) => void
     setChartSidebarExpanded: (expanded: boolean) => void
-    setChartTab: (tab: ChartTabKey) => void
     addChatMessage: (msg: ChatMessage) => void
     setUserName: (name: string) => void
     setIsDemo: (value: boolean) => void
@@ -193,7 +191,6 @@
       lang: (persisted as any).lang ?? "es",
       chartTab: "persian",
       chartSidebarExpanded: loadChartSidebarExpanded(),
-      chartTab: "persian",
 
       userName: loadUserName(),
       isDemo: false,
@@ -247,7 +244,6 @@
         }
         set({ chartSidebarExpanded: expanded })
       },
-      setChartTab: (tab) => set({ chartTab: tab }),
 
       addChatMessage: (msg) =>
         set((state) => {
@@ -313,7 +309,6 @@
           onboardingData: {},
           chartTab: "persian",
           chartSidebarExpanded: true,
-          chartTab: "persian",
           // userName se preserva
         })
       },
