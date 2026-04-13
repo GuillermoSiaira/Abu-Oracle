@@ -34,8 +34,6 @@
 
   export type ChartTabKey = "chart" | "persian" | "transits" | "relocation" | "sky"
 
-  export type ChartTabKey = "chart" | "persian" | "transits" | "relocation" | "sky"
-
   // ======================================================
   //  APP STATE
   // ======================================================
