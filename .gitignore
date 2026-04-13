@@ -98,3 +98,9 @@ firebase_apps_response.json
 .claude/
 run_d3_compute.py
 run_d3_figure.py
+
+# Media / video
+abu_media/
+*.mkv
+*.mp4
+*.mov
