@@ -94,14 +94,12 @@ export async function POST(req: Request) {
       messages,
     } = body;
 
-    // ── Rate limit + memoria biográfica (si el usuario está autenticado) ─────
-    const limitRes = await applyRateLimit(req);
-    if (limitRes) return limitRes;
+    // ── Memoria biográfica + detección de usuario nuevo ──────────────────────
     const userId = await getUserIdFromRequest(req);
     const memoryCtx = userId ? await getRecentHistory(userId) : null;
     const memoryBlock = memoryCtx ? formatMemoryForPrompt(memoryCtx) : '';
 
-    // ── Welcome message for first-time users — no LLM call, no API cost ──────
+    // ── Welcome message for first-time users — no LLM call, no rate limit ────
     const isNewUser =
       !!userId && !!memoryCtx &&
       memoryCtx.exchanges.length === 0 && !memoryCtx.summary;
@@ -112,6 +110,10 @@ export async function POST(req: Request) {
         suggestions: WELCOME_SUGGESTIONS[resolvedLang],
       });
     }
+
+    // ── Rate limit (solo si no es usuario nuevo — welcome es gratuito) ────────
+    const limitRes = await applyRateLimit(req);
+    if (limitRes) return limitRes;
 
     // ── Fetch lunar data from Abu Engine (non-fatal, forwarding auth header) ─
     let lunarBlock = '';
