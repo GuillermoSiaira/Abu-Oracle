@@ -244,7 +244,7 @@ En Cloud Run abu_engine ya tiene `AUTH_ENABLED=true` por defecto — no tocar es
 
 ---
 
-### Fixes UI + Acceso (2026-04-09) � Free tier + sidebar global + idioma chat
+### Fixes UI + Acceso (2026-04-09) � Free tier + sidebar global + idioma chat
 
 **Free tier 3 consultas (usuarios no pagos)** (`usage-limiter.ts`, routes Lilly)
 - Nuevo `FREE_TIER_LIMIT=3` y `FREE_LIMIT_MESSAGE`.
@@ -252,7 +252,7 @@ En Cloud Run abu_engine ya tiene `AUTH_ENABLED=true` por defecto — no tocar es
 - Routes actualizadas: `/api/lilly/screen-open`, `/api/chat`, `/api/lilly/solar-return`.
 
 **Sidebar de tabs movida al panel izquierdo** (`TechnicalPanel`, `DashboardLayout`, `store`)
-- Navegaci�n de carta vive en la barra t�cnica izquierda (colapsable completa).
+- Navegaci�n de carta vive en la barra t�cnica izquierda (colapsable completa).
 - Estado persistido en `chartSidebarExpanded` (default expandido).
 - `chartTab` en store para sincronizar contenido central.
 
@@ -261,9 +261,9 @@ En Cloud Run abu_engine ya tiene `AUTH_ENABLED=true` por defecto — no tocar es
 - `lang` propagado en eventos `sky_open`, `click_technique`, `domain_select`.
 
 **UX extra**
-- `CieloHoyTab` hace fallback de timeline si est� null.
+- `CieloHoyTab` hace fallback de timeline si est� null.
 - Scroll central desactivado solo en tab "Carta Natal".
-- T�tulos "�ngulos" y "Posiciones planetarias" en �mbar.
+- T�tulos "�ngulos" y "Posiciones planetarias" en �mbar.
 
 ### Fixes post-lanzamiento (2026-03-21) — SR domain heatmap + scores + auth local dev
 
@@ -1122,8 +1122,103 @@ Capa aditiva sobre la firma natal. Requiere `transit_lon` (posición actual del 
 - `abu_engine/main.py` — `transit_lon` patcheado en `transits_window` para tránsitos activos
 - `next_app/lib/context-builder.ts` — `transit_lon?: number` en tipo `BiographicalTimeline`
 
-**Pendiente Fase 12:**
+**Pendiente Fase 13:**
 - Capa 3 — HF Paisaje: heatmap sonoro geográfico (frecuencias moduladas por HF score de la ubicación)
+
+---
+
+### Fase 12 — Módulo Mundana + Publisher Autónomo ✅ `[COMPLETA — sesión 2026-04-15]`
+
+**Hipótesis H_mundana_A confirmada**: conjunción JS p=5×10⁻⁶ densidad=4.3×; oposición MS p=0.016 densidad=1.6× (corpus 23.636 eventos, año 8–2069).
+
+#### Day 1 — Backend + Lilly mundana (commits `eb74e02`, `1996290`, `26a6c6b`)
+
+**`next_app/lib/selectModel.ts`** — routing revisado: todas las routes → `claude-sonnet-4-6`; Haiku reservado para MILP optimizer (Fase E). Eliminadas ramas Haiku en `technique` y `city`.
+
+**`next_app/lib/anthropic-client.ts`** — factory AnthropicVertex (nueva):
+```ts
+import { AnthropicVertex } from '@anthropic-ai/vertex-sdk';
+export function getAnthropicClient() {
+  return new AnthropicVertex({ projectId: 'abu-oracle', region: 'us-east5' });
+}
+```
+Cloud Run usa ADC — sin `ANTHROPIC_API_KEY`. 10 routes Lilly migradas de `new Anthropic({ apiKey })` a `getAnthropicClient()`.
+
+**`abu_engine/core/mundana.py`** — módulo cálculo mundano (Docker):
+- `get_current_sky()`: posiciones + configuraciones activas
+- `get_upcoming_configurations(days_ahead)`: bisección para fecha exacta
+- `get_historical_context(config_type)`: corpus en ventanas similares
+- Detección stellium: ≥4 planetas en 30°, incluye Neptuno
+- Tipos: conjunction_JS, conjunction_MS, opposition_MS, conjunction_MJ, opposition_MJ
+
+**`abu_engine/routers/mundana.py`** — 3 endpoints:
+```
+GET /api/mundana/sky       → configuraciones activas
+GET /api/mundana/forecast  → próximas (days=90)
+GET /api/mundana/history   → contexto histórico por tipo
+```
+
+**`next_app/app/api/lilly/mundana/route.ts`** — interpreta cielo colectivo; funciona con o sin carta natal; max_tokens 2048.
+
+#### Day 2 — Frontend MundanaTab (commits `3e770b2`, `98b65f4`)
+
+**`next_app/components/mundana-tab.tsx`** — pestaña "Mundana":
+- Fetch `/api/mundana/sky` + `/api/mundana/forecast?days=90`
+- Tarjetas activas clickeables con badges (esmeralda=alta, ámbar=media), filtros, p_value + density_ratio
+- Botón "Lilly interpreta" → evento `mundana_config`
+- Timeline de próximas configuraciones
+
+**`next_app/components/transits-tab.tsx`** — sección "Contexto Mundano": fetch lazy sky al montar, tarjetas compactas antes del Gantt.
+
+**Store/i18n/TechnicalPanel/OracleChat**: `ChartTabKey` + `'mundana'`, 15 keys i18n, ícono `Orbit`, routing `mundana_config`.
+
+**`scripts/mundana/sky_calculator.py`** — mismo módulo que `core/mundana.py` para pipeline local.
+
+#### Day 3 — Publisher Pipeline autónomo (commits `ff295f5`, `3570f9d`)
+
+**`scripts/mundana/publication_filter.py`**:
+- `should_publish()`: cooldown 3d + umbrales (p≤0.05, density≥2.0, days_to_exact≤7)
+- Excepción stellium: pasa sin p_value si significance='high'
+- `get_best_configuration()`: prioridad activa+alta > próxima+alta > activa+media
+
+**`scripts/mundana/content_generator.py`**: `generate_post(config, platform, history)` → Claude Sonnet 4.6. Voz Lilly doctrinal. Límites: farcaster 320, twitter hilo [TWEET], bluesky 300, instagram 2200.
+
+**`scripts/mundana/publishers/`**:
+- `farcaster_publisher.py` — Neynar API (NEYNAR_API_KEY + FARCASTER_SIGNER_UUID)
+- `bluesky_publisher.py` — AT Protocol createSession + createRecord (solo `requests`)
+- `twitter_publisher.py` — Fase 1: borrador + email Resend (también IG/FB/TikTok)
+- `__init__.py` — `publish_all(platform, content)` dispatch
+
+**`scripts/mundana/main_publisher.py`** — entry point Cloud Run Job: filter → generate → publish → registry. `DRY_RUN=true`, `PLATFORMS` CSV, log en `data/mundana/logs/`.
+
+**`scripts/mundana/onchain_registry.py`**: SHA-256 + backup local (`data/mundana/registry/`) + GCS upload.
+
+**`scripts/mundana/Dockerfile`** + **`requirements-mundana.txt`** + **`cloudbuild-mundana-job.yaml`**: container `PYTHONUTF8=1`. Instrucciones de setup completas en comentarios del YAML.
+
+**Pipeline validado end-to-end (local, 2026-04-15)**:
+```
+filter → stellium Aries 5 planetas (sig=high) → farcaster 317 chars ✓
+       → twitter borrador en data/mundana/drafts/ ✓ → SHA-256 registry ✓
+```
+
+**Para activar en producción:**
+```bash
+gcloud builds submit --config=cloudbuild-mundana-job.yaml --project=abu-oracle .
+# Ver cloudbuild-mundana-job.yaml para gcloud run jobs create + Cloud Scheduler
+```
+
+**Archivos nuevos/modificados — Fase 12:**
+- `abu_engine/core/mundana.py`, `abu_engine/routers/__init__.py`, `abu_engine/routers/mundana.py`
+- `abu_engine/main.py` — `include_router(mundana_router)`
+- `next_app/lib/anthropic-client.ts` — NUEVO (factory Vertex)
+- `next_app/lib/selectModel.ts`, `next_app/lib/lilly-complete.ts` (client: any), `next_app/lib/store.ts`, `next_app/lib/i18n.ts`
+- `next_app/components/mundana-tab.tsx` — NUEVO
+- `next_app/components/{chart-tabs,TechnicalPanel,OracleChat,transits-tab}.tsx`
+- `next_app/app/api/lilly/mundana/route.ts` — NUEVO
+- `next_app/app/api/lilly/{city,house,sky,solar-return,transit,domain,planet,technique}/route.ts` — migrados a Vertex
+- `scripts/mundana/{sky_calculator,publication_filter,content_generator,main_publisher,onchain_registry}.py`
+- `scripts/mundana/publishers/{__init__,farcaster,bluesky,twitter}_publisher.py`
+- `scripts/mundana/Dockerfile`, `requirements-mundana.txt`, `cloudbuild-mundana-job.yaml`
 
 ---
 
@@ -1778,7 +1873,7 @@ Es un **sistema de inteligencia biográfica personal** — un motor que observa 
 Lo que distingue este sistema de cualquier app de astrología existente:
 - No interpreta símbolos — calcula campos escalares geográficos y detecta convergencias temporales
 - No adivina — correlaciona con datos biográficos reales y mide la correlación
-- No responde preguntas — construye un modelo del nativo que mejora con el tiempo
+2222222- No responde preguntas — construye un modelo del nativo que mejora con el tiempo
 
 ---
 

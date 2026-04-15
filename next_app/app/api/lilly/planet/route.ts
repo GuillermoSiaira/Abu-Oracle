@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import Anthropic from '@anthropic-ai/sdk';
+import { getAnthropicClient } from '../../../../lib/anthropic-client';
 import { LILLY_SYSTEM_PROMPT } from '../../../../lib/lilly-prompt';
 import {
   buildNatalContext,
@@ -22,11 +22,6 @@ const EMPTY_TIMELINE: BiographicalTimeline = {
 };
 
 export async function POST(req: Request) {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
-    return NextResponse.json({ error: 'ANTHROPIC_API_KEY not configured' }, { status: 503 });
-  }
-
   try {
     const limitResponse = await applyRateLimit(req);
     if (limitResponse) return limitResponse;
@@ -68,7 +63,7 @@ export async function POST(req: Request) {
     }
 
     const { model } = selectModel('planet', 'genesis');
-    const client = new Anthropic({ apiKey });
+    const client = getAnthropicClient();
     const { text, usage } = await completeLilly(client, {
       model,
       max_tokens: 1024,

@@ -32,7 +32,8 @@ export interface LillyResult {
 }
 
 export async function completeLilly(
-  client: Anthropic,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  client: any,
   params: CreateParams,
 ): Promise<LillyResult> {
   // Shallow-copy messages array so el caller no es mutado
