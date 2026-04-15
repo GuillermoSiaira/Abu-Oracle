@@ -32,6 +32,7 @@ from core.auth import verify_token
 import logging
 import time
 from services.logging import init_logging, log_event
+from routers import mundana as mundana_router
 
 # ── Cities cache (loaded once at startup) ──────────────────────────────────
 _CITIES_CACHE: list = []
@@ -107,6 +108,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
+
+# Mundana router
+app.include_router(mundana_router.router, prefix="/api/mundana")
 
 # Simple HTTP timing middleware
 @app.middleware("http")
