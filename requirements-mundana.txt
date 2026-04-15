@@ -1,0 +1,17 @@
+# Abu Oracle Mundana Publisher — dependencias del Cloud Run Job
+# Instalar con: pip install -r requirements-mundana.txt
+
+# Cálculo astrológico
+pyswisseph>=2.10.3.2
+
+# Claude Sonnet 4.6 (generación de contenido)
+anthropic>=0.49.0
+
+# HTTP (publishers Farcaster, Bluesky, Resend, Neynar)
+requests>=2.32.0
+
+# GCS (registro de predicciones — opcional)
+google-cloud-storage>=2.19.0
+
+# Utilidades estándar (incluidas en Python 3.11)
+# json, hashlib, datetime, pathlib, os, sys — sin instalar

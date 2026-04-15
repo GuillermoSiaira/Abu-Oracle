@@ -1,0 +1,78 @@
+steps:
+  # ── 1. Build ──────────────────────────────────────────────────────────────
+  # Construye desde la raíz del repo para incluir scripts/mundana/ + data/mundana/ + abu_engine/ephe/
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - build
+      - -t
+      - gcr.io/abu-oracle/mundana-publisher:latest
+      - -f
+      - scripts/mundana/Dockerfile
+      - .
+
+  # ── 2. Push ───────────────────────────────────────────────────────────────
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - push
+      - gcr.io/abu-oracle/mundana-publisher:latest
+
+  # ── 3. Update Cloud Run Job image ─────────────────────────────────────────
+  # El job se crea manualmente la primera vez con:
+  #   gcloud run jobs create mundana-publisher \
+  #     --image=gcr.io/abu-oracle/mundana-publisher:latest \
+  #     --region=us-central1 \
+  #     --service-account=abu-engine-sa@abu-oracle.iam.gserviceaccount.com \
+  #     --set-env-vars=ANTHROPIC_API_KEY=...,NEYNAR_API_KEY=...,... \
+  #     --max-retries=1 \
+  #     --task-timeout=300s
+  # Este step solo actualiza la imagen en deploys posteriores.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    args:
+      - gcloud
+      - run
+      - jobs
+      - update
+      - mundana-publisher
+      - --image=gcr.io/abu-oracle/mundana-publisher:latest
+      - --region=us-central1
+
+images:
+  - gcr.io/abu-oracle/mundana-publisher:latest
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: E2_STANDARD_2
+
+# ── Notas de setup inicial ─────────────────────────────────────────────────
+#
+# 1. Crear el Cloud Run Job (una vez):
+#    gcloud run jobs create mundana-publisher \
+#      --image=gcr.io/abu-oracle/mundana-publisher:latest \
+#      --region=us-central1 \
+#      --service-account=abu-engine-sa@abu-oracle.iam.gserviceaccount.com \
+#      --set-secrets=ANTHROPIC_API_KEY=anthropic-api-key:latest,\
+#        NEYNAR_API_KEY=neynar-api-key:latest,\
+#        FARCASTER_SIGNER_UUID=farcaster-signer-uuid:latest,\
+#        BLUESKY_HANDLE=bluesky-handle:latest,\
+#        BLUESKY_PASSWORD=bluesky-password:latest,\
+#        RESEND_API_KEY=resend-api-key:latest \
+#      --set-env-vars=PLATFORMS=farcaster\,bluesky\,twitter,\
+#        GOOGLE_CLOUD_PROJECT=abu-oracle,\
+#        GCS_PREDICTIONS_BUCKET=abu-oracle-predictions \
+#      --max-retries=1 \
+#      --task-timeout=300s
+#
+# 2. Crear el Cloud Scheduler trigger (08:00 UTC diario):
+#    gcloud scheduler jobs create http mundana-publisher-daily \
+#      --schedule="0 8 * * *" \
+#      --uri="https://us-central1-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/abu-oracle/jobs/mundana-publisher:run" \
+#      --message-body="{}" \
+#      --oauth-service-account-email=abu-engine-sa@abu-oracle.iam.gserviceaccount.com \
+#      --location=us-central1
+#
+# 3. Deploy manual de prueba:
+#    gcloud run jobs execute mundana-publisher --region=us-central1
+#
+# 4. Deploy con DRY_RUN para verificar sin publicar:
+#    gcloud run jobs execute mundana-publisher --region=us-central1 \
+#      --update-env-vars=DRY_RUN=true
