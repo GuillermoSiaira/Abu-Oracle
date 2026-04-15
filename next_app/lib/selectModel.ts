@@ -39,7 +39,7 @@ const OUTPUT_TOKENS_EST = 300
 
 // Claude pricing per 1M tokens (USD). Source: Anthropic pricing page.
 const PRICING: Record<string, { input: number; output: number }> = {
-  'claude-sonnet-4-6':         { input: 3.00, output: 15.00 },
+  'claude-sonnet-4-6':       { input: 3.00, output: 15.00 },
   'claude-haiku-4-5-20251001': { input: 0.80, output:  4.00 },
 }
 
@@ -47,17 +47,10 @@ export function selectModel(route: Route, plan: Plan): ModelDecision {
   let model: string
   let routing_reason: string
 
-  // Static policy (Phase B). When Fase E is implemented, this block
-  // becomes the MILP decision point — the rest of the function stays unchanged.
-  if (route === 'technique' || route === 'city') {
-    model = 'claude-haiku-4-5-20251001'
-    routing_reason =
-      'low-complexity route — short factual response, no deep doctrinal synthesis required'
-  } else {
-    model = 'claude-sonnet-4-6'
-    routing_reason =
-      'high-complexity route — doctrinal interpretation or narrative synthesis required'
-  }
+  // Static policy: all doctrinal routes use Sonnet.
+  // Haiku is reserved for the MILP optimizer (Fase E) — not active yet.
+  model = 'claude-sonnet-4-6'
+  routing_reason = 'all routes → Sonnet; Haiku reserved for MILP optimizer'
 
   const inputEst = INPUT_TOKENS_EST[route] ?? 4000
   const pricing  = PRICING[model] ?? PRICING['claude-sonnet-4-6']
