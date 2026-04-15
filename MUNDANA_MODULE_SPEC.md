@@ -474,3 +474,38 @@ DÍA 3 (antes del 18):
 - Deploy solo con: `gcloud builds submit --config=cloudbuild-*.yaml`
 - NO modificar abu_engine/ sin confirmar con el operador primero
 - Lilly siempre en claude-sonnet-4-6 (sin excepción)
+
+---
+
+## FASE 4 — Integración FinOps en el agente publicador (post-lanzamiento)
+
+### Concepto
+El agente publicador toma decisiones de costo usando el mismo
+framework MILP de Abu Oracle aplicado al contenido mundano.
+
+### Lógica de decisión por significancia estadística
+
+| Configuración | p-value | Modelo | max_tokens | Plataformas |
+|---|---|---|---|---|
+| Conjunción J-S exacta | <0.001 | Sonnet | 2048 | Todas |
+| Oposición M-S exacta | <0.01 | Sonnet | 1024 | Farcaster + Bluesky |
+| Cuadratura significativa | <0.05 | Haiku | 512 | Solo Farcaster |
+| Señal débil | >0.05 | No publicar | — | — |
+
+### MILP mundana
+Maximizar: impacto × alcance × reputación_acumulada
+Sujeto a:
+  - Presupuesto tokens/mes para el job (configurable)
+  - Umbral estadístico mínimo de la configuración (p < 0.05)
+  - Frecuencia máxima: 1 publicación cada 3 días
+  - Calidad mínima: Sonnet para configuraciones de alta significancia
+
+### Implementación
+Extender publication_filter.py para que retorne también
+el modelo y max_tokens recomendados según el p-value.
+content_generator.py consume esa decisión.
+
+### Timing
+No implementar antes del 18 de abril.
+Activar cuando el agente lleve 30 días publicando
+y haya datos reales de engagement por plataforma.
