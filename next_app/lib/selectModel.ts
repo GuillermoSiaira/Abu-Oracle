@@ -13,6 +13,7 @@ export type Route =
   | 'city'
   | 'sky'
   | 'house'
+  | 'mundana'
 
 export type Plan = 'genesis' | 'monthly' | 'annual' | 'free'
 
@@ -31,6 +32,7 @@ const INPUT_TOKENS_EST: Record<Route, number> = {
   'technique':    4000,
   'solar-return': 4000,
   'house':        4000,
+  'mundana':      4500,
   'sky':          4500,
   'chat':         5000,
 }
