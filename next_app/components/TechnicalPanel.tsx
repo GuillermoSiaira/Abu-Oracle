@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { Cpu, Star, Moon, Activity, Globe, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Cpu, Star, Moon, Activity, Globe, Eye, ChevronLeft, ChevronRight, Orbit } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 import { UI } from '@/lib/i18n';
 import { ABU_BASE_URL } from '@/services/abu';
@@ -56,6 +56,7 @@ const CHART_TABS = [
   { key: 'transits',   Icon: Activity, labelKey: 'tabTransits',   conditional: true  },
   { key: 'relocation', Icon: Globe,    labelKey: 'tabRelocation', conditional: false },
   { key: 'sky',        Icon: Eye,      labelKey: 'tabSky',        conditional: false },
+  { key: 'mundana',   Icon: Orbit,    labelKey: 'tabMundana',    conditional: false },
 ];
 
 export default function TechnicalPanel() {

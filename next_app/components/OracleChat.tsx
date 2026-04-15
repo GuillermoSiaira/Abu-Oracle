@@ -336,7 +336,8 @@ export default function OracleChat() {
 
       if (t === 'click_house') return `Casa ${p?.house_num ?? ''} · ${p?.cusp_sign ?? ''}`;
       if (t === 'city_select') return p?.city_name || 'Ciudad';
-      if (t === 'sky_open') return 'Cielo Hoy';
+      if (t === 'sky_open')       return 'Cielo Hoy';
+      if (t === 'mundana_config') return p?.label || 'Mundana';
       return t;
     };
     setLastLillyEvent({ type, label: deriveLabel(type, payload) });
@@ -349,7 +350,8 @@ export default function OracleChat() {
       sr_domain_select: '/api/lilly/solar-return',
       click_transit: '/api/lilly/transit',
       city_select: '/api/lilly/city',
-      sky_open: '/api/lilly/sky',
+      sky_open:       '/api/lilly/sky',
+      mundana_config: '/api/lilly/mundana',
     };
     const route = routeMap[type];
     if (!route) return;

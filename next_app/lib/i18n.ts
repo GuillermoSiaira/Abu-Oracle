@@ -14,6 +14,22 @@ export const UI: Record<Lang, {
   tabTransits: string;
   tabRelocation: string;
   tabSky: string;
+  tabMundana: string;
+  // Mundana tab
+  mundanaTitle: string;
+  mundanaSubtitle: string;
+  mundanaActive: string;
+  mundanaNoActive: string;
+  mundanaUpcoming: string;
+  mundanaNoUpcoming: string;
+  mundanaHistory: string;
+  mundanaLillyButton: string;
+  mundanaFilterAll: string;
+  mundanaFilterHigh: string;
+  mundanaFilterMedium: string;
+  mundanaDensity: string;
+  mundanaExact: string;
+  mundanaDaysTo: string;
   // TechnicalPanel
   tpSysArch: string;
   tpCoreKernel: string;
@@ -176,6 +192,21 @@ export const UI: Record<Lang, {
     tabTransits: "Tránsitos",
     tabRelocation: "Mapa HF",
     tabSky: "Cielo Hoy",
+    tabMundana: "Mundana",
+    mundanaTitle: "Cielo Colectivo",
+    mundanaSubtitle: "Configuraciones planetarias con correlación histórica confirmada",
+    mundanaActive: "Configuraciones activas",
+    mundanaNoActive: "Sin configuraciones estadísticamente significativas activas",
+    mundanaUpcoming: "Próximas 90 días",
+    mundanaNoUpcoming: "Sin configuraciones próximas en la ventana",
+    mundanaHistory: "Contexto histórico",
+    mundanaLillyButton: "Lilly interpreta el cielo colectivo",
+    mundanaFilterAll: "Todas",
+    mundanaFilterHigh: "Alta",
+    mundanaFilterMedium: "Media",
+    mundanaDensity: "densidad histórica",
+    mundanaExact: "Exacto",
+    mundanaDaysTo: "días",
     relTitle: "Relocalización HF",
     relSubtitle: "Campo de Armonía geográfica — Demo con 10 sujetos notables",
     natal: "HF Natal",
@@ -324,6 +355,21 @@ export const UI: Record<Lang, {
     tabTransits: "Transits",
     tabRelocation: "HF Map",
     tabSky: "Sky Today",
+    tabMundana: "Mundane",
+    mundanaTitle: "Collective Sky",
+    mundanaSubtitle: "Planetary configurations with confirmed historical correlation",
+    mundanaActive: "Active configurations",
+    mundanaNoActive: "No statistically significant configurations active",
+    mundanaUpcoming: "Next 90 days",
+    mundanaNoUpcoming: "No upcoming configurations in window",
+    mundanaHistory: "Historical context",
+    mundanaLillyButton: "Lilly reads the collective sky",
+    mundanaFilterAll: "All",
+    mundanaFilterHigh: "High",
+    mundanaFilterMedium: "Medium",
+    mundanaDensity: "historical density",
+    mundanaExact: "Exact",
+    mundanaDaysTo: "days",
     relTitle: "HF Relocation",
     relSubtitle: "Geographic Harmony Field — Demo with 10 notable subjects",
     natal: "Natal HF",
@@ -472,6 +518,21 @@ export const UI: Record<Lang, {
     tabTransits: "Trânsitos",
     tabRelocation: "Mapa HF",
     tabSky: "Céu Hoje",
+    tabMundana: "Mundana",
+    mundanaTitle: "Céu Coletivo",
+    mundanaSubtitle: "Configurações planetárias com correlação histórica confirmada",
+    mundanaActive: "Configurações ativas",
+    mundanaNoActive: "Sem configurações estatisticamente significativas ativas",
+    mundanaUpcoming: "Próximos 90 dias",
+    mundanaNoUpcoming: "Sem configurações próximas na janela",
+    mundanaHistory: "Contexto histórico",
+    mundanaLillyButton: "Lilly lê o céu coletivo",
+    mundanaFilterAll: "Todas",
+    mundanaFilterHigh: "Alta",
+    mundanaFilterMedium: "Média",
+    mundanaDensity: "densidade histórica",
+    mundanaExact: "Exato",
+    mundanaDaysTo: "dias",
     relTitle: "Relocalização HF",
     relSubtitle: "Campo de Harmonia geográfica — Demo com 10 sujeitos notáveis",
     natal: "HF Natal",
@@ -620,6 +681,21 @@ export const UI: Record<Lang, {
     tabTransits: "Transits",
     tabRelocation: "Carte HF",
     tabSky: "Ciel Aujourd'hui",
+    tabMundana: "Mundane",
+    mundanaTitle: "Ciel Collectif",
+    mundanaSubtitle: "Configurations planétaires avec corrélation historique confirmée",
+    mundanaActive: "Configurations actives",
+    mundanaNoActive: "Aucune configuration statistiquement significative active",
+    mundanaUpcoming: "90 prochains jours",
+    mundanaNoUpcoming: "Aucune configuration prochaine dans la fenêtre",
+    mundanaHistory: "Contexte historique",
+    mundanaLillyButton: "Lilly lit le ciel collectif",
+    mundanaFilterAll: "Toutes",
+    mundanaFilterHigh: "Haute",
+    mundanaFilterMedium: "Moyenne",
+    mundanaDensity: "densité historique",
+    mundanaExact: "Exacte",
+    mundanaDaysTo: "jours",
     relTitle: "Relocalisation HF",
     relSubtitle: "Champ d'Harmonie géographique — Démo avec 10 sujets notables",
     natal: "HF Natal",

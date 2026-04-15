@@ -5,6 +5,7 @@ import { PersianTechniquesTab } from './persian-techniques-tab'
 import { TransitsTab } from './transits-tab'
 import { RelocationTab } from './relocation-tab'
 import { CieloHoyTab } from './cielo-hoy-tab'
+import { MundanaTab } from './mundana-tab'
 import { useAppStore } from '@/lib/store'
 import { useEffect } from 'react'
 
@@ -34,6 +35,7 @@ export function ChartTabs() {
       {activeTab === 'transits'   && includeTransits && <TransitsTab />}
       {activeTab === 'relocation' && <RelocationTab />}
       {activeTab === 'sky'        && <CieloHoyTab />}
+      {activeTab === 'mundana'    && <MundanaTab />}
     </div>
   )
 }

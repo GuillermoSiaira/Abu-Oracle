@@ -32,7 +32,7 @@
     relocationPreference?: string
   }
 
-  export type ChartTabKey = "chart" | "persian" | "transits" | "relocation" | "sky"
+  export type ChartTabKey = "chart" | "persian" | "transits" | "relocation" | "sky" | "mundana"
 
   // ======================================================
   //  APP STATE

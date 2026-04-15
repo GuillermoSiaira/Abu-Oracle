@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useAppStore } from "@/lib/store";
+import { ABU_BASE_URL } from "@/services/abu";
+import { getAbuAuthHeaders } from "@/lib/abu-auth";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -106,6 +108,29 @@ export function TransitsTab() {
   }
   const [firTooltip, setFirTooltip] = useState<FirdariaTooltip | null>(null);
   const barAreaRef = useRef<HTMLDivElement>(null);
+
+  // ── Mundana context ──────────────────────────────────────────────────────────
+  interface MundanaConfig {
+    type: string; label: string; planets: string[];
+    orb: number; significance: "high" | "medium" | "low";
+    p_value: number | null; density_ratio: number | null; exact_date: string | null;
+  }
+  const [mundanaConfigs, setMundanaConfigs] = useState<MundanaConfig[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    getAbuAuthHeaders().then(headers =>
+      fetch(`${ABU_BASE_URL}/api/mundana/sky`, { headers })
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (!cancelled && data?.active_configurations?.length) {
+            setMundanaConfigs(data.active_configurations);
+          }
+        })
+        .catch(() => {})
+    );
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     const el = barAreaRef.current;
@@ -496,6 +521,39 @@ export function TransitsTab() {
           </div>
         );
       })()}
+
+      {/* ── Contexto Mundano ── */}
+      {mundanaConfigs.length > 0 && (
+        <div className="mx-2 mb-3 p-3 rounded-lg border border-amber-400/15 bg-amber-400/3">
+          <h4 className="text-[10px] font-semibold tracking-widest uppercase text-amber-400/50 mb-2">
+            Contexto Mundano
+          </h4>
+          <div className="space-y-1.5">
+            {mundanaConfigs.map((cfg, i) => (
+              <button
+                key={i}
+                onClick={() => setPendingLillyEvent({ type: 'mundana_config', payload: { config: cfg, lang } })}
+                className="w-full text-left flex items-center gap-2 px-2 py-1.5 rounded
+                           border border-slate-700/30 bg-slate-800/40
+                           hover:border-amber-400/30 hover:bg-slate-800/70 transition-colors"
+              >
+                <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full border shrink-0 ${
+                  cfg.significance === "high"
+                    ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
+                    : "bg-amber-500/15 text-amber-400 border-amber-500/30"
+                }`}>
+                  {cfg.significance === "high" ? "Alta" : "Media"}
+                </span>
+                <span className="text-[11px] text-slate-300 flex-1 truncate">{cfg.label}</span>
+                <span className="text-[10px] text-slate-600 shrink-0">orbe {cfg.orb.toFixed(1)}°</span>
+                {cfg.density_ratio && (
+                  <span className="text-[10px] text-emerald-400/60 shrink-0">{cfg.density_ratio}×</span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ── Global tooltip — position:fixed escapes any overflow clipping ── */}
       {tooltip && (() => {
