@@ -20,6 +20,8 @@ build/
 tmp/
 logs/
 *.log
+_tmp_*.txt
+_stats*.txt
 
 # --- Python ---
 __pycache__/
