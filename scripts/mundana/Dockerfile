@@ -14,8 +14,7 @@ RUN pip install --no-cache-dir -r requirements-mundana.txt
 # Código fuente del publisher
 COPY scripts/mundana/ ./mundana/
 
-# Datos históricos necesarios para sky_calculator + publication_filter
-COPY data/mundana/ ./data/mundana/
+# data/mundana/{drafts,registry,logs} se crean en runtime por el pipeline
 
 # Ephemerides Swiss Ephemeris (compartidas con abu_engine)
 # Si no están disponibles, pyswisseph usa Moshier como fallback

@@ -19,6 +19,7 @@ Uso:
 from __future__ import annotations
 
 import json
+import os
 import sys
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
@@ -32,6 +33,9 @@ from sky_calculator import get_upcoming_configurations, get_current_sky
 
 REPO_ROOT       = Path(__file__).resolve().parents[2]
 LAST_PUB_PATH   = REPO_ROOT / "data" / "mundana" / "last_published.json"
+GCS_BUCKET      = os.environ.get("GCS_PREDICTIONS_BUCKET", "abu-oracle-predictions")
+GCS_STATE_BLOB  = "state/last_published.json"
+_IN_CLOUD_RUN   = bool(os.environ.get("K_SERVICE"))  # True cuando corre en Cloud Run
 
 # ---------------------------------------------------------------------------
 # Umbrales (spec §3.1)
@@ -50,6 +54,16 @@ PUBLICATION_THRESHOLDS = {
 # ---------------------------------------------------------------------------
 
 def _load_last_published() -> dict | None:
+    if _IN_CLOUD_RUN:
+        try:
+            from google.cloud import storage  # type: ignore
+            client = storage.Client()
+            blob   = client.bucket(GCS_BUCKET).blob(GCS_STATE_BLOB)
+            if not blob.exists():
+                return None
+            return json.loads(blob.download_as_text())
+        except Exception:
+            return None
     if not LAST_PUB_PATH.exists():
         return None
     try:
@@ -60,14 +74,26 @@ def _load_last_published() -> dict | None:
 
 
 def _save_last_published(config_type: str, platform: str) -> None:
-    LAST_PUB_PATH.parent.mkdir(parents=True, exist_ok=True)
     data = {
         "timestamp":   datetime.now(timezone.utc).isoformat(),
         "config_type": config_type,
         "platform":    platform,
     }
+    payload = json.dumps(data, indent=2)
+    if _IN_CLOUD_RUN:
+        try:
+            from google.cloud import storage  # type: ignore
+            client = storage.Client()
+            client.bucket(GCS_BUCKET).blob(GCS_STATE_BLOB).upload_from_string(
+                payload, content_type="application/json"
+            )
+            print(f"[filter] Cooldown guardado en GCS: gs://{GCS_BUCKET}/{GCS_STATE_BLOB}")
+        except Exception as e:
+            print(f"[filter] Warning: no se pudo guardar cooldown en GCS: {e}")
+        return
+    LAST_PUB_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(LAST_PUB_PATH, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2)
+        f.write(payload)
 
 
 def _days_since_last_post() -> float:
