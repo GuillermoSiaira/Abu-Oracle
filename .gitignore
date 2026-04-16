@@ -23,6 +23,11 @@ logs/
 _tmp_*.txt
 _stats*.txt
 
+# Assets generados (posts individuales — volumen alto, no versionar)
+assets/social/posts/*.png
+assets/social/posts/*.jpg
+assets/social/posts/*.webp
+
 # --- Python ---
 __pycache__/
 **/__pycache__/
