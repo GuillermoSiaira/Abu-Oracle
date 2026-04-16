@@ -1,15 +1,25 @@
 """
 publishers/ — Publicadores por plataforma.
 
-Farcaster y Bluesky son prioritarios (gratuitos, sin límites estrictos).
-Twitter/Instagram/Facebook/TikTok requieren aprobación manual en Fase 1.
+AUTO (publicación directa):
+  Farcaster — Neynar API
+  Bluesky   — AT Protocol
+  Reddit    — PRAW
+
+SEMI-AUTO (borrador + email de aprobación via Resend):
+  Twitter/X, Instagram, Facebook, TikTok
 """
 
 from .farcaster_publisher import publish_farcaster
 from .bluesky_publisher   import publish_bluesky
 from .twitter_publisher   import publish_twitter
+from .reddit_publisher    import publish_reddit
 
-__all__ = ["publish_farcaster", "publish_bluesky", "publish_twitter", "publish_all"]
+__all__ = [
+    "publish_farcaster", "publish_bluesky",
+    "publish_twitter", "publish_reddit",
+    "publish_all",
+]
 
 
 def publish_all(platform: str, content: dict) -> dict:
@@ -22,6 +32,8 @@ def publish_all(platform: str, content: dict) -> dict:
         return publish_farcaster(content["text"])
     if platform == "bluesky":
         return publish_bluesky(content["text"])
+    if platform == "reddit":
+        return publish_reddit(content["text"], title=content.get("reddit_title"))
     if platform in ("twitter", "instagram", "facebook", "tiktok"):
         return publish_twitter(content["text"], platform=platform)
     return {"status": "error", "detail": f"Unknown platform: {platform}"}

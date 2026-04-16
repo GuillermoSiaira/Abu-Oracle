@@ -38,6 +38,7 @@ PLATFORM_LIMITS = {
     "instagram":  2200,
     "facebook":   5000,
     "tiktok":     1500,  # script de voz
+    "reddit":     5000,  # self post — sin límite real
 }
 
 # Hashtags canónicos por plataforma
@@ -48,6 +49,7 @@ PLATFORM_HASHTAGS = {
     "farcaster": [],
     "twitter":   ["#astrology"],
     "bluesky":   [],
+    "reddit":    [],
 }
 
 # ---------------------------------------------------------------------------
@@ -186,6 +188,19 @@ Formato del script:
 
 Cada sección entre corchetes. Lenguaje oral, directo. Sin tecnicismos excesivos."""
 
+    if platform == "reddit":
+        return f"""{context_block}
+
+Redacta un post para r/astrology sobre esta configuración mundana.
+Estructura:
+- Título (máx 200 chars): comenzar con la configuración + fecha aproximada
+- Cuerpo: 3-4 párrafos. Primero el hecho astronómico con datos estadísticos reales.
+  Luego la interpretación doctrinal según Abu Mashar. Cierre con preguntas abiertas
+  que inviten a comentar ("¿Qué casa activa esto en tu carta?").
+- Incluir al final: "Generado por Abu Oracle — app.abu-oracle.com"
+Formato de respuesta: primera línea = TÍTULO, resto = CUERPO.
+Sin markdown excesivo. Tono técnico pero accesible."""
+
     # fallback genérico
     return f"""{context_block}
 
@@ -230,9 +245,15 @@ def generate_post(config: dict, platform: str, history: Optional[dict] = None) -
 
     # Post-procesar según plataforma
     thread: list[str] | None = None
+    reddit_title: str | None = None
+
     if platform == "twitter" and "[TWEET]" in raw_text:
         thread = [t.strip() for t in raw_text.split("[TWEET]") if t.strip()]
         text = thread[0] if thread else raw_text
+    elif platform == "reddit":
+        lines = raw_text.split("\n", 1)
+        reddit_title = lines[0].strip()
+        text = lines[1].strip() if len(lines) > 1 else raw_text
     else:
         text = raw_text
 
@@ -250,6 +271,7 @@ def generate_post(config: dict, platform: str, history: Optional[dict] = None) -
         "text":         text,
         "hashtags":     PLATFORM_HASHTAGS.get(platform, []),
         "thread":       thread,
+        "reddit_title": reddit_title,
         "image_prompt": image_prompt,
         "platform":     platform,
         "config_type":  config.get("type", ""),
