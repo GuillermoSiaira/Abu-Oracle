@@ -1217,8 +1217,31 @@ gcloud builds submit --config=cloudbuild-mundana-job.yaml --project=abu-oracle .
 - `next_app/app/api/lilly/mundana/route.ts` — NUEVO
 - `next_app/app/api/lilly/{city,house,sky,solar-return,transit,domain,planet,technique}/route.ts` — migrados a Vertex
 - `scripts/mundana/{sky_calculator,publication_filter,content_generator,main_publisher,onchain_registry}.py`
-- `scripts/mundana/publishers/{__init__,farcaster,bluesky,twitter}_publisher.py`
+- `scripts/mundana/publishers/{__init__,farcaster,bluesky,twitter,reddit}_publisher.py`
 - `scripts/mundana/Dockerfile`, `requirements-mundana.txt`, `cloudbuild-mundana-job.yaml`
+- `assets/social/{logos,banners,posts}/` — estructura assets RRSS
+
+### Estado de cuentas y credenciales RRSS (2026-04-15)
+
+| Plataforma | Cuenta | Credenciales | Estado |
+|---|---|---|---|
+| **Bluesky** | @abuoracle.bsky.social | `bluesky-handle` + `bluesky-password` en GCP Secret Manager | ✅ Verificado — primer post publicado |
+| **Farcaster** | Cuenta creada en Warpcast | Pago FID pendiente (~$5-10) → sin Neynar Signer aún | ⏳ Pendiente activación |
+| **Reddit** | — | — | ❌ Pendiente |
+| **Twitter/X** | — | Semi-auto (draft + Resend) operativo sin creds adicionales | 🟡 Semi-auto listo |
+| **Instagram** | — | Ídem | 🟡 Semi-auto listo |
+| **Facebook** | — | Ídem | 🟡 Semi-auto listo |
+| **TikTok** | — | Ídem | 🟡 Semi-auto listo |
+
+**Próxima sesión RRSS:**
+1. Farcaster — pagar activación FID → neynar.com → crear signer → `NEYNAR_API_KEY` + `FARCASTER_SIGNER_UUID` → gcloud secrets
+2. Reddit — crear cuenta → reddit.com/prefs/apps → crear app script → 5 credenciales → gcloud secrets
+3. Multilingüismo — agregar `lang` param a `generate_post()` + `LANGUAGES` env var (EN/ES/FR/PT)
+4. `gcloud run jobs create mundana-publisher ...` — activar el job con todas las credenciales
+
+**Assets RRSS:**
+- `assets/social/logos/abu_oracle_logo_v1.png` — logo circular oscuro
+- `assets/social/banners/abu_oracle_banner_v1.png` — banner steampunk horizontal
 
 ---
 
