@@ -1201,10 +1201,23 @@ filter → stellium Aries 5 planetas (sig=high) → farcaster 317 chars ✓
        → twitter borrador en data/mundana/drafts/ ✓ → SHA-256 registry ✓
 ```
 
-**Para activar en producción:**
+**Pipeline en producción (2026-04-17)** ✅:
+```
+Cloud Run Job: mundana-publisher (us-central1)
+Cloud Scheduler: mundana-publisher-daily — 08:00 UTC todos los días
+Imagen: gcr.io/abu-oracle/mundana-publisher:latest
+```
+- Bluesky: publica automático
+- Twitter: borrador + email Resend
+- Cooldown 3 días: estado en GCS gs://abu-oracle-predictions/state/last_published.json
+- GCS registry: gs://abu-oracle-predictions/predictions/
+
+**Secrets en GCP Secret Manager:**
+- `anthropic-api-key`, `bluesky-handle`, `bluesky-password`, `resend-api-key`
+
+**Para actualizar la imagen después de cambios en el pipeline:**
 ```bash
 gcloud builds submit --config=cloudbuild-mundana-job.yaml --project=abu-oracle .
-# Ver cloudbuild-mundana-job.yaml para gcloud run jobs create + Cloud Scheduler
 ```
 
 **Archivos nuevos/modificados — Fase 12:**
@@ -1221,17 +1234,22 @@ gcloud builds submit --config=cloudbuild-mundana-job.yaml --project=abu-oracle .
 - `scripts/mundana/Dockerfile`, `requirements-mundana.txt`, `cloudbuild-mundana-job.yaml`
 - `assets/social/{logos,banners,posts}/` — estructura assets RRSS
 
-### Estado de cuentas y credenciales RRSS (2026-04-15)
+### Estado de cuentas y credenciales RRSS (2026-04-17)
 
 | Plataforma | Cuenta | Credenciales | Estado |
 |---|---|---|---|
-| **Bluesky** | @abuoracle.bsky.social | `bluesky-handle` + `bluesky-password` en GCP Secret Manager | ✅ Verificado — primer post publicado |
-| **Farcaster** | Cuenta creada en Warpcast | Pago FID pendiente (~$5-10) → sin Neynar Signer aún | ⏳ Pendiente activación |
+| **Bluesky** | @abuoracle.bsky.social | `bluesky-handle` + `bluesky-password` en Secret Manager | ✅ Automático — primer post publicado |
+| **Twitter/X** | — | `resend-api-key` en Secret Manager | 🟡 Semi-auto — borrador + email operativo |
+| **Farcaster** | Cuenta en Warpcast (sin activar) | Pago FID pendiente (~$5-10) → Neynar signer pendiente | ⏳ Pendiente activación |
 | **Reddit** | — | — | ❌ Pendiente |
-| **Twitter/X** | — | Semi-auto (draft + Resend) operativo sin creds adicionales | 🟡 Semi-auto listo |
-| **Instagram** | — | Ídem | 🟡 Semi-auto listo |
+| **Instagram** | — | Semi-auto (draft + Resend) | 🟡 Semi-auto listo |
 | **Facebook** | — | Ídem | 🟡 Semi-auto listo |
 | **TikTok** | — | Ídem | 🟡 Semi-auto listo |
+
+**Próxima sesión RRSS:**
+1. Farcaster — pagar FID → neynar.com → `NEYNAR_API_KEY` + `FARCASTER_SIGNER_UUID` → gcloud secrets → jobs update
+2. Reddit — crear cuenta → reddit.com/prefs/apps → 5 secrets → jobs update
+3. Multilingüismo — `lang` param en `generate_post()` + `LANGUAGES` env var (EN/ES/FR/PT)
 
 **Próxima sesión RRSS:**
 1. Farcaster — pagar activación FID → neynar.com → crear signer → `NEYNAR_API_KEY` + `FARCASTER_SIGNER_UUID` → gcloud secrets
