@@ -4,10 +4,11 @@ main_publisher.py — Entry point del Cloud Run Job de publicación mundana.
 Flujo:
   1. Verificar si hay algo digno de publicar (publication_filter)
   2. Obtener la mejor configuración del cielo actual
-  3. Generar contenido adaptado por plataforma (content_generator → Claude Sonnet 4.6)
-  4. Publicar en cada plataforma (publishers/)
-  5. Registrar hash SHA-256 del contenido publicado (onchain_registry)
-  6. Marcar publicación para respetar min_days_between_posts
+  3. Seleccionar estilo de contenido (rotación diaria: stats/individual/geographic/doctrine)
+  4. Generar contenido adaptado por plataforma y estilo (content_generator → Claude Sonnet 4.6)
+  5. Publicar en cada plataforma (publishers/)
+  6. Registrar hash SHA-256 del contenido publicado (onchain_registry)
+  7. Marcar publicación para respetar min_days_between_posts
 
 Plataformas:
   - Fase 1 AUTO:    farcaster, bluesky
@@ -27,6 +28,8 @@ Variables opcionales:
   GCS_PREDICTIONS_BUCKET    — bucket de predicciones (default: abu-oracle-predictions)
   PLATFORMS                 — CSV de plataformas activas (default: farcaster,bluesky,twitter)
   DRY_RUN                   — si "true", genera contenido pero no publica
+  CONTENT_STYLE             — forzar estilo (stats|individual|geographic|doctrine).
+                               Si no se define, rota automáticamente por día de la semana.
 """
 
 from __future__ import annotations
@@ -41,7 +44,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from publication_filter import should_publish, get_best_configuration, record_publication
-from content_generator  import generate_post
+from content_generator  import generate_post, _select_style
 from publishers         import publish_all
 from onchain_registry   import register_prediction
 
@@ -110,7 +113,13 @@ def main() -> int:
     print(f"       Significancia: {config.get('significance')}  |  p={config.get('p_value')}  |  density={config.get('density_ratio')}×")
 
     # -----------------------------------------------------------------------
-    # 3. Obtener contexto histórico (opcional, non-fatal)
+    # 3. Seleccionar estilo de contenido (rotación diaria — mismo para todas las plataformas)
+    # -----------------------------------------------------------------------
+    content_style = os.environ.get("CONTENT_STYLE") or _select_style(config)
+    print(f"       Estilo de contenido: {content_style}")
+
+    # -----------------------------------------------------------------------
+    # 4. Obtener contexto histórico (opcional, non-fatal)
     # -----------------------------------------------------------------------
     history = None
     try:
@@ -120,7 +129,7 @@ def main() -> int:
         print(f"[main] Warning: no se pudo obtener contexto histórico: {e}")
 
     # -----------------------------------------------------------------------
-    # 4. Generar + publicar en cada plataforma
+    # 5. Generar + publicar en cada plataforma
     # -----------------------------------------------------------------------
     run_log: list[dict] = []
     first_published_platform: str | None = None
@@ -130,7 +139,7 @@ def main() -> int:
 
         # Generar contenido
         try:
-            content = generate_post(config, platform=platform, history=history)
+            content = generate_post(config, platform=platform, history=history, style=content_style)
             print(f"       Texto ({len(content['text'])} chars): {content['text'][:80]}…")
         except Exception as e:
             print(f"       ERROR generando contenido: {e}")
@@ -160,6 +169,7 @@ def main() -> int:
         run_log.append({
             "platform": platform,
             "status":   result.get("status"),
+            "style":    content_style,
             "detail":   result,
         })
 
@@ -168,14 +178,14 @@ def main() -> int:
             first_published_platform = platform
 
     # -----------------------------------------------------------------------
-    # 5. Registrar publicación para cooldown
+    # 6. Registrar publicación para cooldown
     # -----------------------------------------------------------------------
     if not dry_run and first_published_platform:
         record_publication(config.get("type", "unknown"), first_published_platform)
         print(f"\n[main] Cooldown registrado — plataforma: {first_published_platform}")
 
     # -----------------------------------------------------------------------
-    # 6. Log final
+    # 7. Log final
     # -----------------------------------------------------------------------
     _log_run(run_log)
 
