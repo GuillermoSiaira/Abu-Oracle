@@ -16,14 +16,9 @@ COPY scripts/mundana/ ./mundana/
 
 # data/mundana/{drafts,registry,logs} se crean en runtime por el pipeline
 
-# Ephemerides Swiss Ephemeris (compartidas con abu_engine)
-# Si no están disponibles, pyswisseph usa Moshier como fallback
-COPY abu_engine/ephe/ ./ephe/
-
 WORKDIR /app/mundana
 
-# Configuración de ephemerides y encoding
-ENV SWISSEPH_PATH=/app/ephe
+# Moshier fallback — pyswisseph no necesita archivos de ephemerides externos
 ENV PYTHONIOENCODING=utf-8
 ENV PYTHONUTF8=1
 
