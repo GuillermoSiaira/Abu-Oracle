@@ -31,12 +31,13 @@ export async function POST(req: Request) {
 
     const natal  = buildNatalContext(natalData, birthData);
     const active = buildActiveContext({
-      currentDate:   new Date().toISOString(),
-      activeTab:     'persian_techniques',
-      activeDomain:  null,
-      activeCity:    null,
-      lastEventType: 'click_technique',
-      triggerData:   { technique, ...data },
+      currentDate:    new Date().toISOString(),
+      activeTab:      'persian_techniques',
+      activeDomain:   null,
+      activeCity:     null,
+      lastEventType:  'click_technique',
+      triggerData:    { technique, ...data },
+      utcOffsetHours: (birthData as any)?.utcOffset ?? undefined,
     });
     const block = assembleContextBlock(natal, timeline ?? EMPTY_TIMELINE, active, lang ?? 'es');
 

@@ -221,11 +221,28 @@ export function PersianTechniquesTab() {
   const pastCycles = groupCloseCycles(rawPast.slice().reverse()).reverse();
 
   function dispatchCycle(ev: any) {
+    const cycleDate = ev.approx ? new Date(ev.approx) : null;
+    const daysFromNow = cycleDate
+      ? Math.round((cycleDate.getTime() - Date.now()) / 86_400_000)
+      : null;
+    const cycle_status =
+      daysFromNow === null ? "desconocido"
+      : daysFromNow < -1  ? `pasado (hace ${Math.abs(daysFromNow)} días)`
+      : daysFromNow <= 1  ? "activo ahora"
+      : `próximo (en ${daysFromNow} días)`;
+
     setPendingLillyEvent({
       type: "click_technique",
       payload: {
         technique: "planetary_cycle",
-        data: { cycle: ev.cycle, planet: ev.planet, aspect_type: ev.cycle, angle: ev.angle, exact_date: ev.approx },
+        data: {
+          cycle: ev.cycle,
+          planet: ev.planet,
+          aspect_type: ev.cycle,
+          angle: ev.angle,
+          exact_date: ev.approx,
+          cycle_status,
+        },
         subject_name: subjectName, lang,
       },
     });
