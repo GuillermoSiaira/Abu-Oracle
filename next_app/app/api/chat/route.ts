@@ -35,7 +35,7 @@ export async function POST(req: Request) {
     // Clone request so we can read body AND headers (getUserIdFromRequest reads headers)
     const reqClone = req.clone();
     const body = await req.json();
-    const { messages, context, session_id, timeline, lang: bodyLang } = body;
+    const { messages, context, session_id, timeline, lunarData: clientLunarData, lang: bodyLang } = body;
 
     if (!messages?.length) {
       return NextResponse.json({ error: "No messages provided" }, { status: 400 });
@@ -56,29 +56,33 @@ export async function POST(req: Request) {
     const birthData = meta ? { birthDate: meta.date, city: meta.city, utcOffset: meta.utcOffset } : undefined;
     const lang: string = bodyLang ?? "es";
 
-    // ── Fetch lunar data from Abu Engine (non-fatal) ─────────────────────────
+    // ── Lunar data — usar el del cliente si viene en el body; fallback a fetch server-side ─
     let lunarBlock = '';
-    const abuUrl = process.env.ABU_ENGINE_URL || process.env.NEXT_PUBLIC_ABU_URL || '';
-    const bDate = meta?.date;
-    const bLat  = meta?.lat;
-    const bLon  = meta?.lon;
-    if (abuUrl && bDate && bLat != null && bLon != null) {
-      try {
-        const authHeader = req.headers.get('Authorization');
-        const lunarUrl = new URL(`${abuUrl}/api/astro/lunar`);
-        lunarUrl.searchParams.set('birthDate', bDate);
-        lunarUrl.searchParams.set('lat',       String(bLat));
-        lunarUrl.searchParams.set('lon',       String(bLon));
-        const lunarRes = await fetch(lunarUrl.toString(), {
-          headers: authHeader ? { Authorization: authHeader } : {},
-        });
-        if (lunarRes.ok) {
-          lunarBlock = formatLunarContext(await lunarRes.json());
+    if (clientLunarData) {
+      lunarBlock = formatLunarContext(clientLunarData);
+    } else {
+      const abuUrl = process.env.ABU_ENGINE_URL || process.env.NEXT_PUBLIC_ABU_URL || '';
+      const bDate = meta?.date;
+      const bLat  = meta?.lat;
+      const bLon  = meta?.lon;
+      if (abuUrl && bDate && bLat != null && bLon != null) {
+        try {
+          const authHeader = req.headers.get('Authorization');
+          const lunarUrl = new URL(`${abuUrl}/api/astro/lunar`);
+          lunarUrl.searchParams.set('birthDate', bDate);
+          lunarUrl.searchParams.set('lat',       String(bLat));
+          lunarUrl.searchParams.set('lon',       String(bLon));
+          const lunarRes = await fetch(lunarUrl.toString(), {
+            headers: authHeader ? { Authorization: authHeader } : {},
+          });
+          if (lunarRes.ok) {
+            lunarBlock = formatLunarContext(await lunarRes.json());
+          }
+        } catch {
+          // non-fatal — chat procede sin sección CIELO ACTUAL
         }
-      } catch {
-        // non-fatal — chat procede sin sección CIELO ACTUAL
       }
-    }
+    } // end else (fallback fetch)
 
     // Build canonical context block — injected as second cached system block (chat pattern)
     const systemBlocks: Array<{ type: 'text'; text: string; cache_control: { type: 'ephemeral' } }> = [
@@ -87,12 +91,13 @@ export async function POST(req: Request) {
     if (abuData) {
       const natal  = buildNatalContext(abuData, birthData);
       const active = buildActiveContext({
-        currentDate:   new Date().toISOString(),
-        activeTab:     "chat",
-        activeDomain:  null,
-        activeCity:    null,
-        lastEventType: "chat",
-        triggerData:   {},
+        currentDate:    new Date().toISOString(),
+        activeTab:      "chat",
+        activeDomain:   null,
+        activeCity:     null,
+        lastEventType:  "chat",
+        triggerData:    {},
+        utcOffsetHours: meta?.utcOffset ?? undefined,
       });
       const block = assembleContextBlock(
         natal,

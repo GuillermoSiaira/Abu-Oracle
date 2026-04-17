@@ -195,9 +195,11 @@ export interface BiographicalTimeline {
 }
 
 export interface ActiveContext {
-  current_date:    string
-  active_tab:      string
-  active_domain:   string | null
+  current_date:     string
+  /** Fecha local del usuario (YYYY-MM-DD), derivada de utcOffsetHours si se provee. */
+  user_local_date?: string
+  active_tab:       string
+  active_domain:    string | null
   active_city: {
     name:     string
     lat:      number
@@ -222,6 +224,19 @@ export function formatLunarContext(lunarData: any): string {
   const fmtHouse = (sign: string, house: number | null | undefined): string =>
     house ? `${sign} · Casa ${house} natal` : sign;
 
+  /** Calcula "en N días" desde ahora. Empty string si ya pasó. Server-side: Date.now() es UTC. */
+  const daysUntil = (isoStr: string): string => {
+    if (!isoStr) return '';
+    try {
+      const target = new Date(isoStr.length === 10 ? `${isoStr}T00:00:00Z` : isoStr);
+      const diff = Math.round((target.getTime() - Date.now()) / 86_400_000);
+      if (diff < 0)  return '';
+      if (diff === 0) return ' · hoy';
+      if (diff === 1) return ' · mañana';
+      return ` · en ${diff} días`;
+    } catch { return ''; }
+  };
+
   const phase = lunarData.phase;
   if (phase?.name) {
     lines.push(
@@ -231,25 +246,25 @@ export function formatLunarContext(lunarData: any): string {
 
   const nm = lunarData.next_new_moon;
   if (nm?.dt && nm?.sign) {
-    lines.push(`Próxima Luna Nueva: ${fmtDate(nm.dt)} · ${fmtHouse(nm.sign, nm.natal_house)}`);
+    lines.push(`Próxima Luna Nueva: ${fmtDate(nm.dt)} · ${fmtHouse(nm.sign, nm.natal_house)}${daysUntil(nm.dt)}`);
   }
 
   const fm = lunarData.next_full_moon;
   if (fm?.dt && fm?.sign) {
-    lines.push(`Próxima Luna Llena: ${fmtDate(fm.dt)} · ${fmtHouse(fm.sign, fm.natal_house)}`);
+    lines.push(`Próxima Luna Llena: ${fmtDate(fm.dt)} · ${fmtHouse(fm.sign, fm.natal_house)}${daysUntil(fm.dt)}`);
   }
 
   const se = lunarData.next_solar_eclipse;
   if (se?.dt && se?.sign) {
     lines.push(
-      `Próximo Eclipse Solar: ${fmtDate(se.dt)} · ${se.type} · ${fmtHouse(se.sign, se.natal_house)}`
+      `Próximo Eclipse Solar: ${fmtDate(se.dt)} · ${se.type} · ${fmtHouse(se.sign, se.natal_house)}${daysUntil(se.dt)}`
     );
   }
 
   const le = lunarData.next_lunar_eclipse;
   if (le?.dt && le?.sign) {
     lines.push(
-      `Próximo Eclipse Lunar: ${fmtDate(le.dt)} · ${le.type} · ${fmtHouse(le.sign, le.natal_house)}`
+      `Próximo Eclipse Lunar: ${fmtDate(le.dt)} · ${le.type} · ${fmtHouse(le.sign, le.natal_house)}${daysUntil(le.dt)}`
     );
   }
 
@@ -382,20 +397,30 @@ export function buildNatalContext(
 // ── buildActiveContext ────────────────────────────────────────────────────────
 
 export function buildActiveContext(params: {
-  currentDate:   string
-  activeTab:     string
-  activeDomain:  string | null
-  activeCity:    { name: string; lat: number; lon: number; hf_score: number } | null
-  lastEventType: string
-  triggerData:   Record<string, unknown>
+  currentDate:     string
+  activeTab:       string
+  activeDomain:    string | null
+  activeCity:      { name: string; lat: number; lon: number; hf_score: number } | null
+  lastEventType:   string
+  triggerData:     Record<string, unknown>
+  /** UTC offset en horas del usuario (ej: -3 para Buenos Aires). Usado para mostrar fecha local. */
+  utcOffsetHours?: number
 }): ActiveContext {
+  let userLocalDate: string | undefined;
+  if (params.utcOffsetHours != null) {
+    try {
+      const localMs = Date.now() + params.utcOffsetHours * 3_600_000;
+      userLocalDate = new Date(localMs).toISOString().slice(0, 10);
+    } catch { /* no-op */ }
+  }
   return {
-    current_date:    params.currentDate,
-    active_tab:      params.activeTab,
-    active_domain:   params.activeDomain,
-    active_city:     params.activeCity,
-    last_event_type: params.lastEventType,
-    trigger_data:    params.triggerData,
+    current_date:     params.currentDate,
+    user_local_date:  userLocalDate,
+    active_tab:       params.activeTab,
+    active_domain:    params.activeDomain,
+    active_city:      params.activeCity,
+    last_event_type:  params.lastEventType,
+    trigger_data:     params.triggerData,
   };
 }
 
@@ -527,14 +552,58 @@ export function assembleContextBlock(
     lines.push("");
   }
 
-  // Tránsitos significativos
+  // Tránsitos significativos — agrupa los multi-paso para que Lilly no los ancle al primer paso
   if (timeline.transits_window.length > 0) {
     lines.push("TRÁNSITOS SIGNIFICATIVOS ±18 meses");
+
+    // Agrupar por clave planeta_transit|aspecto|planeta_natal
+    type TGroup = {
+      transit_planet: string;
+      aspect:         string;
+      natal_planet:   string;
+      passes: Array<{ exact_date: string; ingress_date: string; egress_date: string; is_active: boolean }>;
+    };
+    const groups = new Map<string, TGroup>();
     for (const t of timeline.transits_window) {
-      const active = t.is_active ? " [activo]" : "";
-      lines.push(
-        `- ${t.transit_planet} ${t.aspect} ${t.natal_planet} natal [exacto: ${t.exact_date}]${active}`
-      );
+      const key = `${t.transit_planet}|${t.aspect}|${t.natal_planet}`;
+      if (!groups.has(key)) {
+        groups.set(key, {
+          transit_planet: t.transit_planet,
+          aspect:         t.aspect,
+          natal_planet:   t.natal_planet,
+          passes: [],
+        });
+      }
+      groups.get(key)!.passes.push({
+        exact_date:   t.exact_date,
+        ingress_date: t.ingress_date,
+        egress_date:  t.egress_date,
+        is_active:    t.is_active,
+      });
+    }
+
+    for (const g of groups.values()) {
+      const anyActive = g.passes.some(p => p.is_active);
+      const activeTag = anyActive ? " [activo]" : "";
+      if (g.passes.length === 1) {
+        const p = g.passes[0];
+        lines.push(
+          `- ${g.transit_planet} ${g.aspect} ${g.natal_planet} natal · exacto: ${p.exact_date}${p.is_active ? " [activo]" : ""}`
+        );
+      } else {
+        // Tránsito multi-paso — muestra ventana completa + cada paso
+        const first = g.passes[0].ingress_date || g.passes[0].exact_date;
+        const last  = g.passes[g.passes.length - 1].egress_date || g.passes[g.passes.length - 1].exact_date;
+        lines.push(
+          `- ${g.transit_planet} ${g.aspect} ${g.natal_planet} natal · ${g.passes.length} pasos · ventana: ${first} → ${last}${activeTag}`
+        );
+        for (let i = 0; i < g.passes.length; i++) {
+          const p = g.passes[i];
+          lines.push(
+            `  Paso ${i + 1}: ${p.exact_date}${p.is_active ? " [activo]" : ""}`
+          );
+        }
+      }
     }
     lines.push("");
   }
@@ -557,7 +626,10 @@ export function assembleContextBlock(
 
   // ╔══ CONTEXTO ACTIVO ══════════════════════════════════════════════════════╗
   lines.push(SEP);
-  lines.push(`CONTEXTO ACTIVO — ${active.current_date}`);
+  lines.push(`CONTEXTO ACTIVO — ${active.current_date} (UTC)`);
+  if (active.user_local_date) {
+    lines.push(`Fecha local usuario: ${active.user_local_date}`);
+  }
   lines.push(SEP);
   lines.push(`Vista: ${active.active_tab}`);
   lines.push(`Trigger: ${active.last_event_type}`);

@@ -91,6 +91,7 @@ export async function POST(req: Request) {
       natalData,
       birthData,
       timeline,
+      lunarData: clientLunarData,
       messages,
     } = body;
 
@@ -115,38 +116,44 @@ export async function POST(req: Request) {
     const limitRes = await applyRateLimit(req);
     if (limitRes) return limitRes;
 
-    // ── Fetch lunar data from Abu Engine (non-fatal, forwarding auth header) ─
+    // ── Lunar data — usar el del cliente (fuente única de verdad) si viene en el body;
+    //    solo hacer fetch server-side como fallback si no viene.
     let lunarBlock = '';
-    const abuUrl = process.env.ABU_ENGINE_URL || process.env.NEXT_PUBLIC_ABU_URL || '';
-    const bDate = birthData?.birthDate;
-    const bLat  = birthData?.lat;
-    const bLon  = birthData?.lon;
-    if (abuUrl && bDate && bLat != null && bLon != null) {
-      try {
-        const authHeader = req.headers.get('Authorization');
-        const lunarUrl = new URL(`${abuUrl}/api/astro/lunar`);
-        lunarUrl.searchParams.set('birthDate', bDate);
-        lunarUrl.searchParams.set('lat',       String(bLat));
-        lunarUrl.searchParams.set('lon',       String(bLon));
-        const lunarRes = await fetch(lunarUrl.toString(), {
-          headers: authHeader ? { Authorization: authHeader } : {},
-        });
-        if (lunarRes.ok) {
-          lunarBlock = formatLunarContext(await lunarRes.json());
+    if (clientLunarData) {
+      lunarBlock = formatLunarContext(clientLunarData);
+    } else {
+      const abuUrl = process.env.ABU_ENGINE_URL || process.env.NEXT_PUBLIC_ABU_URL || '';
+      const bDate = birthData?.birthDate;
+      const bLat  = birthData?.lat;
+      const bLon  = birthData?.lon;
+      if (abuUrl && bDate && bLat != null && bLon != null) {
+        try {
+          const authHeader = req.headers.get('Authorization');
+          const lunarUrl = new URL(`${abuUrl}/api/astro/lunar`);
+          lunarUrl.searchParams.set('birthDate', bDate);
+          lunarUrl.searchParams.set('lat',       String(bLat));
+          lunarUrl.searchParams.set('lon',       String(bLon));
+          const lunarRes = await fetch(lunarUrl.toString(), {
+            headers: authHeader ? { Authorization: authHeader } : {},
+          });
+          if (lunarRes.ok) {
+            lunarBlock = formatLunarContext(await lunarRes.json());
+          }
+        } catch {
+          // non-fatal — Lilly procede sin sección CIELO ACTUAL
         }
-      } catch {
-        // non-fatal — Lilly procede sin sección CIELO ACTUAL
       }
     }
 
     const natal  = buildNatalContext(natalData, birthData);
     const active = buildActiveContext({
-      currentDate:   new Date().toISOString(),
-      activeTab:     'persian_techniques',
-      activeDomain:  null,
-      activeCity:    null,
-      lastEventType: 'screen_open',
-      triggerData:   { name, sect, sect_master },
+      currentDate:     new Date().toISOString(),
+      activeTab:       'persian_techniques',
+      activeDomain:    null,
+      activeCity:      null,
+      lastEventType:   'screen_open',
+      triggerData:     { name, sect, sect_master },
+      utcOffsetHours:  (birthData as any)?.utcOffset ?? undefined,
     });
     const block =
       assembleContextBlock(natal, timeline ?? EMPTY_TIMELINE, active, lang ?? 'es', memoryBlock || undefined, lunarBlock || undefined)

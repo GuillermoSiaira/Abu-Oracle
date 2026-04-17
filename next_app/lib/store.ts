@@ -8,6 +8,7 @@
     BirthData
   } from "./types"
   import type { BiographicalTimeline } from "./context-builder"
+  import type { LunarData } from "@/components/LunarDial"
 
   // ======================================================
   //  ONBOARDING TYPES
@@ -58,6 +59,8 @@
     lastLillyEvent: { type: string; label: string } | null
     lillySuggestions: Array<{ type: string; target: string; label: string }> | null
     timeline: BiographicalTimeline | null
+    /** Datos lunares actuales — fuente única de verdad. Fetch en OracleChat junto al biography. */
+    lunarData: LunarData | null
 
     onboardingStage: OnboardingStage
     onboardingData: OnboardingData
@@ -78,7 +81,8 @@
     setPendingLillyEvent: (event: Record<string, any> | null) => void
     setLastLillyEvent: (evt: { type: string; label: string } | null) => void
     setLillySuggestions: (s: Array<{ type: string; target: string; label: string }> | null) => void
-    setTimeline: (t: BiographicalTimeline | null) => void
+    setTimeline:   (t: BiographicalTimeline | null) => void
+    setLunarData:  (d: LunarData | null) => void
     clearAll: () => void
 
     setOnboardingStage: (stage: OnboardingStage) => void
@@ -198,6 +202,7 @@
       lastLillyEvent: null,
       lillySuggestions: null,
       timeline: null,
+      lunarData: null,
 
       // ---- Estado de onboarding ----
       onboardingStage: "idle",
@@ -266,7 +271,8 @@
 
       setLillySuggestions: (s) => set({ lillySuggestions: s }),
 
-      setTimeline: (t) => set({ timeline: t }),
+      setTimeline:  (t) => set({ timeline: t }),
+      setLunarData: (d) => set({ lunarData: d }),
 
       // ---------------------------------------------------
       // ONBOARDING MUTATORS

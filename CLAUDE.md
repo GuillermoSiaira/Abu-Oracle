@@ -1263,6 +1263,42 @@ gcloud builds submit --config=cloudbuild-mundana-job.yaml --project=abu-oracle .
 
 ---
 
+### Fix calidad de contexto Lilly — sesión 2026-04-16
+
+**4 fixes · 7 archivos · Deploy producción**
+
+Raíz del problema: análisis del intercambio real con Lilly expuso 4 inconsistencias en el contexto que recibe el agente.
+
+**Fix 1 — `lunarData`: fuente única de verdad en Zustand** (`store.ts`, `OracleChat.tsx`, `persian-techniques-tab.tsx`, `cielo-hoy-tab.tsx`)
+- Problema: tres componentes (`OracleChat`, `PersianTechniquesTab`, `CieloHoyTab`) hacían fetch independiente de `/api/astro/lunar` → condiciones de carrera, respuestas inconsistentes, mismo endpoint llamado 3 veces por sujeto.
+- Fix: `lunarData: LunarData | null` + `setLunarData()` en store Zustand. `OracleChat.tsx` fetcha lunar en paralelo con biography (mismo `useEffect`, mismas deps). `setLunarData(null)` en reset al cambiar sujeto.
+- `PersianTechniquesTab` y `CieloHoyTab` leen `useAppStore(s => s.lunarData)` — sin fetch propio.
+- `OracleChat.tsx` incluye `lunarData: lunarData ?? undefined` en bodies de screen-open y chat.
+
+**Fix 2 — Días hasta próximas lunaciones en `formatLunarContext()`** (`context-builder.ts`)
+- Problema: Lilly recibía fechas ISO sin saber cuántos días faltaban → "Luna Nueva en 14 días" es más útil que "2026-04-30".
+- Fix: helper `daysUntil(isoStr)` → appended ` · hoy` / ` · mañana` / ` · en N días` a nm, fm, next_solar_eclipse, next_lunar_eclipse en el bloque CIELO ACTUAL.
+
+**Fix 3 — Fecha local del usuario en `CONTEXTO ACTIVO`** (`context-builder.ts`, `screen-open/route.ts`, `chat/route.ts`)
+- Problema: cerca de medianoche en Argentina (UTC-3), `CONTEXTO ACTIVO` mostraba fecha UTC del día siguiente → Lilly mencionaba el día incorrecto.
+- Fix: `utcOffsetHours?: number` en `buildActiveContext()` params → `userLocalDate = new Date(Date.now() + offset * 3_600_000).toISOString().slice(0,10)` → línea `Fecha local usuario: YYYY-MM-DD` en el bloque.
+- Cadena completa verificada: `birth-data-panel.tsx` → `BirthData.utcOffset` → `OracleChat` meta → `screen-open/route.ts` + `chat/route.ts` → `buildActiveContext`.
+
+**Fix 4 — Tránsitos multi-paso agrupados** (`context-builder.ts`)
+- Problema: el mismo tránsito (ej: Plutón oposición Mercurio) aparecía 3 veces en LÍNEA DE TIEMPO (directo / retrógrado / directo) como entradas separadas → Lilly lo leía como 3 eventos distintos.
+- Fix: Map keyed por `${transit_planet}|${aspect}|${natal_planet}`. Si count=1 → formato normal. Si count>1 → bloque agrupado: `"- Pluto opposition Mercury natal · 3 pasos · ventana: start → end"` con cada paso en sub-línea `"  Paso N: date [activo]"`.
+
+**Archivos modificados:**
+- `next_app/lib/context-builder.ts` — fixes 2, 3, 4
+- `next_app/lib/store.ts` — campo `lunarData`
+- `next_app/components/OracleChat.tsx` — fetch + store lunarData, pass en bodies
+- `next_app/components/persian-techniques-tab.tsx` — lee lunarData del store (no fetch propio)
+- `next_app/components/cielo-hoy-tab.tsx` — ídem
+- `next_app/app/api/lilly/screen-open/route.ts` — acepta `clientLunarData` + `utcOffset`
+- `next_app/app/api/chat/route.ts` — ídem
+
+---
+
 ## Convenciones del proyecto
 
 - **Sistema de casas**: Placidus

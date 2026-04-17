@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useAppStore } from "@/lib/store";
 import { UI } from "@/lib/i18n";
-import { LunarDial, type LunarData } from "@/components/LunarDial";
+import { LunarDial } from "@/components/LunarDial";
 import { ABU_BASE_URL } from "@/services/abu";
 import { getAbuAuthHeaders } from "@/lib/abu-auth";
 
@@ -28,25 +28,8 @@ const PLANET_SYMBOLS: Record<string, string> = {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function CieloHoyTab() {
-  const { birthData, timeline, setTimeline, lang, setPendingLillyEvent } = useAppStore();
+  const { birthData, timeline, setTimeline, lang, setPendingLillyEvent, lunarData } = useAppStore();
   const t = UI[lang];
-
-  const [lunarData, setLunarData] = useState<LunarData | null>(null);
-
-  // ── Fetch lunar data ────────────────────────────────────────────────────────
-  useEffect(() => {
-    if (!birthData?.birthDate || birthData.lat == null || birthData.lon == null) return;
-    getAbuAuthHeaders().then((headers) => {
-      const url = new URL(`${ABU_BASE_URL}/api/astro/lunar`);
-      url.searchParams.set("birthDate", birthData.birthDate);
-      url.searchParams.set("lat",       String(birthData.lat));
-      url.searchParams.set("lon",       String(birthData.lon));
-      fetch(url.toString(), { headers })
-        .then((r) => (r.ok ? r.json() : null))
-        .then((data) => { if (data) setLunarData(data); })
-        .catch(() => {});
-    });
-  }, [birthData?.birthDate, birthData?.lat, birthData?.lon]);
 
   // ── Ensure timeline is loaded (Cielo Hoy needs fast/lunar transits) ──────────
   useEffect(() => {

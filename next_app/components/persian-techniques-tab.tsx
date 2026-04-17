@@ -1,11 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useAppStore } from "@/lib/store";
 import { UI } from "@/lib/i18n";
-import { LunarDial, type LunarData } from "@/components/LunarDial";
-import { ABU_BASE_URL } from "@/services/abu";
-import { getAbuAuthHeaders } from "@/lib/abu-auth";
+import { LunarDial } from "@/components/LunarDial";
 
 function getSignFromLongitude(long: number): string {
   const signs = [
@@ -97,23 +94,9 @@ export function PersianTechniquesTab() {
   const lang = useAppStore((s) => s.lang);
   const birthData = useAppStore((s) => s.birthData);
   const setPendingLillyEvent = useAppStore((s) => s.setPendingLillyEvent);
+  // lunarData viene del store — OracleChat lo fetcha una sola vez (fuente única de verdad)
+  const lunarData = useAppStore((s) => s.lunarData);
   const t = UI[lang as keyof typeof UI] ?? UI.es;
-
-  const [lunarData, setLunarData] = useState<LunarData | null>(null);
-
-  useEffect(() => {
-    if (!birthData?.birthDate || birthData.lat == null || birthData.lon == null) return;
-    getAbuAuthHeaders().then((headers) => {
-      const url = new URL(`${ABU_BASE_URL}/api/astro/lunar`);
-      url.searchParams.set("birthDate", birthData.birthDate);
-      url.searchParams.set("lat", String(birthData.lat));
-      url.searchParams.set("lon", String(birthData.lon));
-      fetch(url.toString(), { headers })
-        .then((r) => (r.ok ? r.json() : null))
-        .then((data) => { if (data) setLunarData(data as LunarData); })
-        .catch(() => {});
-    });
-  }, [birthData?.birthDate, birthData?.lat, birthData?.lon]);
 
   if (isLoading) return <div className="p-6 text-slate-500 text-sm">{t.persianSect}…</div>;
   if (!abuData) return <div className="p-6 text-slate-500 text-sm">{t.persianNoData}</div>;

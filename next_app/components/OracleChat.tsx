@@ -139,7 +139,7 @@ export default function OracleChat() {
 
   // Store global (NO asumir tipos internos)
   // @ts-ignore
-  const { abuData, birthData, lang, pendingLillyEvent, setPendingLillyEvent, setLastLillyEvent, setLillySuggestions, setTimeline, timeline } = useAppStore();
+  const { abuData, birthData, lang, pendingLillyEvent, setPendingLillyEvent, setLastLillyEvent, setLillySuggestions, setTimeline, timeline, lunarData, setLunarData } = useAppStore();
   const t = UI[lang as keyof typeof UI] ?? UI.es;
   const pathname = usePathname();
   const isChartPage = pathname === '/chart';
@@ -167,6 +167,7 @@ export default function OracleChat() {
       setLastLillyEvent(null);
       setLillySuggestions(null);
       setTimeline(null);
+      setLunarData(null);
     }
     prevAbuRef.current = abuData;
 
@@ -192,21 +193,33 @@ export default function OracleChat() {
       initialized.current = true;
       initializedLangRef.current = lang;
 
-      // --- Fetch biography (timeline) — una vez por sujeto ---
+      // --- Fetch biography (timeline) + lunar — una vez por sujeto, en paralelo ---
       const bDate = (birthData as any).birthDate;
       const bLat  = (birthData as any).lat;
       const bLon  = (birthData as any).lon;
       if (bDate && bLat != null && bLon != null) {
-        const bioUrl = new URL(`${ABU_BASE_URL}/api/astro/biography`);
-        bioUrl.searchParams.set('birthDate', bDate);
-        bioUrl.searchParams.set('birthLat',  String(bLat));
-        bioUrl.searchParams.set('birthLon',  String(bLon));
-        bioUrl.searchParams.set('window_months', '18');
-        getAbuAuthHeaders()
-          .then(headers => fetch(bioUrl.toString(), { headers }))
-          .then(res => res.ok ? res.json() : Promise.reject(res.status))
-          .then(data => setTimeline(data))
-          .catch(err => console.error('[biography]', err));
+        getAbuAuthHeaders().then(headers => {
+          // Biography
+          const bioUrl = new URL(`${ABU_BASE_URL}/api/astro/biography`);
+          bioUrl.searchParams.set('birthDate', bDate);
+          bioUrl.searchParams.set('birthLat',  String(bLat));
+          bioUrl.searchParams.set('birthLon',  String(bLon));
+          bioUrl.searchParams.set('window_months', '18');
+          fetch(bioUrl.toString(), { headers })
+            .then(res => res.ok ? res.json() : Promise.reject(res.status))
+            .then(data => setTimeline(data))
+            .catch(err => console.error('[biography]', err));
+
+          // Lunar — fuente única de verdad compartida con widget y contexto de Lilly
+          const lunarUrl = new URL(`${ABU_BASE_URL}/api/astro/lunar`);
+          lunarUrl.searchParams.set('birthDate', bDate);
+          lunarUrl.searchParams.set('lat',       String(bLat));
+          lunarUrl.searchParams.set('lon',       String(bLon));
+          fetch(lunarUrl.toString(), { headers })
+            .then(res => res.ok ? res.json() : null)
+            .then(data => { if (data) setLunarData(data); })
+            .catch(err => console.error('[lunar]', err));
+        });
       }
 
       // --- Greeting: determinar Estado A (usuario nuevo) o B (usuario que regresa) ---
@@ -275,9 +288,10 @@ export default function OracleChat() {
           firdaria_major: firdaria?.major ?? null,
           firdaria_minor: firdaria?.sub ?? null,
           lang,
-          natalData: abuData,
-          birthData: birthData ?? undefined,
-          timeline:  timeline ?? undefined,
+          natalData:  abuData,
+          birthData:  birthData ?? undefined,
+          timeline:   timeline  ?? undefined,
+          lunarData:  lunarData ?? undefined,
           messages,
         }),
       });
@@ -440,7 +454,8 @@ export default function OracleChat() {
           messages: [...messages, newMsg],
           context: sessionContext,
           session_id: "sidebar-session-v1",
-          timeline: timeline ?? undefined,
+          timeline:   timeline   ?? undefined,
+          lunarData:  lunarData  ?? undefined,
           lang,
         })
       });
