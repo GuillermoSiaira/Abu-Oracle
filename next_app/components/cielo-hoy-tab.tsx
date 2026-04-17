@@ -58,6 +58,12 @@ export function CieloHoyTab() {
     (t) => t.is_active && (t.speed_class === 'fast' || t.speed_class === 'lunar')
   );
 
+  // ── Active slow transits (conjunctions and oppositions only — high impact) ──
+  const slowTransits = (timeline?.transits_window ?? []).filter(
+    (t) => t.is_active && t.speed_class === 'slow' &&
+           (t.aspect === 'conjunction' || t.aspect === 'opposition')
+  );
+
   const handleSkyOpen = () => {
     setPendingLillyEvent({ type: 'sky_open', payload: { lang } });
   };
@@ -155,6 +161,52 @@ export function CieloHoyTab() {
           </div>
         </div>
       </div>
+
+      {/* ── Sección: Tránsitos lentos activos (conjunciones/oposiciones) ── */}
+      {slowTransits.length > 0 && (
+        <div>
+          <h4 className="text-[11px] font-semibold tracking-widest uppercase text-slate-600 mb-2">
+            Tránsitos lentos activos
+          </h4>
+          <div className="space-y-1.5">
+            {slowTransits.map((tr, i) => {
+              const meta = ASPECT_META[tr.aspect] ?? {
+                label: tr.aspect, symbol: "?", color: "text-slate-400",
+              };
+              const tSym = PLANET_SYMBOLS[tr.transit_planet] ?? tr.transit_planet[0];
+              const nSym = PLANET_SYMBOLS[tr.natal_planet]   ?? tr.natal_planet[0];
+              const exact = tr.exact_date ? tr.exact_date.slice(0, 10) : null;
+              return (
+                <div
+                  key={i}
+                  className="flex items-center gap-2 px-3 py-2 rounded-md bg-slate-800/30 border border-slate-700/25"
+                >
+                  <span className="text-slate-400 font-mono text-[13px] shrink-0 w-5 text-center">
+                    {tSym}
+                  </span>
+                  <span className="text-[11px] text-slate-400 shrink-0 w-[60px] truncate">
+                    {tr.transit_planet}
+                  </span>
+                  <span className={`text-[13px] shrink-0 ${meta.color}`}>
+                    {meta.symbol}
+                  </span>
+                  <span className="text-slate-500 font-mono text-[13px] shrink-0 w-5 text-center">
+                    {nSym}
+                  </span>
+                  <span className="text-[11px] text-slate-500 shrink-0 w-[60px] truncate">
+                    {tr.natal_planet}
+                  </span>
+                  {exact && (
+                    <span className="text-[10px] text-slate-600 font-mono ml-auto shrink-0">
+                      {exact}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* ── Sección: Lilly lee el cielo ── */}
       <div className="pt-2 border-t border-slate-800/60">

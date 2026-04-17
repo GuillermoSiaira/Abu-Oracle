@@ -31,9 +31,25 @@ function _formatFastTransits(
   if (fast.length === 0) return 'Sin tránsitos rápidos activos en este momento.';
   return fast
     .map(t => {
-      const orb = ''; // orb not in window shape — skipped
       const dir = t.ingress_date ? `ingresó ${t.ingress_date.slice(0, 10)}` : '';
       return `- ${t.transit_planet} ${t.aspect} ${t.natal_planet}${dir ? ' · ' + dir : ''}`;
+    })
+    .join('\n');
+}
+
+/** Formatea tránsitos lentos activos de alta intensidad (conjunciones/oposiciones). */
+function _formatSlowTransits(
+  transits_window: BiographicalTimeline['transits_window']
+): string {
+  const slow = transits_window.filter(
+    t => t.is_active && t.speed_class === 'slow' &&
+         (t.aspect === 'conjunction' || t.aspect === 'opposition')
+  );
+  if (slow.length === 0) return '';
+  return slow
+    .map(t => {
+      const exact = t.exact_date ? `exacto ${t.exact_date.slice(0, 10)}` : '';
+      return `- ${t.transit_planet} ${t.aspect} ${t.natal_planet} [lento]${exact ? ' · ' + exact : ''}`;
     })
     .join('\n');
 }
@@ -54,16 +70,19 @@ export async function POST(req: Request) {
 
     const tl: BiographicalTimeline = timeline ?? EMPTY_TIMELINE;
 
+    const slowBlock = _formatSlowTransits(tl.transits_window);
     const natal  = buildNatalContext(natalData, birthData);
     const active = buildActiveContext({
-      currentDate:   new Date().toISOString(),
-      activeTab:     'cielo_hoy',
-      activeDomain:  null,
-      activeCity:    null,
-      lastEventType: 'sky_open',
+      currentDate:    new Date().toISOString(),
+      activeTab:      'cielo_hoy',
+      activeDomain:   null,
+      activeCity:     null,
+      lastEventType:  'sky_open',
+      utcOffsetHours: (birthData as any)?.utcOffset ?? undefined,
       triggerData: {
         today: new Date().toISOString().slice(0, 10),
         fast_transits_active: _formatFastTransits(tl.transits_window),
+        ...(slowBlock ? { slow_transits_active: slowBlock } : {}),
       },
     });
     const block = assembleContextBlock(natal, tl, active, lang ?? 'es');
