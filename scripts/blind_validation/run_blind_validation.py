@@ -22,6 +22,7 @@ Uso:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -268,7 +269,6 @@ def _render_bv_md(
 def _render_obsidian_md(
     bv_id: str,
     alias: str,
-    subject_real: str,
     rodden: str,
     birth_date: str,
     birth_time: str,
@@ -284,7 +284,6 @@ def _render_obsidian_md(
     return f"""---
 id: {bv_id}
 alias: {alias}
-subject_real: {subject_real}
 rodden: {rodden}
 birth_date: "{birth_date}"
 birth_time: "{birth_time}"
@@ -388,9 +387,12 @@ def main() -> None:
 
     experiment_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     bv_id = _next_bv_id()
-    slug = _slug(args.alias)
+    _hash_input = f"{args.date}{args.time}{args.lat}{args.lon}"
+    _opaque = "NTV-" + hashlib.sha256(_hash_input.encode()).hexdigest()[:4].upper()
+    alias = args.alias if args.alias != "Mr. X" else _opaque
+    slug = _slug(alias)
 
-    print(f"[BV] Iniciando experimento {bv_id} — alias: {args.alias}", flush=True)
+    print(f"[BV] Iniciando experimento {bv_id} — alias: {alias}", flush=True)
 
     # 1. Obtener carta natal extendida
     try:
@@ -408,7 +410,7 @@ def main() -> None:
 
     # 2. Construir contextBlock y llamar a Lilly
     print(f"[BV] Generando lectura doctrinal con {BV_MODEL}...", flush=True)
-    context_block = _build_doctrinal_context(chart, args.alias)
+    context_block = _build_doctrinal_context(chart, alias)
     lilly_reading = _call_lilly(context_block)
 
     # 3. Renderizar fichas
@@ -417,7 +419,7 @@ def main() -> None:
 
     bv_md = _render_bv_md(
         bv_id=bv_id,
-        alias=args.alias,
+        alias=alias,
         subject_real=args.subject_real,
         rodden=args.rodden,
         birth_date=args.date,
@@ -431,8 +433,7 @@ def main() -> None:
 
     obs_md = _render_obsidian_md(
         bv_id=bv_id,
-        alias=args.alias,
-        subject_real=args.subject_real,
+        alias=alias,
         rodden=args.rodden,
         birth_date=args.date,
         birth_time=args.time,
@@ -448,7 +449,7 @@ def main() -> None:
     # 5. Actualizar índice
     _update_index(
         bv_id=bv_id,
-        alias=args.alias,
+        alias=alias,
         subject_real=args.subject_real,
         rodden=args.rodden,
         birth_date=args.date,
@@ -462,7 +463,7 @@ def main() -> None:
 
     print(f"[BV] ✓ Ficha guardada: data/blind_validation/{bv_filename}", flush=True)
     print(f"[BV] ✓ Nota Obsidian: obsidian_vault/03_experimentos/{obs_filename}", flush=True)
-    print(f"[BV] ✓ Índice actualizado: {bv_id} — alias: {args.alias}", flush=True)
+    print(f"[BV] ✓ Índice actualizado: {bv_id} — alias: {alias}", flush=True)
     print(
         "[BV] Próximo paso: completar la sección de Verificación en la ficha.", flush=True
     )

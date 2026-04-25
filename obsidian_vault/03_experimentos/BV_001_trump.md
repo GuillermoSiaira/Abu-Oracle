@@ -1,7 +1,6 @@
 ---
 id: BV_001
 alias: Mr. X
-subject_real: Donald Trump
 rodden: AA
 birth_date: "1946-06-14"
 birth_time: "10:54"
