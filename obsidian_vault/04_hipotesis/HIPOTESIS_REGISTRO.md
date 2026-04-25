@@ -122,6 +122,74 @@ compute_relocation_field(
 
 ---
 
+## H08 — Ontología del Campo Continuo (hipótesis del mecanismo)
+
+**Enunciado**: La geometría planetaria correlaciona con experiencia biográfica porque ambas son
+geometrías del mismo campo continuo. La luz es modulación del campo EM, no entidad separada.
+El horizonte local es el operador que define qué región del campo es localmente dominante para
+una configuración de individuación específica.
+
+**Estado**: ❌ Hipótesis especulativa — falsable, no probada
+
+**Evidencia consistente (no probatoria):**
+- HF_v6 Cohen's d H10=+0.702 — señal estadística existente
+- El sistema ya implementa el invariante natal ($\Delta_{natal}$) sin nombrarlo explícitamente
+
+**Consecuencia si verdadera:** elimina el problema filosófico de la acción a distancia.
+No hay "influencia que viaja" — hay geometría del mismo campo.
+
+**Próxima prueba**: formalización en Axiomática v0.5 + publicación como paper 3 páginas.
+
+Documento completo: [[AXIOM_0_MECANISMO]]
+
+---
+
+## H09 — Código Dual del Nativo
+
+**Enunciado**: El evento de individuación imprime dos códigos simultáneos sobre el mismo campo:
+$\mathcal{I}_{nativo} = \{\pi_{natal}, \mathcal{N}\}$. El código nominal $\mathcal{N}$
+opera sobre el mismo campo que el código celeste. La transformación $T(\mathcal{N}) \to \mathbb{Z}
+\to \text{geometría}$ existe en el corpus hermético (gematría).
+
+**Estado**: ❌ Especulativa — horizonte futuro Abu Oracle
+
+**Consecuencia de diseño:** agente hermético en Lilly Swarm (Lilly Swarm v2.0) que opera
+sobre $\mathcal{N}$ con su propia métrica de decodificación.
+
+**Fuente doctrinal**: Hermes Trismegisto → Plotino → Proclo → Ficino. Gematría como
+métrica formal.
+
+Documento completo: [[AXIOM_0_MECANISMO]]
+
+---
+
+## H_mundana_A — Conjunciones de ciclo largo como marcadores epocales
+
+**Enunciado**: Las configuraciones planetarias de ciclo largo (conjunciones Júpiter-Saturno, oposiciones Marte-Saturno) presentan, alrededor de su fecha exacta, una densidad de eventos históricos significativamente superior al ruido de fondo del corpus.
+
+**Estado**: ✅ Confirmada — robusta para J-S, señal real para M-S
+
+**Evidencia** (corpus 23.636 eventos, año 8–2069):
+
+| Configuración | p-value | r (rank-biserial) | Densidad |
+|---|---|---|---|
+| Conjunción Júpiter-Saturno | 5×10⁻⁶ | +0.204 | 4.3× baseline |
+| Oposición Marte-Saturno | 0.016 | +0.056 | 1.6× baseline |
+
+**Hallazgo clave J-S:** 8.67 eventos/ventana vs 2.02 baseline. Confirma doctrina Abu Mashar.
+
+**Limitación:** corpus sesgado siglo XIX-XX (68% eventos). Réplica estratificada por siglo es el siguiente paso.
+
+**Fuente doctrinal**: Abu Mashar al-Balkhi, *De Magnis Coniunctionibus* (siglo IX). Las conjunciones J-S como marcadores de transiciones políticas, religiosas y culturales mayores.
+
+**Fundamento axiomático**: [[AXIOMATICS_v0_4#11. Principio de Estratificación de Niveles Operativos]] — Axiomas 11.1, 11.2, 11.3.
+
+**Implementación**: [[MUNDANA_PHASE12]] — módulo `abu_engine/core/mundana.py` + publisher Cloud Run.
+
+**Documento completo**: [[MUNDANA_H_A_RESULTADOS]]
+
+---
+
 ## H_v6 — Dignidad como modulador de angularidad + intersección firdaria∩dominio
 
 **Enunciado:** Angularidad × dignity_score × w_intersección produce

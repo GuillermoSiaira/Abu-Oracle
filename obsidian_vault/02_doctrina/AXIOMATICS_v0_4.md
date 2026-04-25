@@ -173,7 +173,40 @@ Todo código debe referenciar explícitamente los axiomas que implementa.
 
 ---
 
-## 11. Mapeo a Arquitectura
+## 11. Principio de Estratificación de Niveles Operativos *(nuevo — v0.4.1)*
+
+*Fundamento doctrinal: Abu Mashar al-Balkhi (787–886), De Magnis Coniunctionibus — los ciclos planetarios largos como marcadores de épocas históricas, independientes de cualquier carta natal individual.*
+
+**Axioma 11.1 — Dos niveles del mismo campo**
+El campo $\mathcal{H}$ admite dos modos de proyección no equivalentes:
+
+| Nivel | Proyección | Pregunta operativa |
+|---|---|---|
+| **Individual** | $f(\pi_{natal}, \phi(t,x))$ | ¿Cómo afecta esta configuración a *este* nativo? |
+| **Colectivo (mundano)** | $f(\phi(t))$ | ¿Qué configuración tiene el cielo *en sí*, sin anclaje natal? |
+
+El nivel individual requiere un código natal $\pi_{natal}$ como invariante (ver [[AXIOM_0_MECANISMO]]). El nivel mundano opera sobre el cielo sin necesidad de anclaje individual — la configuración planetaria *es* el objeto de lectura.
+
+**Axioma 11.2 — Conjunciones de ciclo largo como marcadores epocales**
+Las conjunciones Júpiter-Saturno (~20 años, gran ciclo ~960 años) y oposiciones/conjunciones Marte-Saturno funcionan como marcadores discretos de transiciones epocales en el corpus histórico colectivo.
+
+> Correlato empírico (Abu Oracle, 2026-04-05, corpus 23.636 eventos año 8–2069):
+> - Conjunción J-S: densidad 4.3× baseline, p=5×10⁻⁶, r=+0.204
+> - Oposición M-S: densidad 1.6× baseline, p=0.016, r=+0.056
+> - Ver [[MUNDANA_H_A_RESULTADOS]]
+
+**Axioma 11.3 — Independencia entre niveles**
+Un evento puede ser legible en el nivel mundano sin requerir lectura individual, y viceversa. La señal estadística de J-S sobre el corpus colectivo no depende de las cartas natales de los protagonistas — opera sobre el calendario histórico mismo.
+
+**Axioma 11.4 — Convergencia entre niveles**
+Cuando un nativo experimenta un período cuya configuración mundana (J-S, M-S, eclipses) coincide con su activación temporal individual (firdaria, profección, tránsito a planeta natal), la lectura debe componer ambos niveles. La convergencia no es aditiva — es estructural.
+
+**Axioma 11.5 — Implicación de diseño**
+El módulo mundana no es una feature paralela al motor natal. Es la implementación del nivel colectivo del campo, doctrinalmente justificada en [[AXIOMATICS_v0_3#Abu Mashar]] y empíricamente validada en [[MUNDANA_H_A_RESULTADOS]]. Su arquitectura de producto está descrita en [[MUNDANA_PHASE12]].
+
+---
+
+## 12. Mapeo a Arquitectura
 
 | Axioma | Implementación |
 |---|---|
@@ -183,6 +216,9 @@ Todo código debe referenciar explícitamente los axiomas que implementa.
 | 8.3 Subset como pregunta | `planet_subset = house_significators(natal, house=k)` |
 | 8.4 Selector como requisito | `DomainSelector.tsx` — frontend |
 | 9.3 Timing + geografía | HF por dominio (implementado) + firdaria (activo) |
+| 11.1 Niveles individual/colectivo | Engine natal (`/analyze`) + módulo mundana (`/api/mundana/*`) |
+| 11.2 Conjunciones como marcadores | `abu_engine/core/mundana.py` — detección J-S, M-S, M-J + stellium |
+| 11.5 Mundana como nivel del campo | [[MUNDANA_PHASE12]] — pipeline + publisher autónomo |
 
 ---
 
@@ -193,3 +229,4 @@ Todo código debe referenciar explícitamente los axiomas que implementa.
 | v0.1 | 2025-12-30 | Draft fundacional |
 | v0.3 | 2025-12-30 | Formalización matemática |
 | **v0.4** | **2026-03-13** | Axiomas 8 y 9 nuevos. Fundamento empírico y doctrinal Jeeva/Sareera |
+| **v0.4.1** | **2026-04-25** | Axioma 11 — Estratificación niveles individual/colectivo. Fundamento Abu Mashar + validación H_mundana_A |

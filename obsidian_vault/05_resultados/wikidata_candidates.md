@@ -81,7 +81,7 @@ pero no puede validarse en H10 por falta de eventos negativos documentados.
 La curación de 52 candidatos Wikidata + búsqueda manual en 16 sujetos sin datos
 es el trabajo que desbloquea la validación completa.
 
-Ver [[grant_proposal_ResearchHub]] *(pendiente de crear)*
+Ver [[grant_proposal_ResearchHub]]
 
 ## Archivos
 
@@ -91,6 +91,9 @@ Ver [[grant_proposal_ResearchHub]] *(pendiente de crear)*
 
 ## Links
 
-[[EXP_004_HF_v6_domain]]
-[[H01_domain_specificity]]
-[[REVISION_2026_04_01]]
+- [[EXP_004_HF_v6_domain]] — experimento que generó la necesidad de ampliar corpus H10
+- [[H01_domain_specificity]] — hipótesis de especificidad que depende de N− suficiente
+- [[REVISION_2026_04_01]] — diagnóstico del gap de corpus H10 (N−=5)
+- [[HF_V6_RESULTS]] — resultados HF_v6 con límite de validez por N−
+- [[HF_EXPERIMENT_LOG]] — contexto del pipeline de validación completo
+- [[HIPOTESIS_REGISTRO]] — H03 (especificidad de dominio) como hipótesis pendiente de corpus

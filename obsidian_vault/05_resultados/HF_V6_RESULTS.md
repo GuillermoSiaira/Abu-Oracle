@@ -125,3 +125,17 @@ la especificidad de dominio es condición de legibilidad del campo.
 - Correlador: `scripts/run_hf_v6_comparison.py`
 - Baseline: `analysis/domain_correlation_results.json`
 - Reporte completo: `analysis/HF_V6_RESULTS.md`
+
+---
+
+## Referencias cruzadas
+
+- [[hf_v6]] — implementación técnica del módulo HF v6
+- [[HF_EXPERIMENT_LOG]] — log secuencial de experimentos, contexto de HF_v6
+- [[HIPOTESIS_REGISTRO]] — H_v6 como hipótesis formal; H03 (especificidad de dominio)
+- [[AXIOMATICS_v0_4]] — Axiomas 8 (especificidad) y 9 (activación condicionada) que fundamentan v6
+- [[EXP_004_HF_v6_domain]] — experimento de validación por dominio
+- [[REVISION_2026_04_01]] — revisión de inconsistencias numéricas H10/H07
+- [[grant_proposal_ResearchHub]] — paper HF estadístico como candidato ResearchHub
+- [[ANTHROPIC_STRATEGY]] — HF como caso publicable en estrategia Anthropic
+- [[ARCHITECTURE]] — cómo HF_v6 conecta con el sistema de relocalización

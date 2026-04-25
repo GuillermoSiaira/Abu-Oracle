@@ -2,7 +2,7 @@
 name: 00_index
 description: Mapa central del vault — índice navegable de todos los documentos
 tipo: index
-version: 2026-03-28
+version: 2026-04-25
 estado: activo
 tags: [index, mapa, navegacion]
 ---
@@ -21,6 +21,7 @@ Motor astrológico computacional con campo escalar geográfico (Harmony Field) e
 |-----------|-------------|
 | [[resonance_weights]] | Constantes de aspectos, sigmas y GROUP_WEIGHTS en producción (w_h=−1.0, w_t=−1.0, w_c=+2.5) |
 | [[field_v3]] | Fórmula completa `HF_total_v3 = HF_aspects + β*HF_angles + γ*HF_houses` (β=0.6, γ=0.3) |
+| [[hf_v6]] | HF v6 — scoring con pesos diferenciados por grupo, usado en validación H10/H07 |
 | [[HF_CORE_V2_DESIGN]] | Diseño v2 multiplicativo (archivado) — diagnóstico de por qué no funcionó |
 | [[HF_V4_SESSION_B]] | Spec HF v4 pesos diferenciados + correlador de eventos biográficos |
 | [[hf_embedding_36d]] | Embedding 36D — vector circular 24D + armónicos 8D + métricas HF 4D (usado en hf_dataset_v2.parquet) |
@@ -31,8 +32,10 @@ Motor astrológico computacional con campo escalar geográfico (Harmony Field) e
 
 | Documento | Descripción |
 |-----------|-------------|
+| [[AXIOMATICS_OF_HEAVENS_v0_4]] | **Redirect** — Tabla resumen axiomas + links a versión vault y repo |
 | [[AXIOMATICS_v0_4]] | **Activo** — Axiomática v0.4 con Especificidad de Dominio (Ax. 8) y Activación Condicionada (Ax. 9) |
 | [[AXIOMATICS_v0_3]] | Archivado — v0.3 con axiomas de campo de relocalización y Abu Mashar |
+| [[persian_techniques]] | Técnicas persas+helenísticas: Sect, Profección, Firdaria, Lotes, Tránsitos Lunares, Ciclos |
 
 ---
 
@@ -51,9 +54,10 @@ Motor astrológico computacional con campo escalar geográfico (Harmony Field) e
 
 | Documento | Descripción |
 |-----------|-------------|
-| [[HIPOTESIS_REGISTRO]] | H01–H07: estructura espacial, signos de pesos, especificidad de dominio, validación directa, firdaria temporal, convergencia |
+| [[HIPOTESIS_REGISTRO]] | H01–H09: estructura espacial, signos de pesos, especificidad, convergencia, ontología del campo, código dual |
 | [[H01_domain_specificity]] | H01 — Especificidad de dominio: confirmada H05 ✅, no testeable H10 (N−=5) |
-| [[H01b_significator_speed]] | H01b — Eficacia del filtro en función de velocidad orbital: parcial en velocidad, refutada en varianza |
+| [[H01b_significator_speed]] | H01b — Eficacia del filtro en función de velocidad orbital |
+| [[AXIOM_0_MECANISMO]] | **H08+H09** — Axioma 0: ontología del campo continuo, invariante natal, código dual $\{\pi_{natal}, \mathcal{N}\}$, transformación hermética |
 
 ---
 
@@ -61,9 +65,22 @@ Motor astrológico computacional con campo escalar geográfico (Harmony Field) e
 
 | Documento | Descripción |
 |-----------|-------------|
+| [[HF_V6_RESULTS]] | Resultados HF v6 — Cohen's d_global H10=+0.702, H07=+0.587; disclaimer v3≠v6 |
+| [[MUNDANA_H_A_RESULTADOS]] | H_mundana_A ✅ — conj. J-S p=5×10⁻⁶ density=4.3×; Fase 12 pipeline completo |
+| [[REVISION_2026_04_01]] | Revisión numérica 2026-04-01 — 5 inconsistencias H10/H07 diagnosticadas y resueltas |
 | [[domain_correlation_report]] | Reporte final — 527 eventos, 26 sujetos. H05 ✅ H07 ✅ H10 señal en rb |
 | [[domain_correlation_baseline]] | Baseline pre-dominio — referencia para cuantificar mejoras |
 | [[correlation_results]] | Datos crudos JSON — todos los valores exactos de corr/d/rb por casa |
+| [[wikidata_candidates]] | Candidatos Wikidata para ampliar corpus biográfico — criterios y sujetos propuestos |
+
+---
+
+## 05b — Validación Lilly (Blind Validation)
+
+| Documento | Descripción |
+|-----------|-------------|
+| [[BLIND_VALIDATION_EXPERIMENT]] | Protocolo carta ciega — H08 (inferencia doctrinal sin nombre) |
+| [[BV_001_trump]] | BV_001 — Mr. X (Trump) · 4/5 dims ✅ · 2026-04-03 |
 
 ---
 
@@ -102,12 +119,25 @@ Fuente: [[resonance_weights]] · [[field_v3]]
 
 ---
 
+## 06b — Estrategia y Publicación
+
+| Documento | Descripción |
+|-----------|-------------|
+| [[ANTHROPIC_STRATEGY]] | Estrategia Anthropic — 3 ejes publicables + Anthology Fund (⚡ ejecutable con 30d logs) |
+| [[grant_proposal_ResearchHub]] | 4 papers candidatos ResearchHub — FinOps, Blind Validation, HF estadístico, Axioma 0 |
+
+---
+
 ## 06 — Engineering
 
 | Documento | Descripción |
 |-----------|-------------|
+| [[ARCHITECTURE]] | **Hub central** — contrato Abu↔Lilly, AbuContext, rutas Lilly, Event System, capas del sistema |
+| [[COST_OPTIMIZATION]] | Estrategia costos API — modelos por ruta, fases A-E, pricing Genesis, rate limiting |
 | [[finops_milp]] | FinOps MILP — entry point, links a research/finops/ |
 | [[FINOPS_MILP_VARIABLES]] | Variables de decisión técnicas — max_tokens por ruta, modelos |
+| [[MUNDANA_PHASE12]] | Fase 12 — módulo mundana + publisher autónomo Cloud Run |
+| [[CONTEXT_QUALITY_FIXES]] | 4 fixes de calidad de contexto Lilly (2026-04-16) |
 
 ---
 

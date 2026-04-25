@@ -1447,6 +1447,8 @@ Abu Oracle como astrólogo personal — Lilly recuerda contexto entre sesiones d
 
 Leer CLAUDE.md al inicio de cada sesión (sección "## Bugs Pendientes" incluida). Los bugs documentados son issues conocidos — no investigarlos de nuevo, solo tenerlos presentes como contexto.
 
+**Specs de tareas activas:** `.claude/specs/active/` — leer el spec correspondiente antes de implementar. Specs completadas se mueven a `.claude/specs/done/`.
+
 Cuando Claude Code retome una sesión, leer este archivo primero y preguntar por la fase activa.
 La próxima tarea es siempre la primera sin tilde `✅` en el plan de desarrollo — actualmente **Fase 9 pendiente**: `click_house`, RAG pipeline, benchmark de modelos.
 

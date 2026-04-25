@@ -1,7 +1,7 @@
 {
   "collapse-filter": false,
   "search": "",
-  "showTags": false,
+  "showTags": true,
   "showAttachments": false,
   "hideUnresolved": false,
   "showOrphans": true,
@@ -34,6 +34,20 @@
         "a": 1,
         "rgb": 14111456
       }
+    },
+    {
+      "query": "index",
+      "color": {
+        "a": 1,
+        "rgb": 14701214
+      }
+    },
+    {
+      "query": "HF session",
+      "color": {
+        "a": 1,
+        "rgb": 5419488
+      }
     }
   ],
   "collapse-display": false,
@@ -46,6 +60,6 @@
   "repelStrength": 10,
   "linkStrength": 1,
   "linkDistance": 250,
-  "scale": 0.5672810975679717,
+  "scale": 0.3309977791428293,
   "close": true
 }
