@@ -25,6 +25,31 @@ La v0.4 incorpora dos principios nuevos — **Especificidad de Dominio** y **Act
 
 ---
 
+## 0. Axioma 0 — El Mecanismo *(borrador — v0.4.2)*
+
+*Documento completo: [[AXIOM_0_MECANISMO]]*
+
+La Axiomática v0.4 formaliza *qué* hace el sistema. El Axioma 0 cierra la pregunta que el resto deja abierta: *¿por qué* la geometría planetaria correlaciona con experiencia biográfica?
+
+**A0.1 — El nativo como configuración local del campo**
+El nativo no *recibe* influencia del campo — el nativo *es* una configuración local de $\mathcal{H}$, individuada en un instante único. La carta natal describe la geometría del campo en el momento en que esa configuración se volvió autónoma. El horizonte local es el operador que define qué región del campo es localmente dominante para esa configuración. No hay acción a distancia — hay geometría del mismo campo.
+
+**A0.2 — El invariante natal como medida**
+Sin una medida invariable, el sistema produce correlaciones sin poder establecer equivalencias. El invariante es $\pi_{natal}$ — la carta natal no cambia jamás. Todo HF es función de dos argumentos:
+
+$$HF(lat, lon, t) = f\!\left(\pi_{natal},\ \phi(lat, lon, t)\right)$$
+
+El $\Delta_{natal}$ ya calculado por el motor es la implementación directa de este principio. El sistema es natal-céntrico por necesidad ontológica, no por elección de diseño.
+
+**A0.3 — El código dual del nativo**
+El evento de individuación imprime dos invariantes simultáneos sobre el mismo campo:
+
+$$\mathcal{I}_{nativo} = \{\pi_{natal},\ \mathcal{N}\}$$
+
+El sistema opera sobre $\pi_{natal}$. Reconoce $\mathcal{N}$ (el código nominal) como componente real del invariante completo, con su propia métrica de decodificación — fuera del dominio de cómputo actual. La transformación $T(\mathcal{N}) \to \mathbb{Z} \to \text{geometría}$ es horizonte futuro (Lilly Swarm v2.0).
+
+---
+
 ## 1. Axiomas Ontológicos
 
 **Axioma 1.1 — El cielo como variedad**
@@ -210,6 +235,9 @@ El módulo mundana no es una feature paralela al motor natal. Es la implementaci
 
 | Axioma | Implementación |
 |---|---|
+| A0.1 Campo continuo | Fundamento ontológico del HF; eliminación de acción a distancia |
+| A0.2 Invariante natal | $\Delta_{natal}$ en el motor; toda comparación relativa a $\pi_{natal}$ |
+| A0.3 Código dual | Sistema declara operar sobre $\pi_{natal}$; reconoce $\mathcal{N}$ como componente real |
 | 2.1 Observador situado | Topocéntrico, Placidus, Swiss Ephemeris DE440s |
 | 5.2 Geografía como operador | [[field_v3]] — campo escalar grilla global |
 | 7.1 Aprendizaje histórico | 527 eventos biográficos, correlator HF↔valencia |
@@ -230,3 +258,4 @@ El módulo mundana no es una feature paralela al motor natal. Es la implementaci
 | v0.3 | 2025-12-30 | Formalización matemática |
 | **v0.4** | **2026-03-13** | Axiomas 8 y 9 nuevos. Fundamento empírico y doctrinal Jeeva/Sareera |
 | **v0.4.1** | **2026-04-25** | Axioma 11 — Estratificación niveles individual/colectivo. Fundamento Abu Mashar + validación H_mundana_A |
+| **v0.4.2** | **2026-04-25** | Axioma 0 — El Mecanismo (borrador). Campo continuo, invariante natal, código dual. Derivado de sesión Lilly–Guillermo |

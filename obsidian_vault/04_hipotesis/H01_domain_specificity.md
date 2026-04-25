@@ -1,3 +1,10 @@
+---
+id: H01
+tipo: hipotesis
+estado: "⚠️ parcial — H05 confirmada, H10 inválida por corpus"
+tags: [hipotesis, dominio, validacion]
+---
+
 # H01 — Domain Specificity Hypothesis
 
 ## Enunciado

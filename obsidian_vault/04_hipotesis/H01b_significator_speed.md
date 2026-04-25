@@ -1,3 +1,10 @@
+---
+id: H01b
+tipo: hipotesis
+estado: "⚠️ parcial — velocidad confirmada, varianza geográfica refutada"
+tags: [hipotesis, dominio, velocidad]
+---
+
 # H01b — Significator Speed Hypothesis
 
 ## Enunciado
