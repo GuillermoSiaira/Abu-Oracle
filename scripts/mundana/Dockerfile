@@ -5,6 +5,8 @@ WORKDIR /app
 # Sistema: swisseph necesita build tools solo en compilación
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc g++ libssl-dev \
+    libfreetype6-dev \
+    libpng-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Dependencias Python

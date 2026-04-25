@@ -16,5 +16,10 @@ praw>=7.8.0
 # GCS (registro de predicciones — opcional)
 google-cloud-storage>=2.19.0
 
+# Generación de imágenes
+matplotlib>=3.8.0
+Pillow>=10.0.0
+numpy>=1.26.0
+
 # Utilidades estándar (incluidas en Python 3.11)
 # json, hashlib, datetime, pathlib, os, sys — sin instalar

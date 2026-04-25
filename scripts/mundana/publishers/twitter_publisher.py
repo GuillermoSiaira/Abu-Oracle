@@ -37,7 +37,23 @@ def _save_draft(text: str, platform: str) -> Path:
     return path
 
 
-def _send_approval_email(text: str, platform: str, draft_path: Path) -> bool:
+def _save_image_draft(image_bytes: bytes, config_type: str) -> Path:
+    """Guarda imagen PNG del borrador en disco y retorna el path."""
+    DRAFTS_DIR.mkdir(parents=True, exist_ok=True)
+    ts   = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    safe_type = config_type.replace("/", "_").replace(" ", "_")
+    path = DRAFTS_DIR / f"{ts}_{safe_type}.png"
+    path.write_bytes(image_bytes)
+    print(f"[twitter] Imagen guardada: {path}")
+    return path
+
+
+def _send_approval_email(
+    text: str,
+    platform: str,
+    draft_path: Path,
+    image_path: Path | None = None,
+) -> bool:
     """Envía email de aprobación via Resend. Retorna True si OK."""
     api_key = os.environ.get("RESEND_API_KEY")
     if not api_key:
@@ -45,6 +61,16 @@ def _send_approval_email(text: str, platform: str, draft_path: Path) -> bool:
         return False
 
     char_count = len(text)
+
+    image_section = ""
+    if image_path:
+        image_section = f"""
+<hr>
+<p><strong>📎 Imagen generada:</strong></p>
+<p><code>{image_path}</code></p>
+<p style="color:#888">Adjuntar esta imagen al tweet.</p>
+"""
+
     html_body = f"""
 <h2>Borrador pendiente de aprobación — {platform.upper()}</h2>
 <p><strong>Caracteres:</strong> {char_count}</p>
@@ -55,6 +81,7 @@ def _send_approval_email(text: str, platform: str, draft_path: Path) -> bool:
 <hr>
 <p>Archivo: <code>{draft_path.name}</code></p>
 <p>Para publicar manualmente, copia el texto y pégalo en {platform.title()}.</p>
+{image_section}
 """
 
     try:
@@ -80,15 +107,31 @@ def _send_approval_email(text: str, platform: str, draft_path: Path) -> bool:
         return False
 
 
-def publish_twitter(text: str, platform: str = "twitter") -> dict:
+def publish_twitter(
+    text: str,
+    platform: str = "twitter",
+    image_bytes: bytes | None = None,
+    config_type: str = "",
+) -> dict:
     """
     Fase 1: guarda borrador + envía email de aprobación.
     La firma es publish_twitter(text, platform) para reutilizarla en IG/FB/TikTok.
 
+    Args:
+        text:        Texto del borrador
+        platform:    Plataforma destino ("twitter", "instagram", etc.)
+        image_bytes: PNG en bytes a guardar localmente (opcional)
+        config_type: Tipo de configuración para nombrar el archivo de imagen
+
     Retorna: { 'status': 'pending_approval', 'text': str, 'draft_path': str }
     """
     draft_path = _save_draft(text, platform)
-    _send_approval_email(text, platform, draft_path)
+
+    image_path: Path | None = None
+    if image_bytes:
+        image_path = _save_image_draft(image_bytes, config_type or platform)
+
+    _send_approval_email(text, platform, draft_path, image_path=image_path)
     return {
         "status":     "pending_approval",
         "text":       text,

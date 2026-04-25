@@ -31,9 +31,18 @@ def publish_all(platform: str, content: dict) -> dict:
     if platform == "farcaster":
         return publish_farcaster(content["text"])
     if platform == "bluesky":
-        return publish_bluesky(content["text"])
+        return publish_bluesky(
+            content["text"],
+            image_bytes=content.get("image_bytes"),
+            image_alt=content.get("image_alt", ""),
+        )
     if platform == "reddit":
         return publish_reddit(content["text"], title=content.get("reddit_title"))
     if platform in ("twitter", "instagram", "facebook", "tiktok"):
-        return publish_twitter(content["text"], platform=platform)
+        return publish_twitter(
+            content["text"],
+            platform=platform,
+            image_bytes=content.get("image_bytes"),
+            config_type=content.get("config_type", ""),
+        )
     return {"status": "error", "detail": f"Unknown platform: {platform}"}

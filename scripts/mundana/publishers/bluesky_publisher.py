@@ -31,9 +31,29 @@ def _create_session(handle: str, password: str) -> dict:
     return resp.json()
 
 
-def publish_bluesky(text: str) -> dict:
+def _upload_blob(session_token: str, image_bytes: bytes, mime_type: str = "image/png") -> dict:
+    """Sube imagen a Bluesky y devuelve el blob ref."""
+    response = requests.post(
+        f"{ATP_HOST}/xrpc/com.atproto.repo.uploadBlob",
+        headers={
+            "Content-Type": mime_type,
+            "Authorization": f"Bearer {session_token}",
+        },
+        data=image_bytes,
+        timeout=30,
+    )
+    response.raise_for_status()
+    return response.json()["blob"]
+
+
+def publish_bluesky(text: str, image_bytes: bytes | None = None, image_alt: str = "") -> dict:
     """
-    Publica un post en Bluesky.
+    Publica un post en Bluesky, opcionalmente con imagen adjunta.
+
+    Args:
+        text:        Texto del post (se trunca a 300 chars si es necesario)
+        image_bytes: PNG en bytes a adjuntar (opcional)
+        image_alt:   Texto alternativo para la imagen
 
     Retorna: { 'status': 'published' | 'error', 'uri': str | None, 'detail': str }
     """
@@ -59,11 +79,23 @@ def publish_bluesky(text: str) -> dict:
         if not access_token or not did:
             return {"status": "error", "uri": None, "detail": "No se obtuvo sesión ATP"}
 
-        record = {
+        record: dict = {
             "$type":     "app.bsky.feed.post",
             "text":      text,
             "createdAt": datetime.now(timezone.utc).isoformat(),
         }
+
+        # Adjuntar imagen si viene
+        if image_bytes:
+            try:
+                blob_ref = _upload_blob(access_token, image_bytes)
+                record["embed"] = {
+                    "$type": "app.bsky.embed.images",
+                    "images": [{"image": blob_ref, "alt": image_alt}],
+                }
+                print("[bluesky] Imagen subida OK")
+            except Exception as img_err:
+                print(f"[bluesky] WARNING — no se pudo subir imagen, publicando sin ella: {img_err}")
 
         resp = requests.post(
             f"{ATP_HOST}/xrpc/com.atproto.repo.createRecord",

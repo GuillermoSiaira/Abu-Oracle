@@ -30,6 +30,7 @@ from pathlib import Path
 from typing import Optional
 
 import anthropic
+from image_generator import generate_sky_diagram
 
 # ---------------------------------------------------------------------------
 # Configuración
@@ -419,16 +420,127 @@ def generate_post(
             f"Gold and white accents. No text. Cinematic, scientific aesthetic."
         )
 
+    # Generar imagen del diagrama de cielo
+    image_bytes: bytes | None = None
+    image_alt:   str  | None = None
+    try:
+        image_bytes = generate_sky_diagram(config)
+        image_alt   = f"{config.get('config_type', 'configuración')} — {config.get('exact_date', '')}"
+    except Exception as e:
+        print(f"[WARNING] No se pudo generar imagen: {e}")
+
     return {
         "text":         text,
         "hashtags":     PLATFORM_HASHTAGS.get(platform, []),
         "thread":       thread,
         "reddit_title": reddit_title,
         "image_prompt": image_prompt,
+        "image_bytes":  image_bytes,
+        "image_alt":    image_alt,
         "platform":     platform,
         "config_type":  config.get("type", ""),
         "style":        style,
     }
+
+
+# ---------------------------------------------------------------------------
+# Showcase caption (para showcase_publisher.py)
+# ---------------------------------------------------------------------------
+
+DOMAIN_LABELS: dict[str, str] = {
+    "global": "Campo Global",
+    "h1":  "Identidad",
+    "h2":  "Recursos",
+    "h4":  "Hogar",
+    "h5":  "Creatividad",
+    "h6":  "Trabajo y Salud",
+    "h7":  "Amor y Relaciones",
+    "h9":  "Expansión",
+    "h10": "Carrera",
+}
+
+SUBJECT_NAMES: dict[str, str] = {
+    "einstein": "Albert Einstein",
+    "freud":    "Sigmund Freud",
+    "jung":     "Carl Jung",
+    "tesla":    "Nikola Tesla",
+    "gandhi":   "Mahatma Gandhi",
+    "frida":    "Frida Kahlo",
+    "picasso":  "Pablo Picasso",
+    "vangogh":  "Vincent van Gogh",
+    "borges":   "Jorge Luis Borges",
+    "bowie":    "David Bowie",
+}
+
+SHOWCASE_LIMITS: dict[str, int] = {
+    "bluesky":   280,
+    "twitter":   220,
+    "instagram": 400,
+}
+
+
+def generate_showcase_caption(
+    subject_slug: str,
+    domain: str,
+    top3_cities: list[str],
+    lang: str = "es",
+    platform: str = "bluesky",
+) -> str:
+    """
+    Genera una caption para el mapa HF de un sujeto histórico usando Claude Sonnet 4.6.
+
+    Args:
+        subject_slug: slug del sujeto (ej: "einstein")
+        domain:       dominio HF (ej: "h10", "global")
+        top3_cities:  lista de hasta 3 ciudades top (puede estar vacía)
+        lang:         idioma ("es" | "en")
+        platform:     plataforma destino (determina límite de caracteres)
+
+    Returns:
+        Texto generado por Claude (str)
+    """
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        raise ValueError("ANTHROPIC_API_KEY no configurada")
+
+    nombre_real  = SUBJECT_NAMES.get(subject_slug, subject_slug.capitalize())
+    dominio_label = DOMAIN_LABELS.get(domain, domain)
+    limite       = SHOWCASE_LIMITS.get(platform, 280)
+
+    ciudades_str = (
+        ", ".join(top3_cities) if top3_cities
+        else ("desconocidas en este momento" if lang == "es" else "not available")
+    )
+
+    if lang == "es":
+        user_prompt = (
+            f"Eres Lilly, astrólogo del sistema Abu Oracle. "
+            f"Describe el mapa del Harmony Field (HF) de {nombre_real} "
+            f"para el dominio '{dominio_label}' en máximo {limite} caracteres. "
+            f"Menciona las 3 mejores ciudades: {ciudades_str}. "
+            f"Cierra con una pregunta al lector sobre su propia carta. "
+            f"Tono: directo, doctrinal, sin emojis excesivos. "
+            f"Termina con: app.abu-oracle.com"
+        )
+    else:
+        user_prompt = (
+            f"You are Lilly, the astrologer of Abu Oracle. "
+            f"Describe the Harmony Field (HF) map of {nombre_real} "
+            f"for the domain '{dominio_label}' in at most {limite} characters. "
+            f"Mention the 3 best cities: {ciudades_str}. "
+            f"Close with a question to the reader about their own chart. "
+            f"Tone: direct, doctrinal, no excessive emojis. "
+            f"End with: app.abu-oracle.com"
+        )
+
+    client   = anthropic.Anthropic(api_key=api_key)
+    response = client.messages.create(
+        model=MODEL,
+        max_tokens=512,
+        system=_LILLY_PUBLICATION_SYSTEM,
+        messages=[{"role": "user", "content": user_prompt}],
+    )
+    return response.content[0].text.strip() if response.content else ""
 
 
 # ---------------------------------------------------------------------------
