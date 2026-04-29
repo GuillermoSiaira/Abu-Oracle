@@ -29,7 +29,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
-import anthropic
+from anthropic import AnthropicVertex
 from image_generator import generate_sky_diagram
 
 # ---------------------------------------------------------------------------
@@ -375,14 +375,13 @@ def generate_post(
             'style':        str,            # estilo usado
         }
     """
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
-    if not api_key:
-        raise ValueError("ANTHROPIC_API_KEY no configurada")
-
     if style is None:
         style = _select_style(config)
 
-    client = anthropic.Anthropic(api_key=api_key)
+    client = AnthropicVertex(
+        project_id=os.environ.get("GOOGLE_CLOUD_PROJECT", "abu-oracle"),
+        region="us-east5",
+    )
 
     context_block = _build_context_block(config, history)
     user_prompt   = _prompt_for_platform(platform, context_block, style=style)
@@ -499,10 +498,6 @@ def generate_showcase_caption(
     Returns:
         Texto generado por Claude (str)
     """
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
-    if not api_key:
-        raise ValueError("ANTHROPIC_API_KEY no configurada")
-
     nombre_real  = SUBJECT_NAMES.get(subject_slug, subject_slug.capitalize())
     dominio_label = DOMAIN_LABELS.get(domain, domain)
     limite       = SHOWCASE_LIMITS.get(platform, 280)
@@ -533,7 +528,10 @@ def generate_showcase_caption(
             f"End with: app.abu-oracle.com"
         )
 
-    client   = anthropic.Anthropic(api_key=api_key)
+    client = AnthropicVertex(
+        project_id=os.environ.get("GOOGLE_CLOUD_PROJECT", "abu-oracle"),
+        region="us-east5",
+    )
     response = client.messages.create(
         model=MODEL,
         max_tokens=512,

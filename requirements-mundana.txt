@@ -4,8 +4,8 @@
 # Cálculo astrológico
 pyswisseph>=2.10.3.2
 
-# Claude Sonnet 4.6 (generación de contenido)
-anthropic>=0.49.0
+# Claude Sonnet 4.6 via Vertex AI (ADC — usa créditos GCP, sin ANTHROPIC_API_KEY)
+anthropic[vertex]>=0.49.0
 
 # HTTP (publishers Farcaster, Bluesky, Resend, Neynar)
 requests>=2.32.0
