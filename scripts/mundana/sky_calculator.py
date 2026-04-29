@@ -209,7 +209,7 @@ def _detect_stellium(positions: dict) -> Optional[dict]:
                 "exact_date":    None,
                 "p_value":       None,
                 "density_ratio": None,
-                "significance":  "high" if len(in_window) >= 5 else "medium",
+                "significance":  "high" if len(in_window) >= 4 else "medium",
             }
     return None
 
