@@ -1,7 +1,13 @@
 """
 main_publisher.py — Entry point del Cloud Run Job de publicación mundana.
 
-Flujo:
+MODOS DE PUBLICACIÓN (env var PUBLISH_MODE):
+  mundana  — publica cuando hay configuración astronómica significativa (default)
+  doctrine — publica un post sobre la arquitectura HF_v6 (slides de presentación)
+             independientemente de si hay evento mundano activo
+  auto     — intenta mundana primero; si no hay nada, publica doctrine como fallback
+
+Flujo mundana:
   1. Verificar si hay algo digno de publicar (publication_filter)
   2. Obtener la mejor configuración del cielo actual
   3. Seleccionar estilo de contenido (rotación diaria: stats/individual/geographic/doctrine)
@@ -9,6 +15,12 @@ Flujo:
   5. Publicar en cada plataforma (publishers/)
   6. Registrar hash SHA-256 del contenido publicado (onchain_registry)
   7. Marcar publicación para respetar min_days_between_posts
+
+Flujo doctrine:
+  1. Seleccionar slide del día (rotación de 11 conceptos, cada 3 días)
+  2. Generar post doctrinal por plataforma e idioma
+  3. Publicar / enviar borrador
+  4. Registrar hash SHA-256
 
 Plataformas:
   - Fase 1 AUTO:    farcaster, bluesky
@@ -28,7 +40,9 @@ Variables opcionales:
   GCS_PREDICTIONS_BUCKET    — bucket de predicciones (default: abu-oracle-predictions)
   PLATFORMS                 — CSV de plataformas activas (default: farcaster,bluesky,twitter)
   DRY_RUN                   — si "true", genera contenido pero no publica
-  CONTENT_STYLE             — forzar estilo (stats|individual|geographic|doctrine).
+  PUBLISH_MODE              — mundana | doctrine | auto (default: mundana)
+  LANG                      — idioma de publicación: es | en | fr | pt (default: es)
+  CONTENT_STYLE             — forzar estilo mundana (stats|individual|geographic|doctrine).
                                Si no se define, rota automáticamente por día de la semana.
 """
 
@@ -44,7 +58,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from publication_filter import should_publish, get_best_configuration, record_publication
-from content_generator  import generate_post, _select_style
+from content_generator  import (
+    generate_post, generate_doctrine_post, get_doctrine_slide, _select_style,
+)
 from publishers         import publish_all
 from onchain_registry   import register_prediction
 
@@ -83,63 +99,25 @@ def _log_run(entries: list[dict]) -> None:
 # Main
 # ---------------------------------------------------------------------------
 
-def main() -> int:
+def _publish_platforms(
+    platforms: list[str],
+    content_factory,
+    config_for_record: dict | None,
+    dry_run: bool,
+) -> tuple[list[dict], str | None]:
     """
-    Entry point principal. Retorna 0 si OK, 1 si hubo error.
+    Genera y publica contenido en cada plataforma.
+    content_factory(platform) → content dict
+    Retorna (run_log, first_published_platform).
     """
-    print(f"[main] Abu Oracle Mundana Publisher — {datetime.now(timezone.utc).isoformat()}")
-    dry_run   = _is_dry_run()
-    platforms = _get_platforms()
-
-    if dry_run:
-        print("[main] DRY_RUN=true — se generará contenido pero NO se publicará")
-
-    # -----------------------------------------------------------------------
-    # 1. ¿Hay algo que publicar?
-    # -----------------------------------------------------------------------
-    if not should_publish():
-        print("[main] No hay configuraciones que superen el umbral. Job completado sin publicación.")
-        return 0
-
-    # -----------------------------------------------------------------------
-    # 2. Obtener la mejor configuración
-    # -----------------------------------------------------------------------
-    config = get_best_configuration()
-    if not config:
-        print("[main] get_best_configuration() retornó None. No se publica.")
-        return 0
-
-    print(f"\n[main] Configuración seleccionada: {config.get('label', config.get('type'))}")
-    print(f"       Significancia: {config.get('significance')}  |  p={config.get('p_value')}  |  density={config.get('density_ratio')}×")
-
-    # -----------------------------------------------------------------------
-    # 3. Seleccionar estilo de contenido (rotación diaria — mismo para todas las plataformas)
-    # -----------------------------------------------------------------------
-    content_style = os.environ.get("CONTENT_STYLE") or _select_style(config)
-    print(f"       Estilo de contenido: {content_style}")
-
-    # -----------------------------------------------------------------------
-    # 4. Obtener contexto histórico (opcional, non-fatal)
-    # -----------------------------------------------------------------------
-    history = None
-    try:
-        from sky_calculator import get_historical_context
-        history = get_historical_context(config.get("type", ""))
-    except Exception as e:
-        print(f"[main] Warning: no se pudo obtener contexto histórico: {e}")
-
-    # -----------------------------------------------------------------------
-    # 5. Generar + publicar en cada plataforma
-    # -----------------------------------------------------------------------
     run_log: list[dict] = []
-    first_published_platform: str | None = None
+    first_published: str | None = None
 
     for platform in platforms:
         print(f"\n[main] Plataforma: {platform}")
 
-        # Generar contenido
         try:
-            content = generate_post(config, platform=platform, history=history, style=content_style)
+            content = content_factory(platform)
             print(f"       Texto ({len(content['text'])} chars): {content['text'][:80]}…")
         except Exception as e:
             print(f"       ERROR generando contenido: {e}")
@@ -147,11 +125,10 @@ def main() -> int:
             continue
 
         if dry_run:
-            print(f"       [DRY_RUN] No se publica.")
+            print("       [DRY_RUN] No se publica.")
             run_log.append({"platform": platform, "status": "dry_run", "text_preview": content["text"][:100]})
             continue
 
-        # Publicar
         try:
             result = publish_all(platform, content)
             print(f"       Resultado: {result.get('status')} — {result}")
@@ -160,37 +137,116 @@ def main() -> int:
             run_log.append({"platform": platform, "status": "error_publish", "detail": str(e)})
             continue
 
-        # Registrar hash del contenido (non-fatal)
         try:
-            register_prediction(content["text"], config, platform=platform)
+            meta = config_for_record or {"type": content.get("config_type", "doctrine")}
+            register_prediction(content["text"], meta, platform=platform)
         except Exception as e:
             print(f"       Warning: registro fallido: {e}")
 
         run_log.append({
             "platform": platform,
             "status":   result.get("status"),
-            "style":    content_style,
+            "style":    content.get("style"),
+            "lang":     content.get("lang"),
             "detail":   result,
         })
 
-        # Marcar la primera plataforma auto-publicada para cooldown
-        if result.get("status") in ("published", "pending_approval") and first_published_platform is None:
-            first_published_platform = platform
+        if result.get("status") in ("published", "pending_approval") and first_published is None:
+            first_published = platform
+
+    return run_log, first_published
+
+
+def main() -> int:
+    """Entry point principal. Retorna 0 si OK, 1 si hubo error."""
+    print(f"[main] Abu Oracle Mundana Publisher — {datetime.now(timezone.utc).isoformat()}")
+
+    dry_run      = _is_dry_run()
+    platforms    = _get_platforms()
+    publish_mode = os.environ.get("PUBLISH_MODE", "mundana").lower()
+    lang         = os.environ.get("LANG", "es").lower()
+
+    if dry_run:
+        print("[main] DRY_RUN=true — se generará contenido pero NO se publicará")
+
+    print(f"[main] Modo: {publish_mode} | Idioma: {lang} | Plataformas: {', '.join(platforms)}")
+
+    run_log: list[dict]   = []
+    first_published:  str | None = None
+    mundana_config:  dict | None = None
 
     # -----------------------------------------------------------------------
-    # 6. Registrar publicación para cooldown
+    # MODO MUNDANA (o intento mundana en modo auto)
     # -----------------------------------------------------------------------
-    if not dry_run and first_published_platform:
-        record_publication(config.get("type", "unknown"), first_published_platform)
-        print(f"\n[main] Cooldown registrado — plataforma: {first_published_platform}")
+    if publish_mode in ("mundana", "auto"):
+        if not should_publish():
+            if publish_mode == "mundana":
+                print("[main] No hay configuraciones que superen el umbral. Job sin publicación.")
+                return 0
+            else:
+                print("[main] No hay configuraciones mundanas — fallback a modo doctrine.")
+        else:
+            mundana_config = get_best_configuration()
+            if not mundana_config:
+                print("[main] get_best_configuration() retornó None.")
+                if publish_mode == "mundana":
+                    return 0
+            else:
+                print(f"\n[main] Configuración: {mundana_config.get('label', mundana_config.get('type'))}")
+                print(f"       Significancia: {mundana_config.get('significance')} | p={mundana_config.get('p_value')} | density={mundana_config.get('density_ratio')}×")
+
+                content_style = os.environ.get("CONTENT_STYLE") or _select_style(mundana_config)
+                print(f"       Estilo: {content_style} | Idioma: {lang}")
+
+                history = None
+                try:
+                    from sky_calculator import get_historical_context
+                    history = get_historical_context(mundana_config.get("type", ""))
+                except Exception as e:
+                    print(f"[main] Warning: contexto histórico no disponible: {e}")
+
+                def mundana_factory(platform: str) -> dict:
+                    return generate_post(
+                        mundana_config, platform=platform,
+                        history=history, style=content_style, lang=lang,
+                    )
+
+                run_log, first_published = _publish_platforms(
+                    platforms, mundana_factory, mundana_config, dry_run,
+                )
 
     # -----------------------------------------------------------------------
-    # 7. Log final
+    # MODO DOCTRINE (o fallback desde auto cuando no hubo evento mundano)
+    # -----------------------------------------------------------------------
+    if publish_mode == "doctrine" or (publish_mode == "auto" and mundana_config is None):
+        slide = get_doctrine_slide()
+        key   = "en" if lang == "en" else "es"
+        print(f"\n[main] Doctrine slide: {slide['id']} — {slide.get(f'title_{key}', slide['id'])}")
+
+        def doctrine_factory(platform: str) -> dict:
+            return generate_doctrine_post(slide, platform=platform, lang=lang)
+
+        doctrine_log, first_doctrine = _publish_platforms(
+            platforms, doctrine_factory, None, dry_run,
+        )
+        run_log.extend(doctrine_log)
+        if first_published is None:
+            first_published = first_doctrine
+
+    # -----------------------------------------------------------------------
+    # Registrar cooldown
+    # -----------------------------------------------------------------------
+    if not dry_run and first_published:
+        config_type = mundana_config.get("type", "unknown") if mundana_config else f"doctrine_{get_doctrine_slide()['id']}"
+        record_publication(config_type, first_published)
+        print(f"\n[main] Cooldown registrado — plataforma: {first_published}")
+
+    # -----------------------------------------------------------------------
+    # Log final
     # -----------------------------------------------------------------------
     _log_run(run_log)
-
     published_count = sum(1 for e in run_log if e.get("status") in ("published", "pending_approval"))
-    print(f"\n[main] Completado. Plataformas procesadas: {len(run_log)} | Publicadas/pendientes: {published_count}")
+    print(f"\n[main] Completado. Plataformas: {len(run_log)} | Publicadas/pendientes: {published_count}")
     return 0
 
 
