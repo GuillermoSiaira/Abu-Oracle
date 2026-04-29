@@ -380,7 +380,7 @@ def generate_post(
 
     client = AnthropicVertex(
         project_id=os.environ.get("GOOGLE_CLOUD_PROJECT", "abu-oracle"),
-        region="us-east5",
+        region=os.environ.get("VERTEX_REGION", "us-central1"),
     )
 
     context_block = _build_context_block(config, history)
@@ -530,7 +530,7 @@ def generate_showcase_caption(
 
     client = AnthropicVertex(
         project_id=os.environ.get("GOOGLE_CLOUD_PROJECT", "abu-oracle"),
-        region="us-east5",
+        region=os.environ.get("VERTEX_REGION", "us-central1"),
     )
     response = client.messages.create(
         model=MODEL,
