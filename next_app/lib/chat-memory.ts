@@ -25,7 +25,7 @@
  */
 
 import { getAdminDb } from "@/lib/firebase-admin";
-import Anthropic from "@anthropic-ai/sdk";
+import { getAnthropicClient } from "@/lib/anthropic-client";
 
 // ── Config ────────────────────────────────────────────────────────────────────
 
@@ -122,9 +122,6 @@ export async function getRecentHistory(userId: string): Promise<LillyMemoryConte
  * Designed to be called fire-and-forget after saveExchange().
  */
 export async function summarizeIfNeeded(userId: string): Promise<void> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) return;
-
   try {
     const db = getAdminDb();
     const exchangesRef = db
@@ -154,7 +151,7 @@ export async function summarizeIfNeeded(userId: string): Promise<void> {
       .join("\n\n---\n\n");
 
     // Generate summary
-    const client = new Anthropic({ apiKey });
+    const client = getAnthropicClient();
     const result = await client.messages.create({
       model: "claude-haiku-4-5-20251001",
       max_tokens: 512,

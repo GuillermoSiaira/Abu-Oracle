@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import os
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
@@ -380,18 +381,29 @@ def generate_post(
 
     client = AnthropicVertex(
         project_id=os.environ.get("GOOGLE_CLOUD_PROJECT", "abu-oracle"),
-        region=os.environ.get("VERTEX_REGION", "us-central1"),
+        region=os.environ.get("VERTEX_REGION", "us-east5"),
     )
 
     context_block = _build_context_block(config, history)
     user_prompt   = _prompt_for_platform(platform, context_block, style=style)
 
-    response = client.messages.create(
-        model=MODEL,
-        max_tokens=1024,
-        system=_LILLY_PUBLICATION_SYSTEM,
-        messages=[{"role": "user", "content": user_prompt}],
-    )
+    # Retry con backoff para rate limits (429) de Vertex AI
+    for attempt in range(3):
+        try:
+            response = client.messages.create(
+                model=MODEL,
+                max_tokens=1024,
+                system=_LILLY_PUBLICATION_SYSTEM,
+                messages=[{"role": "user", "content": user_prompt}],
+            )
+            break
+        except Exception as e:
+            if "429" in str(e) and attempt < 2:
+                wait = 30 * (attempt + 1)
+                print(f"[content] Rate limit — reintentando en {wait}s (intento {attempt + 1}/3)")
+                time.sleep(wait)
+            else:
+                raise
 
     raw_text = response.content[0].text.strip() if response.content else ""
 
@@ -530,7 +542,7 @@ def generate_showcase_caption(
 
     client = AnthropicVertex(
         project_id=os.environ.get("GOOGLE_CLOUD_PROJECT", "abu-oracle"),
-        region=os.environ.get("VERTEX_REGION", "us-central1"),
+        region=os.environ.get("VERTEX_REGION", "us-east5"),
     )
     response = client.messages.create(
         model=MODEL,

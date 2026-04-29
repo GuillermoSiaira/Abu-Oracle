@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
+import { getAnthropicClient } from "@/lib/anthropic-client";
 import { LILLY_SYSTEM_PROMPT } from "@/lib/lilly-prompt";
 import {
   buildNatalContext,
@@ -22,7 +22,7 @@ import { selectModel } from "@/lib/selectModel";
 
 export const dynamic = "force-dynamic";
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const client = getAnthropicClient();
 
 const EMPTY_TIMELINE: BiographicalTimeline = {
   profections: [],
