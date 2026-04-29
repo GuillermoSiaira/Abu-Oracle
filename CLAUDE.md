@@ -1263,6 +1263,48 @@ gcloud builds submit --config=cloudbuild-mundana-job.yaml --project=abu-oracle .
 
 ---
 
+### Fix mundana publisher — sesión 2026-04-29
+
+**3 bugs críticos resueltos + expansión B+C del detector de configuraciones**
+
+**Bug 1 — Cloud Scheduler sin permisos (raíz: job nunca corrió automáticamente desde 2026-04-17)**
+- Causa: `abu-engine-sa` carecía de `roles/run.invoker` en el job `mundana-publisher` → Scheduler recibía PERMISSION_DENIED (status.code: 7)
+- Fix: `gcloud run jobs add-iam-policy-binding mundana-publisher --member="serviceAccount:abu-engine-sa@abu-oracle.iam.gserviceaccount.com" --role="roles/run.invoker"`
+
+**Bug 2 — Filtro demasiado restrictivo (raíz: solo configuraciones con p_value empirico pasaban)**
+- Causa: la condición original requería `p_value ≤ 0.05 AND density_ratio ≥ 2.0` — datos históricos solo existen para `conjunction_JS` y `opposition_MS`. Ninguna otra configuración pasaba jamás.
+- Fix: añadida **Regla C** en `publication_filter.py`: si `significance in ('high', 'medium')` AND `days_to_exact ≤ 3` → publicar sin estadísticas (la rareza inminente lo justifica).
+- Fix adicional: umbral de stellium `>= 5 planetas` → `>= 4 planetas` para significance='high'
+
+**Bug 3 — Vertex AI sin cuota (raíz: `claude-sonnet-4-6` en `us-east5` sin `defaultLimit`)**
+- Causa: Vertex Sonnet en `us-east5` tiene effectiveLimit=0 → `content_generator.py` fallaba siempre con 429.
+- Fix: fallback a API directa de Anthropic cuando `ANTHROPIC_API_KEY` está presente en el entorno.
+- Pendiente: solicitar quota increase en `console.cloud.google.com/iam-admin/quotas` para `online_prediction_input_tokens_per_minute_per_base_model`, modelo `claude-sonnet-4-6`, región `us-east5`, solicitando 60,000 tokens/min.
+
+**Expansión B+C — nuevas configuraciones detectadas:**
+- 5 configuraciones previas → 13 configuraciones (expansion B: aspectos Mars/Jupiter + Saturn/Neptune + Venus/Jupiter + Saturn/Nodes)
+- Expansion C: `_detect_ingress()` — detecta ingreso de Marte/Júpiter/Saturno/Venus a nuevo signo en últimas 24h
+- `_detect_mercury_station()` — detecta estación retrógrada/directa de Mercurio
+- `get_current_sky()` actualizado para computar `prev_positions` (hace 24h) y llamar ambos detectores nuevos
+- Frecuencia esperada: 1–2 posts/semana (era: 0 desde el lanzamiento)
+
+**Migración Vertex incompleta — `chat-memory.ts` y `chat/route.ts`**
+- Ambos archivos seguían usando `new Anthropic({ apiKey })` directo → drenaban créditos `abu-oracle-dev`
+- Migrados a `getAnthropicClient()` (AnthropicVertex) igual que las otras 10 routes
+
+**Primer post verificado:**
+- Stellium Aries (Sol + Venus + Mercurio + Marte), 5 planetas en signo de fuego, publicado en Bluesky (@abuoracle.bsky.social) ✅
+
+**Archivos modificados:**
+- `scripts/mundana/sky_calculator.py` — umbral stellium 5→4, 8 nuevas configs, `_detect_ingress()`, `_detect_mercury_station()`, `get_current_sky()` actualizado
+- `scripts/mundana/publication_filter.py` — Regla C (days_to_exact ≤ 3 + medium/high), umbral stellium
+- `scripts/mundana/content_generator.py` — fallback API key cuando ANTHROPIC_API_KEY presente, retry 429 (30s/60s, 3 intentos)
+- `requirements-mundana.txt` — `anthropic>=0.49.0` → `anthropic[vertex]>=0.49.0`
+- `next_app/lib/chat-memory.ts` — migrado a `getAnthropicClient()`
+- `next_app/app/api/chat/route.ts` — migrado a `getAnthropicClient()`
+
+---
+
 ### Fix calidad de contexto Lilly — sesión 2026-04-16
 
 **4 fixes · 7 archivos · Deploy producción**
