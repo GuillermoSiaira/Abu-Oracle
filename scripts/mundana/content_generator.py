@@ -30,6 +30,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
+import anthropic
 from anthropic import AnthropicVertex
 from image_generator import generate_sky_diagram
 
@@ -379,9 +380,14 @@ def generate_post(
     if style is None:
         style = _select_style(config)
 
-    client = AnthropicVertex(
-        project_id=os.environ.get("GOOGLE_CLOUD_PROJECT", "abu-oracle"),
-        region=os.environ.get("VERTEX_REGION", "us-east5"),
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    client = (
+        AnthropicVertex(
+            project_id=os.environ.get("GOOGLE_CLOUD_PROJECT", "abu-oracle"),
+            region=os.environ.get("VERTEX_REGION", "us-east5"),
+        )
+        if not api_key
+        else anthropic.Anthropic(api_key=api_key)
     )
 
     context_block = _build_context_block(config, history)
@@ -540,11 +546,16 @@ def generate_showcase_caption(
             f"End with: app.abu-oracle.com"
         )
 
-    client = AnthropicVertex(
-        project_id=os.environ.get("GOOGLE_CLOUD_PROJECT", "abu-oracle"),
-        region=os.environ.get("VERTEX_REGION", "us-east5"),
+    api_key_sc = os.environ.get("ANTHROPIC_API_KEY")
+    client_sc = (
+        AnthropicVertex(
+            project_id=os.environ.get("GOOGLE_CLOUD_PROJECT", "abu-oracle"),
+            region=os.environ.get("VERTEX_REGION", "us-east5"),
+        )
+        if not api_key_sc
+        else anthropic.Anthropic(api_key=api_key_sc)
     )
-    response = client.messages.create(
+    response = client_sc.messages.create(
         model=MODEL,
         max_tokens=512,
         system=_LILLY_PUBLICATION_SYSTEM,

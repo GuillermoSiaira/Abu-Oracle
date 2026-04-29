@@ -110,22 +110,26 @@ def _days_since_last_post() -> float:
 
 def _config_passes_thresholds(config: dict) -> bool:
     """Retorna True si la configuración supera los umbrales de publicación."""
-    # Configuraciones sin datos estadísticos (p_value=None) → no publicar
+    significance = config.get("significance", "low")
+    days         = config.get("days_to_exact")
+
+    # ── Regla C: exactitud inminente (≤3 días) + significance medium/high ────
+    # No requiere stats empíricos — la rareza del momento lo justifica.
+    if significance in ("high", "medium"):
+        if days is not None and days <= 3:
+            return True
+        # Activo sin fecha exacta (stellium, ingreso ocurrido hoy)
+        if days is None and config.get("orb", 999) <= 30:
+            if significance == "high":
+                return True
+
+    # ── Con datos estadísticos (H_mundana_A) ─────────────────────────────────
     if config.get("p_value") is None or config.get("density_ratio") is None:
-        # Excepción: stellium significativo (alta visibilidad, aunque sin p_value formal)
-        if config.get("type") == "stellium" and config.get("significance") == "high":
-            days = config.get("days_to_exact")
-            if days is not None and days <= PUBLICATION_THRESHOLDS["days_to_exact_max"]:
-                return True
-            # stellium activo (days_to_exact=None porque no tiene exactitud puntual)
-            if days is None and config.get("orb", 999) <= 30:
-                return True
         return False
 
-    p_ok      = config["p_value"]       <= PUBLICATION_THRESHOLDS["p_value_max"]
+    p_ok       = config["p_value"]       <= PUBLICATION_THRESHOLDS["p_value_max"]
     density_ok = config["density_ratio"] >= PUBLICATION_THRESHOLDS["density_ratio_min"]
-    days      = config.get("days_to_exact")
-    days_ok   = (days is None) or (days <= PUBLICATION_THRESHOLDS["days_to_exact_max"])
+    days_ok    = (days is None) or (days <= PUBLICATION_THRESHOLDS["days_to_exact_max"])
 
     return p_ok and density_ok and days_ok
 

@@ -31,6 +31,7 @@ import swisseph as swe
 # --------------------------------------------------------------------------
 
 CONFIGURATIONS = [
+    # ── Con datos estadísticos (H_mundana_A) ──────────────────────────────────
     {
         "type":          "conjunction_JS",
         "label":         "Conjunción Júpiter-Saturno",
@@ -42,16 +43,6 @@ CONFIGURATIONS = [
         "significance":  "high",
     },
     {
-        "type":          "conjunction_MS",
-        "label":         "Conjunción Marte-Saturno",
-        "planets":       ["mars", "saturn"],
-        "aspect_deg":    0.0,
-        "orb":           8.0,
-        "p_value":       None,    # H_mundana_A no probó conjunción MS aún
-        "density_ratio": None,
-        "significance":  "medium",
-    },
-    {
         "type":          "opposition_MS",
         "label":         "Oposición Marte-Saturno",
         "planets":       ["mars", "saturn"],
@@ -61,6 +52,38 @@ CONFIGURATIONS = [
         "density_ratio": 1.6,
         "significance":  "medium",
     },
+    # ── Marte-Saturno (todos los aspectos mayores) ────────────────────────────
+    {
+        "type":          "conjunction_MS",
+        "label":         "Conjunción Marte-Saturno",
+        "planets":       ["mars", "saturn"],
+        "aspect_deg":    0.0,
+        "orb":           8.0,
+        "p_value":       None,
+        "density_ratio": None,
+        "significance":  "medium",
+    },
+    {
+        "type":          "square_MS",
+        "label":         "Cuadratura Marte-Saturno",
+        "planets":       ["mars", "saturn"],
+        "aspect_deg":    90.0,
+        "orb":           6.0,
+        "p_value":       None,
+        "density_ratio": None,
+        "significance":  "medium",
+    },
+    {
+        "type":          "trine_MS",
+        "label":         "Trígono Marte-Saturno",
+        "planets":       ["mars", "saturn"],
+        "aspect_deg":    120.0,
+        "orb":           6.0,
+        "p_value":       None,
+        "density_ratio": None,
+        "significance":  "medium",
+    },
+    # ── Marte-Júpiter (todos los aspectos mayores) ────────────────────────────
     {
         "type":          "conjunction_MJ",
         "label":         "Conjunción Marte-Júpiter",
@@ -69,7 +92,7 @@ CONFIGURATIONS = [
         "orb":           8.0,
         "p_value":       None,
         "density_ratio": None,
-        "significance":  "low",
+        "significance":  "medium",
     },
     {
         "type":          "opposition_MJ",
@@ -79,19 +102,102 @@ CONFIGURATIONS = [
         "orb":           8.0,
         "p_value":       None,
         "density_ratio": None,
-        "significance":  "low",
+        "significance":  "medium",
+    },
+    {
+        "type":          "square_MJ",
+        "label":         "Cuadratura Marte-Júpiter",
+        "planets":       ["mars", "jupiter"],
+        "aspect_deg":    90.0,
+        "orb":           6.0,
+        "p_value":       None,
+        "density_ratio": None,
+        "significance":  "medium",
+    },
+    # ── Marte-Urano (disrupción / aceleración) ────────────────────────────────
+    {
+        "type":          "conjunction_MU",
+        "label":         "Conjunción Marte-Urano",
+        "planets":       ["mars", "uranus"],
+        "aspect_deg":    0.0,
+        "orb":           6.0,
+        "p_value":       None,
+        "density_ratio": None,
+        "significance":  "medium",
+    },
+    {
+        "type":          "opposition_MU",
+        "label":         "Oposición Marte-Urano",
+        "planets":       ["mars", "uranus"],
+        "aspect_deg":    180.0,
+        "orb":           6.0,
+        "p_value":       None,
+        "density_ratio": None,
+        "significance":  "medium",
+    },
+    {
+        "type":          "square_MU",
+        "label":         "Cuadratura Marte-Urano",
+        "planets":       ["mars", "uranus"],
+        "aspect_deg":    90.0,
+        "orb":           5.0,
+        "p_value":       None,
+        "density_ratio": None,
+        "significance":  "medium",
+    },
+    # ── Venus-Júpiter (abundancia / beneficencia) ─────────────────────────────
+    {
+        "type":          "conjunction_VJ",
+        "label":         "Conjunción Venus-Júpiter",
+        "planets":       ["venus", "jupiter"],
+        "aspect_deg":    0.0,
+        "orb":           6.0,
+        "p_value":       None,
+        "density_ratio": None,
+        "significance":  "medium",
+    },
+    # ── Saturno-Neptuno (disolución / ilusión colectiva) ─────────────────────
+    {
+        "type":          "conjunction_SN",
+        "label":         "Conjunción Saturno-Neptuno",
+        "planets":       ["saturn", "neptune"],
+        "aspect_deg":    0.0,
+        "orb":           5.0,
+        "p_value":       None,
+        "density_ratio": None,
+        "significance":  "high",
+    },
+    {
+        "type":          "square_SN",
+        "label":         "Cuadratura Saturno-Neptuno",
+        "planets":       ["saturn", "neptune"],
+        "aspect_deg":    90.0,
+        "orb":           5.0,
+        "p_value":       None,
+        "density_ratio": None,
+        "significance":  "medium",
     },
 ]
 
 # Planetas que se consideran para detectar stellium
 _STELLIUM_PLANETS = ["sun", "moon", "mercury", "venus", "mars", "jupiter", "saturn", "neptune"]
-_STELLIUM_MIN_COUNT = 4   # mínimo de planetas en el mismo signo (30°)
-_STELLIUM_ORB = 30.0      # span máximo en grados para contar como stellium
+_STELLIUM_MIN_COUNT = 4
+_STELLIUM_ORB = 30.0
 
 # Solo publicar si superan estos umbrales
 PUBLICATION_THRESHOLDS = {
     "p_value_max":    0.05,
     "density_ratio_min": 2.0,
+}
+
+# ── Signos zodiacales ─────────────────────────────────────────────────────────
+_SIGNS = ["Aries", "Tauro", "Géminis", "Cáncer", "Leo", "Virgo",
+          "Libra", "Escorpio", "Sagitario", "Capricornio", "Acuario", "Piscis"]
+
+# Velocidades medias (°/día) para detectar retrogradación
+_PLANET_AVG_SPEED = {
+    "mercury": 1.38, "venus": 1.20, "mars": 0.52,
+    "jupiter": 0.083, "saturn": 0.034,
 }
 
 
@@ -214,6 +320,75 @@ def _detect_stellium(positions: dict) -> Optional[dict]:
     return None
 
 
+def _detect_ingress(positions: dict, prev_positions: dict) -> Optional[dict]:
+    """Detecta si algún planeta clave cruzó una cúspide de signo en las últimas 24h."""
+    for planet in ["mars", "jupiter", "saturn", "venus"]:
+        if planet not in positions or planet not in prev_positions:
+            continue
+        lon_now  = positions[planet]
+        lon_prev = prev_positions[planet]
+        sign_now  = int(lon_now  / 30)
+        sign_prev = int(lon_prev / 30)
+        if sign_now != sign_prev:
+            significance = "high" if planet in ("saturn", "jupiter") else "medium"
+            return {
+                "type":          f"ingress_{planet[0].upper()}",
+                "label":         f"Ingreso de {planet.capitalize()} en {_SIGNS[sign_now]}",
+                "planets":       [planet],
+                "orb":           0.0,
+                "exact_date":    datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+                "p_value":       None,
+                "density_ratio": None,
+                "significance":  significance,
+                "days_to_exact": 0,
+            }
+    return None
+
+
+def _detect_mercury_station(positions: dict, prev_positions: dict) -> Optional[dict]:
+    """Detecta estación de Mercurio (ingreso a retrogradación o dirección)."""
+    if "mercury" not in positions or "mercury" not in prev_positions:
+        return None
+    lon_now  = positions["mercury"]
+    lon_prev = prev_positions["mercury"]
+    motion   = (lon_now - lon_prev) % 360
+    if motion > 180:
+        motion -= 360  # movimiento real con signo
+    was_retro = motion < -0.1
+    is_retro  = (lon_now - lon_prev + 360) % 360
+    # Detectar cambio de dirección: si ayer avanzaba y hoy retrocede (o viceversa)
+    # Usamos la velocidad como proxy (paso de 24h)
+    speed_now  = (lon_now  - prev_positions["mercury"] + 360) % 360
+    if speed_now > 180: speed_now -= 360
+    # Station retrógrada: velocidad cruza 0 hacia negativo
+    if speed_now < -0.05:
+        return {
+            "type":          "mercury_retrograde",
+            "label":         "Mercurio Retrógrado",
+            "planets":       ["mercury"],
+            "orb":           0.0,
+            "exact_date":    datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+            "p_value":       None,
+            "density_ratio": None,
+            "significance":  "high",
+            "days_to_exact": 0,
+        }
+    # Station directa: velocidad cruza 0 hacia positivo después de ser negativa
+    if 0.0 < speed_now < 0.3:
+        return {
+            "type":          "mercury_direct",
+            "label":         "Mercurio Directo",
+            "planets":       ["mercury"],
+            "orb":           0.0,
+            "exact_date":    datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+            "p_value":       None,
+            "density_ratio": None,
+            "significance":  "high",
+            "days_to_exact": 0,
+        }
+    return None
+
+
 def get_current_sky() -> dict:
     """
     Calcula posiciones planetarias actuales y configuraciones activas.
@@ -225,12 +400,16 @@ def get_current_sky() -> dict:
             'active_configurations': [...]
         }
     """
-    now = datetime.now(timezone.utc)
-    positions = get_planet_positions(now.year, now.month, now.day, now.hour)
+    now  = datetime.now(timezone.utc)
+    prev = now - timedelta(days=1)
+    positions      = get_planet_positions(now.year,  now.month,  now.day,  now.hour)
+    prev_positions = get_planet_positions(prev.year, prev.month, prev.day, prev.hour)
 
     active = []
     for config in CONFIGURATIONS:
         p1, p2 = config["planets"]
+        if p1 not in positions or p2 not in positions:
+            continue
         dist = _aspect_distance(positions[p1], positions[p2], config["aspect_deg"])
         if dist <= config["orb"]:
             active.append({
@@ -243,6 +422,16 @@ def get_current_sky() -> dict:
                 "density_ratio": config["density_ratio"],
                 "significance":  config["significance"],
             })
+
+    # Ingresos planetarios (últimas 24h)
+    ingress = _detect_ingress(positions, prev_positions)
+    if ingress:
+        active.append(ingress)
+
+    # Estaciones de Mercurio
+    mercury_station = _detect_mercury_station(positions, prev_positions)
+    if mercury_station:
+        active.append(mercury_station)
 
     # Stellium
     stellium = _detect_stellium(positions)
