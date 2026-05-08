@@ -12,14 +12,7 @@ import { useEffect } from 'react'
 export function ChartTabs() {
   const { abuData, includeTransits, chartTab, setChartTab } = useAppStore()
 
-  if (!abuData) {
-    return (
-      <div className="text-center py-12 text-muted-foreground">
-        <p>Ingresa los datos natales y presiona "Calcular Carta Natal"</p>
-      </div>
-    )
-  }
-
+  // Hooks must be called unconditionally (React Rules of Hooks)
   const activeTab = chartTab ?? 'persian'
 
   useEffect(() => {
@@ -27,6 +20,14 @@ export function ChartTabs() {
       setChartTab('persian')
     }
   }, [includeTransits, activeTab, setChartTab])
+
+  if (!abuData) {
+    return (
+      <div className="text-center py-12 text-muted-foreground">
+        <p>Ingresa los datos natales y presiona "Calcular Carta Natal"</p>
+      </div>
+    )
+  }
 
   return (
     <div className="h-full w-full">

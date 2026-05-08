@@ -5,8 +5,8 @@ export interface LunarData {
   moon: { lon: number; sign: string; sign_degree: number }
   phase: { separation: number; name: string; pct: number }
   sun_moon_aspect: { type: string | null; orb: number | null; applying: boolean | null }
-  next_new_moon: { dt: string; sign: string; natal_house: number | null }
-  next_full_moon: { dt: string; sign: string; natal_house: number | null }
+  next_new_moon?: { dt: string; sign: string; natal_house: number | null } | null
+  next_full_moon?: { dt: string; sign: string; natal_house: number | null } | null
   next_solar_eclipse?: { dt: string; type: string; sign: string; natal_house: number | null } | null
   next_lunar_eclipse?: { dt: string; type: string; sign: string; natal_house: number | null } | null
 }
@@ -171,6 +171,7 @@ export function LunarDial({ data, lang }: { data: LunarData; lang: string }) {
 
       {/* Next lunations */}
       <div className="w-full mt-0.5 space-y-1 px-1">
+        {data.next_new_moon && (
         <div className="flex items-center justify-between gap-1 text-[10px]">
           <span className="text-slate-600 shrink-0">● {NEXT_NEW[lang] ?? NEXT_NEW.en}</span>
           <span className="text-slate-500 font-mono shrink-0">{fmtDate(data.next_new_moon.dt)}</span>
@@ -178,6 +179,8 @@ export function LunarDial({ data, lang }: { data: LunarData; lang: string }) {
             {data.next_new_moon.sign}{data.next_new_moon.natal_house ? ` H${data.next_new_moon.natal_house}` : ""}
           </span>
         </div>
+        )}
+        {data.next_full_moon && (
         <div className="flex items-center justify-between gap-1 text-[10px]">
           <span className="text-slate-600 shrink-0">○ {NEXT_FULL[lang] ?? NEXT_FULL.en}</span>
           <span className="text-slate-500 font-mono shrink-0">{fmtDate(data.next_full_moon.dt)}</span>
@@ -185,6 +188,7 @@ export function LunarDial({ data, lang }: { data: LunarData; lang: string }) {
             {data.next_full_moon.sign}{data.next_full_moon.natal_house ? ` H${data.next_full_moon.natal_house}` : ""}
           </span>
         </div>
+        )}
         {data.next_solar_eclipse && (
           <div className="flex items-center justify-between gap-1 text-[10px]">
             <span className="text-red-400/60 shrink-0">☉ {NEXT_SOLAR[lang] ?? NEXT_SOLAR.en}</span>

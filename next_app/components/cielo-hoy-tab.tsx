@@ -29,7 +29,7 @@ const PLANET_SYMBOLS: Record<string, string> = {
 
 export function CieloHoyTab() {
   const { birthData, timeline, setTimeline, lang, setPendingLillyEvent, lunarData } = useAppStore();
-  const t = UI[lang];
+  const t = UI[lang] ?? UI.es;
 
   // ── Ensure timeline is loaded (Cielo Hoy needs fast/lunar transits) ──────────
   useEffect(() => {
