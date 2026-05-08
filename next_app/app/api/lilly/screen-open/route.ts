@@ -12,6 +12,7 @@ import { getUserIdFromRequest } from '../../../../lib/get-user-id';
 import { getRecentHistory, formatMemoryForPrompt } from '../../../../lib/chat-memory';
 import { applyRateLimit } from '../../../../lib/usage-limiter';
 import { completeLilly } from '../../../../lib/lilly-complete';
+import { chartKeyFromBirthData, logInterpretation } from '../../../../lib/interpretation-logger';
 import { logLillyUsage } from '../../../../lib/lilly-usage-logger';
 import { selectModel } from '../../../../lib/selectModel';
 
@@ -196,6 +197,18 @@ export async function POST(req: Request) {
     }
 
     logLillyUsage('screen-open', model, usage, userId ?? null);
+    logInterpretation({
+      route: 'screen-open',
+      eventType: body.eventType ?? 'screen_open',
+      inputTokens: usage.input_tokens,
+      outputTokens: usage.output_tokens,
+      costUsd: 0,
+      continuations: usage.continuations,
+      userId: userId ?? undefined,
+      chartKey: chartKeyFromBirthData(birthData),
+      lang: lang ?? 'es',
+      condition: 'A',
+    });
     return NextResponse.json({ response: text, suggestions });
   } catch (err: any) {
     console.error('[screen-open]', err);

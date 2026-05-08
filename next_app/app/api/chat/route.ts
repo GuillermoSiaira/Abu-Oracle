@@ -17,6 +17,7 @@ import {
 } from "@/lib/chat-memory";
 import { applyRateLimit } from "@/lib/usage-limiter";
 import { completeLilly } from "@/lib/lilly-complete";
+import { logInterpretation } from "@/lib/interpretation-logger";
 import { logLillyUsage } from "@/lib/lilly-usage-logger";
 import { selectModel } from "@/lib/selectModel";
 
@@ -136,6 +137,20 @@ export async function POST(req: Request) {
     });
 
     logLillyUsage('chat', model, usage, userId ?? null);
+    logInterpretation({
+      route: 'chat',
+      eventType: body.eventType ?? 'chat',
+      inputTokens: usage.input_tokens,
+      outputTokens: usage.output_tokens,
+      costUsd: 0,
+      continuations: usage.continuations,
+      userId: userId ?? undefined,
+      chartKey: meta?.date != null && meta?.lat != null && meta?.lon != null
+        ? `${meta.date}|${meta.lat}|${meta.lon}`
+        : undefined,
+      lang,
+      condition: 'A',
+    });
 
     // ── Persist exchange to Firestore (fire-and-forget) ──────────────────────
     if (userId && text) {

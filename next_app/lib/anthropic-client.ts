@@ -11,6 +11,6 @@ import { AnthropicVertex } from '@anthropic-ai/vertex-sdk';
 export function getAnthropicClient(): AnthropicVertex {
   return new AnthropicVertex({
     projectId: 'abu-oracle',
-    region:    'us-east5',
+    region:    'us-central1',
   });
 }
