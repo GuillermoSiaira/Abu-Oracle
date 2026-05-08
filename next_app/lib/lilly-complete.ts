@@ -49,8 +49,8 @@ export async function completeLilly(
   for (let i = 0; i <= MAX_CONTINUATIONS; i++) {
     const response = await client.messages.create({ ...params, messages });
 
-    const chunk = response.content
-      .filter((b: any): b is Anthropic.TextBlock => b.type === 'text')
+    const chunk = (response.content as Anthropic.ContentBlock[])
+      .filter((b): b is Anthropic.TextBlock => b.type === 'text')
       .map(b => b.text)
       .join('');
 
