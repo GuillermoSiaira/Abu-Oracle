@@ -17,6 +17,7 @@ import {
 } from "@/lib/chat-memory";
 import { applyRateLimit } from "@/lib/usage-limiter";
 import { completeLilly } from "@/lib/lilly-complete";
+import type Anthropic from "@anthropic-ai/sdk";
 import { logInterpretation } from "@/lib/interpretation-logger";
 import { logLillyUsage } from "@/lib/lilly-usage-logger";
 import { selectModel } from "@/lib/selectModel";
