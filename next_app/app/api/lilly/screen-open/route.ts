@@ -1,3 +1,4 @@
+import type Anthropic from "@anthropic-ai/sdk";
 import { NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { LILLY_SYSTEM_PROMPT } from '../../../../lib/lilly-prompt';
