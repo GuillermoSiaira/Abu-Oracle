@@ -50,7 +50,7 @@ export async function completeLilly(
     const response = await client.messages.create({ ...params, messages });
 
     const chunk = response.content
-      .filter((b): b is Anthropic.TextBlock => b.type === 'text')
+      .filter((b: any): b is Anthropic.TextBlock => b.type === 'text')
       .map(b => b.text)
       .join('');
 
