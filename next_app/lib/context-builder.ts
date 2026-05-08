@@ -582,7 +582,7 @@ export function assembleContextBlock(
       });
     }
 
-    for (const g of groups.values()) {
+    for (const g of Array.from(groups.values())) {
       const anyActive = g.passes.some(p => p.is_active);
       const activeTag = anyActive ? " [activo]" : "";
       if (g.passes.length === 1) {
