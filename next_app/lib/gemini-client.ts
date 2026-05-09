@@ -10,8 +10,17 @@ type GeminiMessage = {
 
 function getGeminiClient(): GoogleGenAI {
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) throw new Error('GEMINI_API_KEY not set');
-  return new GoogleGenAI({ apiKey });
+  if (apiKey) {
+    return new GoogleGenAI({ apiKey });
+  }
+  // Fallback: Vertex AI with Application Default Credentials.
+  // In Cloud Run, ADC is provided automatically via the service account.
+  // No GEMINI_API_KEY needed — uses the GCP project billing already active.
+  return new GoogleGenAI({
+    vertexai: true,
+    project: process.env.GOOGLE_CLOUD_PROJECT || 'abu-oracle',
+    location: 'us-central1',
+  } as any);
 }
 
 export function toGeminiMessages(
