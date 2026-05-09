@@ -8,10 +8,9 @@ GET /api/mundana/history      → estadísticas empíricas + eventos representat
 
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Query
 import swisseph as swe
 
-from core.auth import verify_token
 from core.mundana import get_current_sky, get_upcoming_configurations, get_historical_context
 from core.mundana_calendar import build_mundana_calendar
 
@@ -61,7 +60,6 @@ def history_endpoint(
 @router.get("/calendar")
 async def calendar_endpoint(
     months: int = Query(default=12, ge=1, le=24),
-    _: dict = Depends(verify_token),
 ):
     """
     Current mundane sky plus a chronological calendar for the next N months.
