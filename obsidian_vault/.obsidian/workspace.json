@@ -11,10 +11,14 @@
             "id": "ba00c6dbb151c8f6",
             "type": "leaf",
             "state": {
-              "type": "graph",
-              "state": {},
-              "icon": "lucide-git-fork",
-              "title": "Vista gráfica"
+              "type": "markdown",
+              "state": {
+                "file": "05_resultados/wikidata_candidates.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "wikidata_candidates"
             }
           }
         ]
@@ -74,8 +78,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300,
-    "collapsed": true
+    "width": 300
   },
   "right": {
     "id": "fbc6943c4738f1f8",
@@ -174,45 +177,49 @@
       "daily-notes:Abrir la nota de hoy": false,
       "templates:Insertar plantilla": false,
       "command-palette:Abrir paleta de comandos": false,
-      "bases:Crear nueva base": false
+      "bases:Crear nueva base": false,
+      "obsidian-git:Open Git source control": false,
+      "templater-obsidian:Templater": false
     }
   },
-  "active": "ba00c6dbb151c8f6",
+  "active": "6520f7724d1cb8af",
   "lastOpenFiles": [
+    "Sin nombre",
+    "02_doctrina/AXIOMATICS_v0_4.md.tmp.11092.1777137230959",
+    "02_doctrina/AXIOMATICS_v0_4.md.tmp.11092.1777137224339",
+    "02_doctrina/AXIOMATICS_v0_4.md.tmp.11092.1777137217699",
+    "04_hipotesis/AXIOM_0_MECANISMO.md",
+    "04_hipotesis/AXIOM_0_MECANISMO.md.tmp.11092.1777137197800",
+    "00_dashboard.md",
+    "00_dashboard.md.tmp.11092.1777134834798",
+    "04_hipotesis/H01b_significator_speed.md.tmp.11092.1777134825381",
+    "04_hipotesis/H01_domain_specificity.md.tmp.11092.1777134823420",
+    "03_experimentos/BV_001_trump.md",
+    "04_hipotesis/HIPOTESIS_REGISTRO.md",
+    "00_dashboard.md.tmp.11092.1777131519328",
+    "05_resultados/wikidata_candidates.md.tmp.11092.1777129405514",
+    "05_resultados/wikidata_candidates.md.tmp.11092.1777129398393",
+    "06_engineering/MUNDANA_PHASE12.md",
+    "05_resultados/MUNDANA_H_A_RESULTADOS.md",
+    "Experiments Summary.canvas",
+    "05_resultados/domain_correlation_baseline.md",
+    "03_experimentos/EXP_004_HF_v6_domain.md",
+    "03_experimentos/HF_EXPERIMENT_LOG.md",
+    "00_index.md",
+    "02_doctrina/AXIOMATICS_v0_4.md",
+    "AXIOMATICS_OF_HEAVENS_v0_4.md",
+    "06_engineering/FINOPS_MILP_VARIABLES.md",
     "03_experimentos/BLIND_VALIDATION_EXPERIMENT.md",
     "ANTHROPIC_STRATEGY.md",
-    "05_resultados/MUNDANA_H_A_RESULTADOS.md",
     "COST_OPTIMIZATION.md",
-    "Sin título.canvas",
-    "00_index.md",
     "05_resultados/domain_correlation_report.md",
     "grant_proposal_ResearchHub.md",
     "persian_techniques.md",
-    "03_experimentos/BV_001_trump.md",
-    "03_experimentos/BV_001_trump.md.tmp.23104.1775198080634",
     "06_engineering/finops_milp.md",
     "01_formula/field_v3.md",
     "02_doctrina/AXIOMATICS_v0_3.md",
     "ARCHITECTURE.md",
-    "04_hipotesis/HIPOTESIS_REGISTRO.md",
-    "06_engineering/FINOPS_MILP_VARIABLES.md",
-    "06_engineering/FINOPS_MILP_VARIABLES.md.tmp.8252.1775136097061",
     "01_formula/hf_embedding_36d.md",
-    "03_experimentos/NOTE_SESSION_B.md",
-    "05_resultados/wikidata_candidates.md",
-    "02_doctrina/AXIOMATICS_v0_4.md",
-    "AXIOMATICS_OF_HEAVENS_v0_4.md",
-    "00_index.md.tmp.11104.1775079613633",
-    "03_experimentos/HF_EXPERIMENT_LOG.md.tmp.8232.1775076087360",
-    "04_hipotesis/FINOPS_MILP_VARIABLES.md",
-    "05_resultados/HF_V6_RESULTS.md.tmp.8232.1775075946750",
-    "03_experimentos/HF_EXPERIMENT_LOG.md",
-    "01_formula/resonance_weights.md",
-    "sonic_field/sonic_capa1_natal.md",
-    "sonic_field/sonic_capa1_natal.md.tmp.11592.1774950585355",
-    "sonic_capa2_transitos.md",
-    "05_resultados/HF_V6_RESULTS.md",
-    "00_index.md.tmp.11592.1774950269865",
-    "sonic_field"
+    "03_experimentos/NOTE_SESSION_B.md"
   ]
 }

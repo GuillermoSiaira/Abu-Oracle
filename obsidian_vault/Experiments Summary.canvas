@@ -1,0 +1,10 @@
+{
+	"nodes":[
+		{"id":"bec622addffe8617","x":-160,"y":-120,"width":400,"height":400,"type":"file","file":"02_doctrina/AXIOMATICS_v0_4.md"},
+		{"id":"408297f61baffb98","x":-160,"y":540,"width":400,"height":400,"type":"file","file":"03_experimentos/EXP_003_HF_v3_global.md"},
+		{"id":"18f833d643f084ab","x":280,"y":540,"width":400,"height":400,"type":"file","file":"03_experimentos/EXP_004_HF_v6_domain.md"},
+		{"id":"74efdcf976cb2714","x":720,"y":540,"width":400,"height":400,"type":"file","file":"03_experimentos/HF_EXPERIMENT_LOG.md"},
+		{"id":"46275ab8853f823a","x":1160,"y":540,"width":400,"height":400,"type":"file","file":"03_experimentos/NOTE_SESSION_B.md"}
+	],
+	"edges":[]
+}

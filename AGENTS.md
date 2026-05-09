@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
 
 > Leer este archivo antes de cualquier tarea. Contiene el estado actual del proyecto, arquitectura, convenciones y el plan de desarrollo activo.
 > **Para tareas de integración Abu↔Lilly, leer también `ARCHITECTURE.md` (raíz del repo).**
@@ -67,7 +67,7 @@ Abu Engine (Python/FastAPI :8000)
   └── /api/astro/relocation-field → campo HF on-demand con soporte domain
 
 Next.js (TypeScript :3001/:3000)
-  └── app/api/lilly/*   → routes Lilly (todas usan Anthropic SDK claude-sonnet-4-6)
+  └── app/api/lilly/*   → routes Lilly (todas usan Anthropic SDK Codex-sonnet-4-6)
   └── app/api/chat/     → chat conversacional (Anthropic SDK directo)
   └── app/api/webhook/  → crypto-payment (Alchemy) + Paddle
   └── lib/context-builder.ts → assembleContextBlock() — fuente única de contexto para Lilly
@@ -312,7 +312,7 @@ En Cloud Run abu_engine ya tiene `AUTH_ENABLED=true` por defecto — no tocar es
 
 **Fix: Chat conversacional Lilly — LINK_LOST eliminado** (`3999611`)
 - Causa raíz: `/api/chat` hacía proxy a lilly_swarm (`LILLY_ENGINE_URL`) que no está desplegado en Cloud Run → siempre fallaba con `LINK_LOST`.
-- Fix: route reescrita para usar Anthropic SDK (`claude-sonnet-4-6`) directamente, igual que las routes reactivas. Inyecta `LILLY_SYSTEM_PROMPT` completo + bloque compacto con datos de carta (nombre, planetas, sect, profección, firdaria).
+- Fix: route reescrita para usar Anthropic SDK (`Codex-sonnet-4-6`) directamente, igual que las routes reactivas. Inyecta `LILLY_SYSTEM_PROMPT` completo + bloque compacto con datos de carta (nombre, planetas, sect, profección, firdaria).
 - Revisión: `abu-oracle-app-00017-z26`
 
 **Fix: Lecturas truncadas en chat** (`7f1f6c7`)
@@ -334,7 +334,7 @@ Raíz del repo: `D:\projects\ai-oracle`
 
 | Documento | Cuándo leerlo |
 |---|---|
-| `CLAUDE.md` | Siempre — estado del proyecto y plan de desarrollo |
+| `AGENTS.md` | Siempre — estado del proyecto y plan de desarrollo |
 | `ARCHITECTURE.md` | Tareas que tocan la integración Abu↔Lilly, el Event System, el Context Builder o los endpoints que Lilly consume |
 | `AXIOMATICS_OF_HEAVENS_v0_4.md` | Tareas que tocan scoring, dominios, HF o cualquier decisión doctrinal |
 | `COST_OPTIMIZATION.md` | Estrategia de optimización de costos API, proyecciones de margen por plan, roadmap Fases A-E. Leer antes de cualquier tarea que agregue llamadas a Anthropic. |
@@ -492,7 +492,7 @@ python scripts/blind_validation/run_blind_validation.py \
 ```
 
 Requiere Abu Engine corriendo en local (`http://localhost:8000`) o especificar `--abu-url`.
-El script usa `claude-haiku-4-5-20251001` (análisis batch — no modifica rutas de producción).
+El script usa `Codex-haiku-4-5-20251001` (análisis batch — no modifica rutas de producción).
 `subject_real` **nunca aparece en stdout** — solo en los archivos internos generados.
 
 Tras ejecutar el script, completar manualmente la sección "Verificación del operador" en la ficha generada.
@@ -659,7 +659,7 @@ y las tarjetas de posiciones planetarias son clickeables y disparan interpretaci
 - `persian-techniques-tab.tsx` totalmente conectado a `t.*`
 
 **Fix 2b** ✅ — Persian Techniques: reactividad Lilly
-- Route `POST /api/lilly/technique` — interpreta sect, profección y firdaria con Claude Sonnet 4
+- Route `POST /api/lilly/technique` — interpreta sect, profección y firdaria con Codex Sonnet 4
 - Secciones convertidas a `<button>` con hover borde ámbar (igual que PlanetCard)
 - OracleChat.tsx refactorizado: routing table `type → route` en lugar de `if/else`
 
@@ -675,7 +675,7 @@ y las tarjetas de posiciones planetarias son clickeables y disparan interpretaci
 - `relocation-tab.tsx`: `domainInitRef` para detectar cambios de dominio (skip first render), dispatch `domain_select`; `onCityClick` en RankingTable dispatch `city_select` con ASC/MC locales calculados
 
 **Migración Anthropic API** ✅ — Todas las routes Lilly usan `@anthropic-ai/sdk`
-- `screen-open`, `planet`, `technique`, `domain`, `city` → `claude-sonnet-4-6` (corregido en Fase 8.9)
+- `screen-open`, `planet`, `technique`, `domain`, `city` → `Codex-sonnet-4-6` (corregido en Fase 8.9)
 - `ANTHROPIC_API_KEY` en `.env.local` (existía) y agregada en `docker-compose.yml`
 - `openai` package queda como fallback para `lilly_swarm` chat (/api/chat proxy)
 
@@ -738,8 +738,8 @@ pero el endpoint `/analyze` — fuente de `abuData` — no los incluía. Tampoco
 ### Fase 8.9 — Hotfix: model ID + tab rename + diagnóstico API ✅ `[COMPLETA 2026-03-16]`
 
 **Fix 1** ✅ — Model ID corregido en todas las routes Lilly
-- Root cause de LILLY_UNREACHABLE: `claude-sonnet-4-20250514` ya no es válido en `@anthropic-ai/sdk ^0.78.0`
-- Fix: `claude-sonnet-4-20250514` → `claude-sonnet-4-6` en 5 routes (`screen-open`, `planet`, `technique`, `domain`, `city`)
+- Root cause de LILLY_UNREACHABLE: `Codex-sonnet-4-20250514` ya no es válido en `@anthropic-ai/sdk ^0.78.0`
+- Fix: `Codex-sonnet-4-20250514` → `Codex-sonnet-4-6` en 5 routes (`screen-open`, `planet`, `technique`, `domain`, `city`)
 
 **Fix 2** ✅ — OracleChat: error reporting mejorado
 - `data.response || '> ERROR: LILLY_UNREACHABLE'` → `data.response || \`> ERROR: ${data.error ?? 'LILLY_UNREACHABLE'}\``
@@ -824,7 +824,7 @@ users/{userId}/lilly_summary/current:
 - `getRecentHistory()` — lee últimas 5 exchanges + resumen en paralelo
 - `summarizeIfNeeded()` — cuando total > 50, comprime 30 más antiguas con Haiku, las borra, actualiza `lilly_summary/current`
 - Threshold: SUMMARY_THRESHOLD=50, EXCHANGES_TO_SUMMARIZE=30, RECENT_EXCHANGES=5
-- Modelo de compresión: `claude-haiku-4-5-20251001` (costo mínimo)
+- Modelo de compresión: `Codex-haiku-4-5-20251001` (costo mínimo)
 - `formatMemoryForPrompt()` → bloque `MEMORIA BIOGRÁFICA — sesiones anteriores` inyectado al contextBlock
 
 **Integración con rutas Lilly:**
@@ -1060,7 +1060,7 @@ El Event System reactivo está operativo y completo. Todos los eventos implement
 
 **Tarea 9.4** ❌ — RAG pipeline: chunking de Christian Astrology, recuperación por trigger (postergado)
 
-**Tarea 9.5** ❌ — Benchmark de modelo: GPT-4o-mini vs GPT-4o vs Claude Sonnet 4.6 (postergado)
+**Tarea 9.5** ❌ — Benchmark de modelo: GPT-4o-mini vs GPT-4o vs Codex Sonnet 4.6 (postergado)
 
 **Archivos clave sesión 2026-03-28:**
 - `next_app/lib/astro-utils.ts` — NUEVO: `SIGN_LORDS`, `getHouseLord()`, `deriveSignificators()` compartidos
@@ -1133,7 +1133,7 @@ Capa aditiva sobre la firma natal. Requiere `transit_lon` (posición actual del 
 
 #### Day 1 — Backend + Lilly mundana (commits `eb74e02`, `1996290`, `26a6c6b`)
 
-**`next_app/lib/selectModel.ts`** — routing revisado: todas las routes → `claude-sonnet-4-6`; Haiku reservado para MILP optimizer (Fase E). Eliminadas ramas Haiku en `technique` y `city`.
+**`next_app/lib/selectModel.ts`** — routing revisado: todas las routes → `Codex-sonnet-4-6`; Haiku reservado para MILP optimizer (Fase E). Eliminadas ramas Haiku en `technique` y `city`.
 
 **`next_app/lib/anthropic-client.ts`** — factory AnthropicVertex (nueva):
 ```ts
@@ -1181,7 +1181,7 @@ GET /api/mundana/history   → contexto histórico por tipo
 - Excepción stellium: pasa sin p_value si significance='high'
 - `get_best_configuration()`: prioridad activa+alta > próxima+alta > activa+media
 
-**`scripts/mundana/content_generator.py`**: `generate_post(config, platform, history)` → Claude Sonnet 4.6. Voz Lilly doctrinal. Límites: farcaster 320, twitter hilo [TWEET], bluesky 300, instagram 2200.
+**`scripts/mundana/content_generator.py`**: `generate_post(config, platform, history)` → Codex Sonnet 4.6. Voz Lilly doctrinal. Límites: farcaster 320, twitter hilo [TWEET], bluesky 300, instagram 2200.
 
 **`scripts/mundana/publishers/`**:
 - `farcaster_publisher.py` — Neynar API (NEYNAR_API_KEY + FARCASTER_SIGNER_UUID)
@@ -1276,10 +1276,10 @@ gcloud builds submit --config=cloudbuild-mundana-job.yaml --project=abu-oracle .
 - Fix: añadida **Regla C** en `publication_filter.py`: si `significance in ('high', 'medium')` AND `days_to_exact ≤ 3` → publicar sin estadísticas (la rareza inminente lo justifica).
 - Fix adicional: umbral de stellium `>= 5 planetas` → `>= 4 planetas` para significance='high'
 
-**Bug 3 — Vertex AI sin cuota (raíz: `claude-sonnet-4-6` en `us-east5` sin `defaultLimit`)**
+**Bug 3 — Vertex AI sin cuota (raíz: `Codex-sonnet-4-6` en `us-east5` sin `defaultLimit`)**
 - Causa: Vertex Sonnet en `us-east5` tiene effectiveLimit=0 → `content_generator.py` fallaba siempre con 429.
 - Fix: fallback a API directa de Anthropic cuando `ANTHROPIC_API_KEY` está presente en el entorno.
-- Pendiente: solicitar quota increase en `console.cloud.google.com/iam-admin/quotas` para `online_prediction_input_tokens_per_minute_per_base_model`, modelo `claude-sonnet-4-6`, región `us-east5`, solicitando 60,000 tokens/min.
+- Pendiente: solicitar quota increase en `console.cloud.google.com/iam-admin/quotas` para `online_prediction_input_tokens_per_minute_per_base_model`, modelo `Codex-sonnet-4-6`, región `us-east5`, solicitando 60,000 tokens/min.
 
 **Expansión B+C — nuevas configuraciones detectadas:**
 - 5 configuraciones previas → 13 configuraciones (expansion B: aspectos Mars/Jupiter + Saturn/Neptune + Venus/Jupiter + Saturn/Nodes)
@@ -1386,7 +1386,7 @@ Raíz del problema: análisis del intercambio real con Lilly expuso 4 inconsiste
   - `next_app/components/HFRelocationMap.tsx` — Mapa MapLibre GL heatmap
 - API routes internas (Next.js):
   - `next_app/app/api/chat/route.ts` — proxy a lilly_swarm para chat conversacional
-  - `next_app/app/api/lilly/screen-open/route.ts` — llama Anthropic (`claude-sonnet-4-6`) con contexto mínimo AbuContext (screen_open)
+  - `next_app/app/api/lilly/screen-open/route.ts` — llama Anthropic (`Codex-sonnet-4-6`) con contexto mínimo AbuContext (screen_open)
   - `next_app/app/api/lilly/planet/route.ts` — click_planet: context block planeta → Anthropic → interpretación
   - `next_app/app/api/lilly/technique/route.ts` — click_technique: sect/profección/firdaria/lot → Anthropic → interpretación
   - `next_app/app/api/lilly/domain/route.ts` — domain_select: dominio HF → Anthropic → interpretación
@@ -1472,7 +1472,7 @@ Abu Oracle como astrólogo personal — Lilly recuerda contexto entre sesiones d
 - Qué se guarda: últimas 5 exchanges + resumen generado por Haiku cuando total > 50
 - Cuándo se guarda: después de cada turno de chat (fire-and-forget)
 - Cómo se inyecta: 5° param en `assembleContextBlock()` → bloque `MEMORIA BIOGRÁFICA`
-- Resumen: comprimido con `claude-haiku-4-5-20251001`, máx 512 tokens, preserva temas/insights/eventos
+- Resumen: comprimido con `Codex-haiku-4-5-20251001`, máx 512 tokens, preserva temas/insights/eventos
 - Ver Fase 8.12 para detalles técnicos completos.
 
 ---
@@ -1487,11 +1487,11 @@ Abu Oracle como astrólogo personal — Lilly recuerda contexto entre sesiones d
 
 ## Cómo trabajar con este repo
 
-Leer CLAUDE.md al inicio de cada sesión (sección "## Bugs Pendientes" incluida). Los bugs documentados son issues conocidos — no investigarlos de nuevo, solo tenerlos presentes como contexto.
+Leer AGENTS.md al inicio de cada sesión (sección "## Bugs Pendientes" incluida). Los bugs documentados son issues conocidos — no investigarlos de nuevo, solo tenerlos presentes como contexto.
 
-**Specs de tareas activas:** `.claude/specs/active/` — leer el spec correspondiente antes de implementar. Specs completadas se mueven a `.claude/specs/done/`.
+**Specs de tareas activas:** `.Codex/specs/active/` — leer el spec correspondiente antes de implementar. Specs completadas se mueven a `.Codex/specs/done/`.
 
-Cuando Claude Code retome una sesión, leer este archivo primero y preguntar por la fase activa.
+Cuando Codex retome una sesión, leer este archivo primero y preguntar por la fase activa.
 La próxima tarea es siempre la primera sin tilde `✅` en el plan de desarrollo — actualmente **Fase 9 pendiente**: `click_house`, RAG pipeline, benchmark de modelos.
 
 **Estado Lilly al 2026-03-28**: screen_open ✅, click_planet ✅, click_technique (sect/profección/firdaria/lot/lunar_transit/planetary_cycle) ✅, domain_select ✅, city_select ✅, click_transit ✅, sky_open ✅, click_house ✅. Context Builder centralizado ✅. System prompt v1.0 ✅. RAG y benchmark postergados.
@@ -1936,7 +1936,7 @@ real, (2) el LLM como razonador dentro de sistemas axiomáticos formales.
 - Orden: fix alias → sesión piloto Jung → hilo X → arXiv preprint (10+ sesiones)
 
 **Estrategia Anthropic:**
-Abu Oracle como caso de referencia técnico del ecosistema Claude en tres ejes publicables:
+Abu Oracle como caso de referencia técnico del ecosistema Codex en tres ejes publicables:
 FinOps MILP (MLSys/SIGMOD) · Blind Validation (NeurIPS/ACL) · HF estadístico.
 Vía prioritaria: **Anthology Fund** — $25k créditos + rate limits premium + equipo técnico.
 
@@ -2013,7 +2013,7 @@ Nadie más hace esto. Ni Astro.com, ni AstroCartography, ni ninguna app de astro
 - Eclipse Maps: líneas de eclipse temporales sobre el campo escalar
 - Ingreso Solar Mundial por ciudad
 
-#### Capa 2 — Grafo de Conocimiento del Nativo (dimensión temporal) 🔭 En diseño
+#### Capa 2 — Grafo de Conocimiento del Nativo (dimensión temporal) 🔭 Visión
 **¿Cómo fue, cómo es y cómo será la trayectoria biográfica del nativo?**
 
 La memoria actual de Lilly es lineal: exchanges recientes + resumen comprimido por Haiku. Es funcional pero no estructural. No puede conectar "evento biográfico de 2019" con "tránsito de Saturno de 2019" con "profección de Casa 7 de 2019" como nodos relacionados.
@@ -2029,22 +2029,10 @@ Con el tiempo suficiente, Lilly puede decir: "Tu patrón en los años de Casa 12
 
 Eso no es interpretación simbólica. Es reconocimiento de patrones biográficos con base doctrinal.
 
-**Documentación activa (2026-05-05):**
-- `docs/theory/GRAPHRAG_KG_VISION.md` — visión estratégica + capacidades vs. arquitectura actual
-- `docs/theory/KG_ONTOLOGY_SCHEMA.md` — schema completo de 3 capas (formalizado con Lilly)
-- `docs/theory/KG_EXPERIMENT_PROTOCOL.md` — protocolo de métricas: tokens, costo, precisión doctrinal
-
-**Schema de 3 capas — estado:**
-- Capa 1 (entidades): ✅ completa — 6 tipos de nodo con atributos
-- Capa 2 (relaciones estáticas): ✅ completa — 5 grupos, dignidades + aspectos + jerarquía de casas
-- Capa 3 (relaciones derivadas): ✅ completa — posicionamiento, dignidad instanciada, señoríos, aspectos, activadores temporales
-- Formato de contexto propuesto: tripletas RDF-like (en `KG_ONTOLOGY_SCHEMA.md`)
-- Pendiente: especificación técnica para Abu Engine + `chart_graph.py`
-
 **Implementación técnica:**
-- Fase 1 (sin cambiar infraestructura): `chart_graph.py` en `abu_engine/` — NetworkX en memoria, emite tripletas al handler de Lilly
-- Fase 2: ontología universal persistida — conocimiento canónico por tradición
-- Firestore como store del grafo (nodos + edges por usuario) — Fase 3
+- Firestore como store del grafo (nodos + edges por usuario)
+- Lilly escribe al grafo después de cada interpretación significativa
+- Lilly lee del grafo antes de cada interpretación para contextualizar
 - El grafo es el activo más valioso del usuario — no portable a ningún otro sistema
 
 **Por qué esto importa comercialmente:**
@@ -2123,10 +2111,6 @@ investigación empírica astrológica.
 |---|---|
 | `research/finops/MILP_INITIATIVE.md` | Spec FinOps MILP — formulación, variables, plan de implementación |
 | `research/finops/TOKEN_EXPERIMENT_DESIGN.md` | Diseño experimento tokens — ~$2, 700 llamadas, 26 sujetos históricos |
-| `docs/theory/GRAPHRAG_KG_VISION.md` | Visión GraphRAG: por qué KG + capacidades que habilita + ruta de implementación |
-| `docs/theory/KG_ONTOLOGY_SCHEMA.md` | Schema completo 3 capas — formalizado con Lilly (helenística/persa) |
-| `docs/theory/KG_EXPERIMENT_PROTOCOL.md` | Protocolo experimento A/B: JSON plano vs. KG — tokens, costo, precisión doctrinal |
-| `AXIOMATICS_OF_HEAVENS_v0.4.md` | Meta-esquema epistemológico — fundamento de la ontología KG. Ver nota v0.5 al final. |
 
 Vault: `obsidian_vault/06_engineering/` — documentos de ingeniería y producto.
 

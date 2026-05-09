@@ -288,3 +288,18 @@ Todo código del sistema debe referenciar explícitamente los axiomas que implem
 
 *Axiomatics of Heavens — v0.4*
 *Abu Oracle Project — 2026-03-13*
+
+---
+
+## Nota de desarrollo — v0.5 (pendiente)
+
+**2026-05-05:** La v0.5 debe agregar una **Sección 13: Schema de Grafo** que traduzca los axiomas a tipos de nodo y aristas ejecutables (NetworkX / Neo4j / Cypher). Esta es la conversión de la axiomática de meta-esquema a ontología de grafo operacional.
+
+El documento de visión arquitectónica completo está en:
+`docs/theory/GRAPHRAG_KG_VISION.md`
+
+Puntos clave para v0.5:
+- Tipos de nodo: `Planet`, `Sign`, `House`, `Aspect`, `LifeDomain`, `Tradition`, `GeoZone`, `TimePeriod`
+- Tipos de arista universales (capa 1) vs. tradition-specific (capa 2)
+- `house_significators(natal, house=k)` → query Cypher formal
+- JOIN temporal-geográfico: dashas × HF sobre significadores compartidos

@@ -1,0 +1,2 @@
+id,alias,status,score,tradition,doctrinal_accuracy,has_verification,lilly_response_length,markdown_path
+BV_001,Mr. X,completed,4,,,True,0,data\blind_validation\BV_001_trump.md

@@ -141,13 +141,39 @@ Fuente: [[resonance_weights]] · [[field_v3]]
 
 ---
 
-## 07 — Sonic Field
+## 07 — Knowledge Graph & GraphRAG
+
+> Schema completo de 3 capas — formalizado con Lilly (tradición helenística/persa) — 2026-05-05
+
+| Documento | Descripción |
+|-----------|-------------|
+| [[07_knowledge_graph/GRAPHRAG_KG_VISION\|GRAPHRAG_KG_VISION]] | Visión estratégica — por qué KG, capacidades vs. arquitectura actual, ruta de implementación |
+| [[07_knowledge_graph/KG_ONTOLOGY_SCHEMA\|KG_ONTOLOGY_SCHEMA]] | **Schema 3 capas completo** — entidades, relaciones estáticas, derivadas + caso de prueba + formato tripletas |
+| [[07_knowledge_graph/KG_EXPERIMENT_PROTOCOL\|KG_EXPERIMENT_PROTOCOL]] | Protocolo experimento A/B — tokens, costo, precisión doctrinal, criterios publicación |
+
+**Estado:** Capas 1, 2 y 3 formalizadas ✅ · Pendiente: `chart_graph.py` en Abu Engine
+
+---
+
+## 07b — Sonic Field
 
 | Documento | Descripción |
 |-----------|-------------|
 | [[sonic_field/SONIC_FIELD_SPEC\|SONIC_FIELD_SPEC]] | Spec fundacional — doctrina Cousto, arquitectura 3 capas, mapeo astrológico→síntesis |
 | [[sonic_field/sonic_capa1_natal\|sonic_capa1_natal]] | ✅ Capa 1 implementada y validada — Firma Sonora Natal con Tone.js |
 | [[sonic_capa2_transitos]] | ✅ Capa 2 implementada — Tránsitos activos como capa aditiva sobre la firma natal |
+
+---
+
+## 08 — BABEL *(Appendix VII — Research)*
+
+> Intérprete universal de lenguajes animales — grafo semántico cross-especie. El R2-D2 que falta.
+
+| Documento | Descripción |
+|-----------|-------------|
+| [[08_babel/BABEL_overview\|BABEL_overview]] | **Hub central** — hipótesis, arquitectura, 9 primitivas semánticas, conexión QUEST + Abu Oracle |
+| [[08_babel/BABEL_literature\|BABEL_literature]] | Mapa de literatura — ESP, CETI, NatureLM, Copenhague, NeurIPS 2025, Total Turing Test |
+| [[08_babel/BABEL_phase0\|BABEL_phase0]] | Phase 0 — demo sintético: sil=0.750 ✅ · MFCC real: sil=-0.185 ❌ (esperado) → valida necesidad NatureLM |
 
 ---
 
