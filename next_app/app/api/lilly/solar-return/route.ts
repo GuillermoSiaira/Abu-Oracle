@@ -10,12 +10,12 @@ import {
 } from '../../../../lib/context-builder';
 
 export const dynamic = 'force-dynamic';
-import { completeLilly } from '../../../../lib/lilly-complete';
+import { completeLilly, type LillyResult } from '../../../../lib/lilly-complete';
+import { completeLillyGemini, GEMINI_FLASH_MODEL, toGeminiMessages } from '../../../../lib/gemini-client';
 import { chartKeyFromBirthData, logInterpretation } from '../../../../lib/interpretation-logger';
 import { logLillyUsage } from '../../../../lib/lilly-usage-logger';
-import { getUserIdFromRequest } from '../../../../lib/get-user-id';
 import { selectModel } from '../../../../lib/selectModel';
-import { applyRateLimit } from '../../../../lib/usage-limiter';
+import { getAccessContext, rateLimitResponse } from '../../../../lib/access-context';
 
 const EMPTY_TIMELINE: BiographicalTimeline = {
   profections: [],
@@ -25,8 +25,8 @@ const EMPTY_TIMELINE: BiographicalTimeline = {
 
 export async function POST(req: Request) {
   try {
-    const limitRes = await applyRateLimit(req);
-    if (limitRes) return limitRes;
+    const ctx = await getAccessContext(req);
+    if (!ctx.allowed) return rateLimitResponse(ctx);
 
     const body = await req.json();
     const {
@@ -65,24 +65,40 @@ export async function POST(req: Request) {
       history.shift();
     }
 
-    const { model } = selectModel('solar-return', 'genesis');
-    const client = getAnthropicClient();
-    const { text, usage } = await completeLilly(client, {
-      model,
-      max_tokens: 1024,
-      system: [{ type: 'text', text: LILLY_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
-      messages: [...history, { role: 'user', content: block }],
-    });
-    const userId = await getUserIdFromRequest(req).catch(() => null);
-    logLillyUsage('solar-return', model, usage, userId);
+    let result: LillyResult;
+    let model: string;
+
+    if (ctx.provider === 'gemini') {
+      model = GEMINI_FLASH_MODEL;
+      result = await completeLillyGemini(
+        LILLY_SYSTEM_PROMPT,
+        toGeminiMessages(body.messages ?? [], block),
+        1024,
+      );
+    } else {
+      const decision = selectModel('solar-return', ctx.plan === 'monthly' || ctx.plan === 'annual' ? ctx.plan : 'genesis');
+      model = decision.model;
+      const client = getAnthropicClient();
+      result = await completeLilly(client, {
+        model,
+        max_tokens: 1024,
+        system: [{ type: 'text', text: LILLY_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
+        messages: [...history, { role: 'user', content: block }],
+      });
+    }
+
+    const { text, usage } = result;
+    logLillyUsage('solar-return', model, usage, ctx.userId);
     logInterpretation({
       route: 'solar-return',
       eventType: body.eventType ?? 'sr_domain_select',
+      provider: ctx.provider,
+      model,
       inputTokens: usage.input_tokens,
       outputTokens: usage.output_tokens,
       costUsd: 0,
       continuations: usage.continuations,
-      userId: userId ?? undefined,
+      userId: ctx.userId ?? undefined,
       chartKey: chartKeyFromBirthData(birthData),
       lang: lang ?? 'es',
       condition: 'A',

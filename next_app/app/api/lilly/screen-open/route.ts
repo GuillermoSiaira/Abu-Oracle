@@ -1,5 +1,6 @@
-import Anthropic from "@anthropic-ai/sdk";
+import type Anthropic from "@anthropic-ai/sdk";
 import { NextResponse } from 'next/server';
+import { getAnthropicClient } from '../../../../lib/anthropic-client';
 import { LILLY_SYSTEM_PROMPT } from '../../../../lib/lilly-prompt';
 import {
   buildNatalContext,
@@ -10,8 +11,9 @@ import {
 } from '../../../../lib/context-builder';
 import { getUserIdFromRequest } from '../../../../lib/get-user-id';
 import { getRecentHistory, formatMemoryForPrompt } from '../../../../lib/chat-memory';
-import { applyRateLimit } from '../../../../lib/usage-limiter';
-import { completeLilly } from '../../../../lib/lilly-complete';
+import { completeLilly, type LillyResult } from '../../../../lib/lilly-complete';
+import { getAccessContext, rateLimitResponse } from '../../../../lib/access-context';
+import { completeLillyGemini, GEMINI_FLASH_MODEL, toGeminiMessages } from '../../../../lib/gemini-client';
 import { chartKeyFromBirthData, logInterpretation } from '../../../../lib/interpretation-logger';
 import { logLillyUsage } from '../../../../lib/lilly-usage-logger';
 import { selectModel } from '../../../../lib/selectModel';
@@ -74,14 +76,6 @@ const SUGGESTIONS_SUFFIX = [
 ].join('\n');
 
 export async function POST(req: Request) {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
-    return NextResponse.json(
-      { error: 'ANTHROPIC_API_KEY not configured' },
-      { status: 503 }
-    );
-  }
-
   try {
     const body = await req.json();
     const {
@@ -114,8 +108,8 @@ export async function POST(req: Request) {
     }
 
     // ── Rate limit (solo si no es usuario nuevo — welcome es gratuito) ────────
-    const limitRes = await applyRateLimit(req);
-    if (limitRes) return limitRes;
+    const ctx = await getAccessContext(req);
+    if (!ctx.allowed) return rateLimitResponse(ctx);
 
     // ── Lunar data — usar el del cliente (fuente única de verdad) si viene en el body;
     //    solo hacer fetch server-side como fallback si no viene.
@@ -169,14 +163,29 @@ export async function POST(req: Request) {
       history.shift();
     }
 
-    const { model } = selectModel('screen-open', 'genesis');
-    const client = new Anthropic({ apiKey });
-    const { text: rawText, usage } = await completeLilly(client, {
-      model,
-      max_tokens: 1536,
-      system: [{ type: 'text', text: LILLY_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
-      messages: [...history, { role: 'user', content: block }],
-    });
+    let result: LillyResult;
+    let model: string;
+
+    if (ctx.provider === 'gemini') {
+      model = GEMINI_FLASH_MODEL;
+      result = await completeLillyGemini(
+        LILLY_SYSTEM_PROMPT,
+        toGeminiMessages(body.messages ?? [], block),
+        1536,
+      );
+    } else {
+      const decision = selectModel('screen-open', ctx.plan === 'monthly' || ctx.plan === 'annual' ? ctx.plan : 'genesis');
+      model = decision.model;
+      const client = getAnthropicClient();
+      result = await completeLilly(client, {
+        model,
+        max_tokens: 1536,
+        system: [{ type: 'text', text: LILLY_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
+        messages: [...history, { role: 'user', content: block }],
+      });
+    }
+
+    const { text: rawText, usage } = result;
 
     // Parse [SUGERENCIAS] block from the end of the response
     let text = rawText;
@@ -196,15 +205,17 @@ export async function POST(req: Request) {
       }
     }
 
-    logLillyUsage('screen-open', model, usage, userId ?? null);
+    logLillyUsage('screen-open', model, usage, ctx.userId);
     logInterpretation({
       route: 'screen-open',
       eventType: body.eventType ?? 'screen_open',
+      provider: ctx.provider,
+      model,
       inputTokens: usage.input_tokens,
       outputTokens: usage.output_tokens,
       costUsd: 0,
       continuations: usage.continuations,
-      userId: userId ?? undefined,
+      userId: ctx.userId ?? undefined,
       chartKey: chartKeyFromBirthData(birthData),
       lang: lang ?? 'es',
       condition: 'A',

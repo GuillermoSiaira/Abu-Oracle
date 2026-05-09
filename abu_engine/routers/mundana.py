@@ -6,8 +6,14 @@ GET /api/mundana/forecast     → configuraciones próximas (filtradas por signi
 GET /api/mundana/history      → estadísticas empíricas + eventos representativos
 """
 
-from fastapi import APIRouter, Query
+from datetime import datetime, timezone
+
+from fastapi import APIRouter, Depends, Query
+import swisseph as swe
+
+from core.auth import verify_token
 from core.mundana import get_current_sky, get_upcoming_configurations, get_historical_context
+from core.mundana_calendar import build_mundana_calendar
 
 router = APIRouter(tags=["mundana"])
 
@@ -50,3 +56,25 @@ def history_endpoint(
     los eventos de muestra solo se retornan en entorno de desarrollo local.
     """
     return get_historical_context(config_type=config_type, limit=limit)
+
+
+@router.get("/calendar")
+async def calendar_endpoint(
+    months: int = Query(default=12, ge=1, le=24),
+    _: dict = Depends(verify_token),
+):
+    """
+    Current mundane sky plus a chronological calendar for the next N months.
+    """
+    now = datetime.now(timezone.utc)
+    jd_now = swe.julday(
+        now.year,
+        now.month,
+        now.day,
+        now.hour + now.minute / 60 + now.second / 3600,
+    )
+
+    return {
+        "current_sky": get_current_sky(),
+        "calendar": build_mundana_calendar(jd_now, months_ahead=months),
+    }

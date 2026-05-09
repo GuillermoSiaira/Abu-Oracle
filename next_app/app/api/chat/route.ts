@@ -8,23 +8,21 @@ import {
   formatLunarContext,
   type BiographicalTimeline,
 } from "@/lib/context-builder";
-import { getUserIdFromRequest } from "@/lib/get-user-id";
 import {
   getRecentHistory,
   formatMemoryForPrompt,
   saveExchange,
   summarizeIfNeeded,
 } from "@/lib/chat-memory";
-import { applyRateLimit } from "@/lib/usage-limiter";
-import { completeLilly } from "@/lib/lilly-complete";
+import { getAccessContext, rateLimitResponse } from "@/lib/access-context";
+import { completeLilly, type LillyResult } from "@/lib/lilly-complete";
+import { completeLillyGemini, GEMINI_FLASH_MODEL, toGeminiMessages } from "@/lib/gemini-client";
 import type Anthropic from "@anthropic-ai/sdk";
 import { logInterpretation } from "@/lib/interpretation-logger";
 import { logLillyUsage } from "@/lib/lilly-usage-logger";
 import { selectModel } from "@/lib/selectModel";
 
 export const dynamic = "force-dynamic";
-
-const client = getAnthropicClient();
 
 const EMPTY_TIMELINE: BiographicalTimeline = {
   profections: [],
@@ -34,8 +32,6 @@ const EMPTY_TIMELINE: BiographicalTimeline = {
 
 export async function POST(req: Request) {
   try {
-    // Clone request so we can read body AND headers (getUserIdFromRequest reads headers)
-    const reqClone = req.clone();
     const body = await req.json();
     const { messages, context, session_id, timeline, lunarData: clientLunarData, lang: bodyLang } = body;
 
@@ -44,9 +40,9 @@ export async function POST(req: Request) {
     }
 
     // ── Auth + rate limit + memory ───────────────────────────────────────────
-    const limitRes = await applyRateLimit(reqClone);
-    if (limitRes) return limitRes;
-    const userId = await getUserIdFromRequest(reqClone);
+    const ctx = await getAccessContext(req);
+    if (!ctx.allowed) return rateLimitResponse(ctx);
+    const userId = ctx.userId ?? null;
     console.log("[chat-memory] userId:", userId);
     const memoryCtx = userId ? await getRecentHistory(userId) : null;
     const memoryBlock = memoryCtx ? formatMemoryForPrompt(memoryCtx) : '';
@@ -129,18 +125,40 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No valid messages" }, { status: 400 });
     }
 
-    const { model } = selectModel('chat', 'genesis');
-    const { text, usage } = await completeLilly(client, {
-      model,
-      max_tokens: parseInt(process.env.LILLY_CHAT_MAX_TOKENS ?? "2500"),
-      system: systemBlocks,
-      messages: anthropicMessages,
-    });
+    const MAX_TOKENS = parseInt(process.env.LILLY_CHAT_MAX_TOKENS ?? "2500");
+
+    let result: LillyResult;
+    let model: string;
+
+    if (ctx.provider === 'gemini') {
+      model = GEMINI_FLASH_MODEL;
+      // For chat, the systemBlocks are already constructed; pass the last user message as block
+      // toGeminiMessages handles the full messages array
+      result = await completeLillyGemini(
+        LILLY_SYSTEM_PROMPT,
+        toGeminiMessages(messages, ''),
+        MAX_TOKENS,
+      );
+    } else {
+      const decision = selectModel('chat', ctx.plan === 'monthly' || ctx.plan === 'annual' ? ctx.plan : 'genesis');
+      model = decision.model;
+      const client = getAnthropicClient();
+      result = await completeLilly(client, {
+        model,
+        max_tokens: MAX_TOKENS,
+        system: systemBlocks,
+        messages: anthropicMessages,
+      });
+    }
+
+    const { text, usage } = result;
 
     logLillyUsage('chat', model, usage, userId ?? null);
     logInterpretation({
       route: 'chat',
       eventType: body.eventType ?? 'chat',
+      provider: ctx.provider,
+      model,
       inputTokens: usage.input_tokens,
       outputTokens: usage.output_tokens,
       costUsd: 0,

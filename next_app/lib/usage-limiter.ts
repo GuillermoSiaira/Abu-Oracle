@@ -18,7 +18,7 @@ import { getAdminDb } from "@/lib/firebase-admin";
 import { getUserIdFromRequest } from "@/lib/get-user-id";
 
 export const DAILY_LIMIT = 50;
-export const FREE_TIER_LIMIT = 3;
+export const FREE_TIER_LIMIT = 15;
 
 export const LIMIT_MESSAGE =
   "Has alcanzado el límite diario de consultas a Lilly. Vuelve mañana.";
