@@ -13,6 +13,7 @@ export default function Navigation() {
   const navLinks = [
     { href: '/', label: 'Home' },
     { href: '/chart', label: t.navChart },
+    { href: '/pricing', label: 'Planes' },
   ];
 
   return (

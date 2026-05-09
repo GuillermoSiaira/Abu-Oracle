@@ -37,6 +37,7 @@ import { UI } from '@/lib/i18n';
 import { getAbuAuthHeaders } from '@/lib/abu-auth';
 import { ABU_BASE_URL } from '@/services/abu';
 import EntryNav, { type EntryKey } from '@/components/EntryNav';
+import { UpgradeModal } from '@/components/UpgradeModal';
 
 /* ---------------------------------------------------------
    TerminalMessage
@@ -127,6 +128,7 @@ export default function OracleChat() {
   const [activeEntry, setActiveEntry] = useState<EntryKey | null>(null);
   // true until getRecentHistory confirms exchanges > 0 or summary exists
   const [isNewUser, setIsNewUser] = useState<boolean>(true);
+  const [showUpgrade, setShowUpgrade] = useState(false);
 
   // Evita doble inicialización en React.StrictMode
   const initialized = useRef(false);
@@ -295,6 +297,9 @@ export default function OracleChat() {
           messages,
         }),
       });
+      if (!res.ok) {
+        if (res.status === 429) { setShowUpgrade(true); return; }
+      }
       const data = await res.json();
       const text: string = data.response || '> ✦ *Los astros tardan un momento en alinearse. Intentá de nuevo en unos segundos.*';
       const ts = Date.now();
@@ -383,8 +388,14 @@ export default function OracleChat() {
         messages,
       }),
     })
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) {
+          if (res.status === 429) { setShowUpgrade(true); return null; }
+        }
+        return res.json();
+      })
       .then((data) => {
+        if (!data) return;
         const text: string = data.response || '> ✦ *Los astros tardan un momento en alinearse. Intentá de nuevo en unos segundos.*';
         const ts = Date.now();
         setMessages((prev) => [
@@ -460,7 +471,10 @@ export default function OracleChat() {
         })
       });
 
-      if (!res.ok) throw new Error("Connection error");
+      if (!res.ok) {
+        if (res.status === 429) { setShowUpgrade(true); return; }
+        throw new Error("Connection error");
+      }
 
       const data = await res.json();
       const aiText = data.response || "No response vector.";
@@ -605,6 +619,8 @@ export default function OracleChat() {
           <Send className="w-4 h-4" />
         </button>
       </form>
+
+      <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} />
 
     </div>
   );
