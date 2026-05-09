@@ -1,0 +1,47 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - build
+      - -t
+      - gcr.io/abu-oracle/telegram-bot:latest
+      - -f
+      - telegram_bot/Dockerfile
+      - .
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - push
+      - gcr.io/abu-oracle/telegram-bot:latest
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    args:
+      - gcloud
+      - run
+      - deploy
+      - telegram-bot
+      - --image=gcr.io/abu-oracle/telegram-bot:latest
+      - --region=us-central1
+      - --platform=managed
+      - --allow-unauthenticated
+      - --service-account=abu-engine-sa@abu-oracle.iam.gserviceaccount.com
+      - --set-env-vars=ABU_ENGINE_URL=https://abu-engine-455329737285.us-central1.run.app,LILLY_URL=https://app.abu-oracle.com
+      - --set-secrets=TELEGRAM_BOT_TOKEN=telegram-bot-token:latest,INTERNAL_SECRET=telegram-internal-secret:latest
+
+images:
+  - gcr.io/abu-oracle/telegram-bot:latest
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+# Manual setup after first deploy:
+# 1. Set webhook:
+#    curl https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook \
+#      -d "url=https://telegram-bot-xxx.run.app/webhook/${TELEGRAM_BOT_TOKEN}"
+#
+# 2. Scheduler:
+#    gcloud scheduler jobs create http telegram-daily-broadcast \
+#      --schedule="5 8 * * *" \
+#      --uri="https://telegram-bot-xxx.run.app/broadcast" \
+#      --message-body='{}' \
+#      --headers="X-Internal-Secret=${INTERNAL_SECRET},Content-Type=application/json" \
+#      --location=us-central1

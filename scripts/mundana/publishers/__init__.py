@@ -1,32 +1,33 @@
 """
-publishers/ — Publicadores por plataforma.
+publishers/ - Platform dispatchers.
 
-AUTO (publicación directa):
-  Farcaster — Neynar API
-  Bluesky   — AT Protocol
-  Reddit    — PRAW
+AUTO:
+  Farcaster, Bluesky, Reddit
 
-SEMI-AUTO (borrador + email de aprobación via Resend):
+SEMI-AUTO:
   Twitter/X, Instagram, Facebook, TikTok
 """
 
 from .farcaster_publisher import publish_farcaster
-from .bluesky_publisher   import publish_bluesky
-from .twitter_publisher   import publish_twitter
-from .reddit_publisher    import publish_reddit
+from .bluesky_publisher import publish_bluesky
+from .twitter_publisher import publish_twitter
+from .reddit_publisher import publish_reddit
 
 __all__ = [
-    "publish_farcaster", "publish_bluesky",
-    "publish_twitter", "publish_reddit",
+    "publish_farcaster",
+    "publish_bluesky",
+    "publish_twitter",
+    "publish_reddit",
     "publish_all",
 ]
 
 
-def publish_all(platform: str, content: dict) -> dict:
+def publish_all(platform: str, content: dict, lang: str = "es") -> dict:
     """
-    Dispatch según plataforma.
+    Dispatch by platform.
+    lang is accepted for multilingual runs; account routing is handled outside.
 
-    Retorna: { 'status': 'published' | 'pending_approval' | 'error', 'detail': ... }
+    Returns: { 'status': 'published' | 'pending_approval' | 'error', 'detail': ... }
     """
     if platform == "farcaster":
         return publish_farcaster(content["text"])
