@@ -10,8 +10,10 @@ import {
 import { getAccessContext, rateLimitResponse } from '../../../../lib/access-context';
 import { completeLilly, type LillyResult } from '../../../../lib/lilly-complete';
 import { completeLillyGemini, GEMINI_FLASH_MODEL, toGeminiMessages } from '../../../../lib/gemini-client';
+import { chartKeyFromBirthData, logInterpretation } from '../../../../lib/interpretation-logger';
 import { logLillyUsage } from '../../../../lib/lilly-usage-logger';
 import { selectModel } from '../../../../lib/selectModel';
+import { classifyError, trackError } from '../../../../lib/error-tracker';
 
 export const dynamic = 'force-dynamic';
 
@@ -52,11 +54,16 @@ function _formatHistory(sampleEvents: Array<{ date: string; description: string;
 }
 
 export async function POST(req: Request) {
+  let userId: string | null = null;
+  let eventType = 'mundana_config';
+
   try {
     const ctx = await getAccessContext(req);
     if (!ctx.allowed) return rateLimitResponse(ctx);
+    userId = ctx.userId;
 
     const body = await req.json();
+    eventType = body.eventType ?? eventType;
     const {
       config,          // objeto de configuración mundana activa
       historyContext,  // { sample_events, density_ratio, p_value }
@@ -145,8 +152,31 @@ export async function POST(req: Request) {
 
     const { text, usage } = result;
     logLillyUsage('mundana', model, usage, ctx.userId);
+    logInterpretation({
+      route: 'mundana',
+      eventType: body.eventType ?? 'mundana_config',
+      provider: ctx.provider,
+      model,
+      inputTokens: usage.input_tokens,
+      outputTokens: usage.output_tokens,
+      costUsd: 0,
+      continuations: usage.continuations,
+      userId: ctx.userId ?? undefined,
+      chartKey: chartKeyFromBirthData(birthData),
+      lang: lang ?? 'es',
+      condition: 'A',
+    });
     return NextResponse.json({ response: text });
   } catch (err: any) {
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    trackError({
+      route: 'mundana',
+      eventType,
+      errorMessage,
+      errorSource: classifyError(err),
+      userId,
+      stack: err instanceof Error ? err.stack ?? null : null,
+    });
     console.error('[lilly/mundana]', err);
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }

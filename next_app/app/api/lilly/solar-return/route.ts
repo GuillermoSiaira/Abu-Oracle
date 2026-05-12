@@ -16,6 +16,7 @@ import { chartKeyFromBirthData, logInterpretation } from '../../../../lib/interp
 import { logLillyUsage } from '../../../../lib/lilly-usage-logger';
 import { selectModel } from '../../../../lib/selectModel';
 import { getAccessContext, rateLimitResponse } from '../../../../lib/access-context';
+import { classifyError, trackError } from '../../../../lib/error-tracker';
 
 const EMPTY_TIMELINE: BiographicalTimeline = {
   profections: [],
@@ -24,11 +25,16 @@ const EMPTY_TIMELINE: BiographicalTimeline = {
 };
 
 export async function POST(req: Request) {
+  let userId: string | null = null;
+  let eventType = 'sr_domain_select';
+
   try {
     const ctx = await getAccessContext(req);
     if (!ctx.allowed) return rateLimitResponse(ctx);
+    userId = ctx.userId;
 
     const body = await req.json();
+    eventType = body.eventType ?? eventType;
     const {
       domain,
       house_num,
@@ -105,6 +111,15 @@ export async function POST(req: Request) {
     });
     return NextResponse.json({ response: text });
   } catch (err: any) {
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    trackError({
+      route: 'solar-return',
+      eventType,
+      errorMessage,
+      errorSource: classifyError(err),
+      userId,
+      stack: err instanceof Error ? err.stack ?? null : null,
+    });
     console.error('[lilly/solar-return]', err);
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }

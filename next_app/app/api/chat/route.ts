@@ -21,6 +21,7 @@ import type Anthropic from "@anthropic-ai/sdk";
 import { logInterpretation } from "@/lib/interpretation-logger";
 import { logLillyUsage } from "@/lib/lilly-usage-logger";
 import { selectModel } from "@/lib/selectModel";
+import { classifyError, trackError } from "@/lib/error-tracker";
 
 export const dynamic = "force-dynamic";
 
@@ -31,8 +32,12 @@ const EMPTY_TIMELINE: BiographicalTimeline = {
 };
 
 export async function POST(req: Request) {
+  let userId: string | null = null;
+  let eventType = "chat";
+
   try {
     const body = await req.json();
+    eventType = body.eventType ?? eventType;
     const { messages, context, session_id, timeline, lunarData: clientLunarData, lang: bodyLang } = body;
 
     if (!messages?.length) {
@@ -42,7 +47,7 @@ export async function POST(req: Request) {
     // ── Auth + rate limit + memory ───────────────────────────────────────────
     const ctx = await getAccessContext(req);
     if (!ctx.allowed) return rateLimitResponse(ctx);
-    const userId = ctx.userId ?? null;
+    userId = ctx.userId ?? null;
     console.log("[chat-memory] userId:", userId);
     const memoryCtx = userId ? await getRecentHistory(userId) : null;
     const memoryBlock = memoryCtx ? formatMemoryForPrompt(memoryCtx) : '';
@@ -173,6 +178,7 @@ export async function POST(req: Request) {
 
     // ── Persist exchange to Firestore (fire-and-forget) ──────────────────────
     if (userId && text) {
+      const resolvedUserId = userId;
       const lastUserMsg = [...anthropicMessages].reverse().find((m) => m.role === "user");
       const userText = typeof lastUserMsg?.content === "string" ? lastUserMsg.content : "";
       const subjectName =
@@ -186,12 +192,21 @@ export async function POST(req: Request) {
         assistant_response: text,
         event_type:         "chat",
         subject_name:       subjectName,
-      }).then(() => summarizeIfNeeded(userId));
+      }).then(() => summarizeIfNeeded(resolvedUserId));
     }
 
     return NextResponse.json({ response: text });
 
   } catch (err: any) {
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    trackError({
+      route: "chat",
+      eventType,
+      errorMessage,
+      errorSource: classifyError(err),
+      userId,
+      stack: err instanceof Error ? err.stack ?? null : null,
+    });
     console.error("🔴 /api/chat error:", err?.message ?? err);
     return NextResponse.json({ error: err?.message ?? "Internal error" }, { status: 500 });
   }

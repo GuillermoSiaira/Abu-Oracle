@@ -18,7 +18,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [resetSent, setResetSent] = useState(false);
 
-  const nextPath = searchParams.get("next") || "/chart";
+  const nextPath = searchParams.get("next") || "/";
 
   useEffect(() => {
     if (!loading && user) {

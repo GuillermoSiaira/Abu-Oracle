@@ -4,17 +4,18 @@ run_blind_validation.py — Protocolo de Validación Doctrinal por Carta Ciega
 Ejecuta un experimento BV completo:
   1. Obtiene la carta natal extendida desde Abu Engine
   2. Genera lectura doctrinal con Lilly (Haiku para análisis batch)
-  3. Guarda ficha BV_NNN_alias.md en data/blind_validation/
+  3. Guarda ficha BV_NNN_NTV-XXXX.md en data/blind_validation/
   4. Genera nota equivalente en obsidian_vault/03_experimentos/
   5. Actualiza BV_index.json
 
-IMPORTANTE: subject_real nunca aparece en stdout. Solo en archivos internos.
+IMPORTANTE: subject_real y label nunca aparecen en stdout ni en el prompt LLM.
+Solo se guardan en archivos internos.
 
 Uso:
     python scripts/blind_validation/run_blind_validation.py \\
         --date 1946-06-14 --time 10:54 \\
         --lat 40.7128 --lon -74.0060 \\
-        --alias "Mr. X" \\
+        --label "Caso público — carta de referencia" \\
         --subject-real "Donald Trump" \\
         --rodden AA
 """
@@ -22,6 +23,7 @@ Uso:
 from __future__ import annotations
 
 import argparse
+import copy
 import hashlib
 import json
 import os
@@ -65,7 +67,16 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--time", required=True, help="Hora local HH:MM")
     p.add_argument("--lat", required=True, type=float, help="Latitud decimal")
     p.add_argument("--lon", required=True, type=float, help="Longitud decimal")
-    p.add_argument("--alias", default="Mr. X", help="Alias operativo (no revela identidad)")
+    p.add_argument(
+        "--label",
+        default=None,
+        help=(
+            "Etiqueta interna opcional (ej: 'Caso Libra 1946'). "
+            "NUNCA se pasa al LLM ni aparece en filenames. "
+            "Solo se guarda en BV_index.json como campo 'label'."
+        ),
+    )
+    p.add_argument("--alias", default=None, help=argparse.SUPPRESS)
     p.add_argument("--subject-real", required=True, help="Identidad real (solo registro interno)")
     p.add_argument("--rodden", default="?", help="Rodden Rating de los datos (AA/A/B/C)")
     p.add_argument(
@@ -94,10 +105,6 @@ def _next_bv_id() -> str:
     return f"BV_{max(nums) + 1:03d}" if nums else "BV_001"
 
 
-def _slug(alias: str) -> str:
-    return re.sub(r"[^a-z0-9]+", "_", alias.lower()).strip("_")
-
-
 def _fetch_chart_extended(
     birth_date: str, birth_time: str, lat: float, lon: float, abu_url: str
 ) -> dict:
@@ -118,14 +125,41 @@ def _fetch_chart_extended(
         return json.loads(r.read())
 
 
-def _build_doctrinal_context(chart: dict, alias: str) -> str:
+def _strip_identifying_fields(chart: dict) -> dict:
+    """Elimina campos que puedan identificar al nativo antes del prompt LLM."""
+    clean = copy.deepcopy(chart)
+    identifying_fields = (
+        "name",
+        "person",
+        "subject_name",
+        "birth_city",
+        "city",
+        "birth_place",
+        "location",
+        "userName",
+    )
+
+    for field in identifying_fields:
+        clean.pop(field, None)
+
+    for subchart_key in ("chart", "derived", "extended"):
+        subdict = clean.get(subchart_key, {})
+        if isinstance(subdict, dict):
+            for field in identifying_fields:
+                subdict.pop(field, None)
+
+    return clean
+
+
+def _build_doctrinal_context(chart: dict, opaque_id: str) -> str:
     """Construye el contextBlock para la lectura doctrinal ciega."""
-    planets = chart.get("chart", {}).get("planets", [])
-    asc_sign = chart.get("chart", {}).get("asc_sign", "?")
-    mc_sign = chart.get("chart", {}).get("mc_sign", "?")
-    sect = chart.get("chart", {}).get("sect", "?")
-    profection = chart.get("derived", {}).get("profection", {})
-    firdaria = chart.get("derived", {}).get("firdaria", {})
+    clean_chart = _strip_identifying_fields(chart)
+    planets = clean_chart.get("chart", {}).get("planets", [])
+    asc_sign = clean_chart.get("chart", {}).get("asc_sign", "?")
+    mc_sign = clean_chart.get("chart", {}).get("mc_sign", "?")
+    sect = clean_chart.get("chart", {}).get("sect", "?")
+    profection = clean_chart.get("derived", {}).get("profection", {})
+    firdaria = clean_chart.get("derived", {}).get("firdaria", {})
 
     planet_lines = []
     for p in planets:
@@ -142,7 +176,7 @@ def _build_doctrinal_context(chart: dict, alias: str) -> str:
     fird_minor = firdaria.get("minor_planet", "?")
     fird_end = firdaria.get("end_date", "?")
 
-    return f"""╔══ CARTA NATAL — {alias} ══╗
+    return f"""╔══ CARTA NATAL — {opaque_id} ══╗
 Secta: {sect}
 ASC: {asc_sign} · MC: {mc_sign}
 
@@ -189,7 +223,7 @@ def _call_lilly(context_block: str) -> str:
 
 def _render_bv_md(
     bv_id: str,
-    alias: str,
+    opaque_id: str,
     subject_real: str,
     rodden: str,
     birth_date: str,
@@ -204,10 +238,10 @@ def _render_bv_md(
     asc_sign = chart.get("chart", {}).get("asc_sign", "?")
     sect = chart.get("chart", {}).get("sect", "?")
 
-    return f"""# {bv_id} — Carta Ciega: {alias}
+    return f"""# {bv_id} — Carta Ciega: {opaque_id}
 
 > **ID:** {bv_id}
-> **Alias operativo:** {alias}
+> **ID opaco:** {opaque_id}
 > **Identidad real:** {subject_real} *(solo para registro interno — no revelar en ejecución del protocolo)*
 > **Fecha del experimento:** {experiment_date}
 > **Estado:** Completado (pendiente verificación manual)
@@ -231,7 +265,7 @@ def _render_bv_md(
 
 ## Lectura doctrinal de Lilly (carta ciega)
 
-*Generada por `{BV_MODEL}` — alias activo: {alias} — identidad no revelada al modelo*
+*Generada por `{BV_MODEL}` — id activo: {opaque_id} — identidad no revelada al modelo*
 
 {lilly_reading}
 
@@ -268,7 +302,7 @@ def _render_bv_md(
 
 def _render_obsidian_md(
     bv_id: str,
-    alias: str,
+    opaque_id: str,
     rodden: str,
     birth_date: str,
     birth_time: str,
@@ -279,11 +313,10 @@ def _render_obsidian_md(
     """Genera la nota Obsidian (versión vault)."""
     asc_sign = chart.get("chart", {}).get("asc_sign", "?")
     sect = chart.get("chart", {}).get("sect", "?")
-    slug = _slug(alias)
 
     return f"""---
 id: {bv_id}
-alias: {alias}
+opaque_id: {opaque_id}
 rodden: {rodden}
 birth_date: "{birth_date}"
 birth_time: "{birth_time}"
@@ -293,14 +326,14 @@ score_summary: "pendiente"
 tags: [blind_validation, carta_ciega, lilly]
 ---
 
-# {bv_id} — Carta Ciega: {alias}
+# {bv_id} — Carta Ciega: {opaque_id}
 
-**Alias:** {alias} · **Rodden:** {rodden}
+**ID opaco:** {opaque_id} · **Rodden:** {rodden}
 **Nacimiento:** {birth_date} {birth_time}
 **Tipo:** {sect} · **ASC:** {asc_sign}
 
 Experimento generado el **{experiment_date}**.
-Ficha técnica: `data/blind_validation/{bv_id}_{slug}.md`
+Ficha técnica: `data/blind_validation/{bv_id}_{opaque_id}.md`
 
 ---
 
@@ -326,7 +359,8 @@ Ficha técnica: `data/blind_validation/{bv_id}_{slug}.md`
 
 def _update_index(
     bv_id: str,
-    alias: str,
+    opaque_id: str,
+    label: str | None,
     subject_real: str,
     rodden: str,
     birth_date: str,
@@ -348,24 +382,26 @@ def _update_index(
         print(f"[BV] {bv_id} ya existe en el índice — no se duplica.", flush=True)
         return
 
-    data.append(
-        {
-            "id": bv_id,
-            "alias": alias,
-            "subject_real": subject_real,
-            "rodden": rodden,
-            "birth_date": birth_date,
-            "birth_time": birth_time,
-            "lat": lat,
-            "lon": lon,
-            "experiment_date": experiment_date,
-            "status": "pending_verification",
-            "score": {"dimensions_passed": None, "dimensions_total": 5, "validates": None},
-            "file": filename,
-            "obsidian_file": f"obsidian_vault/03_experimentos/{obsidian_filename}",
-            "notes": f"Generado automáticamente — alias: {alias}",
-        }
-    )
+    entry = {
+        "id": bv_id,
+        "opaque_id": opaque_id,
+        "subject_real": subject_real,
+        "rodden": rodden,
+        "birth_date": birth_date,
+        "birth_time": birth_time,
+        "lat": lat,
+        "lon": lon,
+        "experiment_date": experiment_date,
+        "status": "pending_verification",
+        "score": {"dimensions_passed": None, "dimensions_total": 5, "validates": None},
+        "file": filename,
+        "obsidian_file": f"obsidian_vault/03_experimentos/{obsidian_filename}",
+        "notes": f"Generado automáticamente — id: {opaque_id}",
+    }
+    if label:
+        entry["label"] = label
+
+    data.append(entry)
 
     INDEX_PATH.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 
@@ -388,11 +424,9 @@ def main() -> None:
     experiment_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     bv_id = _next_bv_id()
     _hash_input = f"{args.date}{args.time}{args.lat}{args.lon}"
-    _opaque = "NTV-" + hashlib.sha256(_hash_input.encode()).hexdigest()[:4].upper()
-    alias = args.alias if args.alias != "Mr. X" else _opaque
-    slug = _slug(alias)
+    opaque_id = "NTV-" + hashlib.sha256(_hash_input.encode()).hexdigest()[:4].upper()
 
-    print(f"[BV] Iniciando experimento {bv_id} — alias: {alias}", flush=True)
+    print(f"[BV] Iniciando experimento {bv_id} — id: {opaque_id}", flush=True)
 
     # 1. Obtener carta natal extendida
     try:
@@ -410,16 +444,16 @@ def main() -> None:
 
     # 2. Construir contextBlock y llamar a Lilly
     print(f"[BV] Generando lectura doctrinal con {BV_MODEL}...", flush=True)
-    context_block = _build_doctrinal_context(chart, alias)
+    context_block = _build_doctrinal_context(chart, opaque_id)
     lilly_reading = _call_lilly(context_block)
 
     # 3. Renderizar fichas
-    bv_filename = f"{bv_id}_{slug}.md"
-    obs_filename = f"{bv_id}_{slug}.md"
+    bv_filename = f"{bv_id}_{opaque_id}.md"
+    obs_filename = f"{bv_id}_{opaque_id}.md"
 
     bv_md = _render_bv_md(
         bv_id=bv_id,
-        alias=alias,
+        opaque_id=opaque_id,
         subject_real=args.subject_real,
         rodden=args.rodden,
         birth_date=args.date,
@@ -433,7 +467,7 @@ def main() -> None:
 
     obs_md = _render_obsidian_md(
         bv_id=bv_id,
-        alias=alias,
+        opaque_id=opaque_id,
         rodden=args.rodden,
         birth_date=args.date,
         birth_time=args.time,
@@ -449,7 +483,8 @@ def main() -> None:
     # 5. Actualizar índice
     _update_index(
         bv_id=bv_id,
-        alias=alias,
+        opaque_id=opaque_id,
+        label=args.label,
         subject_real=args.subject_real,
         rodden=args.rodden,
         birth_date=args.date,
@@ -463,7 +498,7 @@ def main() -> None:
 
     print(f"[BV] ✓ Ficha guardada: data/blind_validation/{bv_filename}", flush=True)
     print(f"[BV] ✓ Nota Obsidian: obsidian_vault/03_experimentos/{obs_filename}", flush=True)
-    print(f"[BV] ✓ Índice actualizado: {bv_id} — alias: {alias}", flush=True)
+    print(f"[BV] ✓ Índice actualizado: {bv_id} — id: {opaque_id}", flush=True)
     print(
         "[BV] Próximo paso: completar la sección de Verificación en la ficha.", flush=True
     )

@@ -14,6 +14,7 @@ import { completeLillyGemini, GEMINI_FLASH_MODEL, toGeminiMessages } from '../..
 import { chartKeyFromBirthData, logInterpretation } from '../../../../lib/interpretation-logger';
 import { logLillyUsage } from '../../../../lib/lilly-usage-logger';
 import { selectModel } from '../../../../lib/selectModel';
+import { classifyError, trackError } from '../../../../lib/error-tracker';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,11 +25,16 @@ const EMPTY_TIMELINE: BiographicalTimeline = {
 };
 
 export async function POST(req: Request) {
+  let userId: string | null = null;
+  let eventType = 'click_technique';
+
   try {
     const ctx = await getAccessContext(req);
     if (!ctx.allowed) return rateLimitResponse(ctx);
+    userId = ctx.userId;
 
     const body = await req.json();
+    eventType = body.eventType ?? body.data?.technique ?? eventType;
     const { technique, data, subject_name, lang, natalData, birthData, timeline, messages } = body;
 
     const natal  = buildNatalContext(natalData, birthData);
@@ -97,6 +103,15 @@ export async function POST(req: Request) {
     });
     return NextResponse.json({ response: text });
   } catch (err: any) {
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    trackError({
+      route: 'technique',
+      eventType,
+      errorMessage,
+      errorSource: classifyError(err),
+      userId,
+      stack: err instanceof Error ? err.stack ?? null : null,
+    });
     console.error('[lilly/technique]', err);
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }

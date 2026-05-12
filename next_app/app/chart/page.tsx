@@ -5,6 +5,7 @@ import { useAppStore } from "@/lib/store";
 import { ChartTabs } from "@/components/chart-tabs";
 import { Calendar, MapPin, Sun, Moon } from "lucide-react";
 import AuthGuard from "@/components/AuthGuard";
+import Link from "next/link";
 import dynamic from 'next/dynamic'
 import { useMemo } from 'react'
 import { buildSonicInput } from '@/components/sonic/sonicMapping'
@@ -35,18 +36,50 @@ export default function ChartPage() {
   const abuData = useAppStore((s) => s.abuData);
   const timeline = useAppStore((s) => s.timeline);
   const chartTab = useAppStore((s) => s.chartTab);
+  const lang = useAppStore((s) => s.lang);
 
   const ready = !!abuData;
 
   if (!ready) {
+    const emptyTitle: Record<string, string> = {
+      es: 'Ingresá tus datos natales para comenzar',
+      en: 'Enter your birth data to get started',
+      pt: 'Insira seus dados natais para começar',
+      fr: 'Entrez vos données natales pour commencer',
+    };
+    const emptyDemo: Record<string, string> = {
+      es: 'O explorá una carta de demostración',
+      en: 'Or explore a demo chart',
+      pt: 'Ou explore um mapa de demonstração',
+      fr: 'Ou explorez un thème de démonstration',
+    };
+    const resolvedLang = (lang as string) in emptyTitle ? (lang as string) : 'es';
+
     return (
       <AuthGuard>
-        <div className="flex items-center justify-center h-full text-slate-500">
-          <div className="text-center space-y-2">
-            <p className="text-lg">No chart data loaded</p>
-            <p className="text-sm opacity-70">
-              Initialize Abu Engine from the start page.
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center space-y-5 px-4">
+            <div className="text-3xl text-amber-500/40">⟡</div>
+            <p className="text-slate-400 text-sm max-w-xs">
+              {emptyTitle[resolvedLang]}
             </p>
+            <div className="flex flex-col gap-2 items-center">
+              <Link
+                href="/"
+                className="text-sm font-mono text-amber-400 hover:text-amber-200 border border-amber-500/40 hover:border-amber-400/70 hover:bg-amber-500/5 rounded-sm px-5 py-2.5 transition-all"
+              >
+                → {resolvedLang === 'es' ? 'Ingresar mis datos' :
+                   resolvedLang === 'en' ? 'Enter my data' :
+                   resolvedLang === 'pt' ? 'Inserir meus dados' :
+                   'Entrer mes données'}
+              </Link>
+              <Link
+                href="/demo"
+                className="text-xs font-mono text-slate-500 hover:text-slate-300 border border-slate-700/40 hover:border-slate-600/60 rounded-sm px-5 py-2 transition-all"
+              >
+                → {emptyDemo[resolvedLang]}
+              </Link>
+            </div>
           </div>
         </div>
       </AuthGuard>

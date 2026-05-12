@@ -45,27 +45,6 @@ function dignityBadgeClass(d: DignityInfo): string {
   return "border-slate-700/40 bg-slate-800/20 text-slate-500";
 }
 
-// Dignity scores per D4 (matches backend extended_calc.py)
-const DIGNITY_SCORES_MAP: Record<string, number> = {
-  domicile: 5, exaltation: 4, peregrine: 0, detriment: -4, fall: -5,
-};
-
-/** Build DignityInfo from a canonical string ("domicile" | "exaltation" | …) */
-function getDignityInfoFromString(s: string): DignityInfo {
-  const lower = (s ?? "peregrine").toLowerCase();
-  const score = DIGNITY_SCORES_MAP[lower] ?? 0;
-  const label = lower.charAt(0).toUpperCase() + lower.slice(1);
-  if (lower === "domicile" || lower === "exaltation")
-    return { label, color: "text-amber-400", score };
-  if (lower === "detriment" || lower === "fall")
-    return { label, color: "text-red-400", score };
-  return { label: "Peregrine", color: "text-slate-500", score: 0 };
-}
-
-function fmtScore(n: number): string {
-  return n > 0 ? `+${n}` : n < 0 ? `${n}` : "0";
-}
-
 // ------------------------------------
 // Aspect computation (natal aspects)
 // ------------------------------------
@@ -111,6 +90,12 @@ const PLANET_SYMBOLS: Record<string, string> = {
   Uranus: "♅", Neptune: "♆", Pluto: "♇",
 };
 
+const TRANSPERSONAL_PLANETS = new Set(["Uranus", "Neptune", "Pluto"]);
+
+function isTranspersonal(name: string): boolean {
+  return TRANSPERSONAL_PLANETS.has(name);
+}
+
 // ------------------------------------
 // Planet Card
 // ------------------------------------
@@ -128,15 +113,6 @@ function PlanetCard({ planet, allPlanets, onClick }: PlanetCardProps) {
   const isRetrograde = planet.retrograde === true;
   const scoreStr = d.score > 0 ? `+${d.score}` : d.score < 0 ? `${d.score}` : "";
 
-  // Dual-dignity display: only when traditional ≠ modern (Escorpio/Acuario/Piscis cases)
-  const hasDual = !!(
-    planet.dignity_traditional &&
-    planet.dignity_modern &&
-    planet.dignity_traditional !== planet.dignity_modern
-  );
-  const dTrad = hasDual ? getDignityInfoFromString(planet.dignity_traditional) : d;
-  const dMod  = hasDual ? getDignityInfoFromString(planet.dignity_modern)      : d;
-
   return (
     <button
       onClick={() => onClick(planet)}
@@ -148,20 +124,12 @@ function PlanetCard({ planet, allPlanets, onClick }: PlanetCardProps) {
           <span className="text-base">{sym}</span>
           {planet.name}
         </span>
-        {hasDual ? (
-          <div className="flex flex-col items-end gap-0.5">
-            <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${dignityBadgeClass(dTrad)}`}>
-              Trad: {dTrad.label} ({fmtScore(dTrad.score)})
-            </span>
-            <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${dignityBadgeClass(dMod)}`}>
-              Mod: {dMod.label} ({fmtScore(dMod.score)})
-            </span>
-          </div>
-        ) : (
-          <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${dignityBadgeClass(d)}`}>
-            {d.label}{scoreStr ? ` ${scoreStr}` : ""}
-          </span>
-        )}
+        {/* Single traditional badge - Abu Oracle is a traditional doctrine system */}
+        <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${dignityBadgeClass(d)}`}>
+          {isTranspersonal(planet.name)
+            ? "Transpersonal"
+            : `${d.label}${scoreStr ? ` ${scoreStr}` : ""}`}
+        </span>
       </div>
 
       {/* Row 2 — Degree + Sign · Casa | [R] */}

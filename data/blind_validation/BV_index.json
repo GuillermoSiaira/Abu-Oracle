@@ -1,12 +1,12 @@
 [
   {
     "id": "BV_001",
-    "alias": "Mr. X",
+    "opaque_id": "NTV-206B",
+    "label": "Caso público — carta de referencia",
     "subject_real": "Donald Trump",
     "rodden": "AA",
     "birth_date": "1946-06-14",
     "birth_time": "10:54",
-    "birth_place": "New York, USA",
     "lat": 40.7128,
     "lon": -74.006,
     "experiment_date": "2026-04-03",
@@ -17,8 +17,8 @@
       "dimensions_total": 5,
       "validates": true
     },
-    "file": "BV_001_trump.md",
-    "obsidian_file": "obsidian_vault/03_experimentos/BV_001_trump.md",
-    "notes": "Primera carta ciega completada. Lilly reconoció carta como pública pero operó bajo alias por instrucción."
+    "file": "BV_001_NTV-206B.md",
+    "obsidian_file": "obsidian_vault/03_experimentos/BV_001_NTV-206B.md",
+    "notes": "Primera carta ciega completada. Score: 4/5. Archivo renombrado en BV-C02."
   }
 ]
