@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 from fastapi import FastAPI, HTTPException, Query, Body, Request, Depends
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
@@ -33,6 +33,7 @@ import logging
 import time
 from services.logging import init_logging, log_event
 from routers import mundana as mundana_router
+from routers.v1_public import router as v1_public_router
 
 # ── Cities cache (loaded once at startup) ──────────────────────────────────
 _CITIES_CACHE: list = []
@@ -111,6 +112,9 @@ app.add_middleware(
 
 # Mundana router
 app.include_router(mundana_router.router, prefix="/api/mundana")
+
+# Public v1 router
+app.include_router(v1_public_router)
 
 # Simple HTTP timing middleware
 @app.middleware("http")
