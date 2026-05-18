@@ -1,6 +1,18 @@
 import json
 import os
 import random
+import re
+import time
+
+
+JUDGE_PRICING = {"input_per_m": 3.00, "output_per_m": 15.00}  # Sonnet 4.6
+
+
+def _judge_cost(input_tokens: int, output_tokens: int) -> float:
+    return (
+        input_tokens * JUDGE_PRICING["input_per_m"]
+        + output_tokens * JUDGE_PRICING["output_per_m"]
+    ) / 1_000_000
 
 
 JUDGE_PROMPT_TEMPLATE = """
@@ -70,8 +82,10 @@ def evaluate_pair(ctx_a: str, ctx_b: str, resp_a: str, resp_b: str) -> dict:
         raise ValueError("ANTHROPIC_API_KEY no configurada")
 
     client = anthropic.Anthropic(api_key=api_key)
+    model = "claude-sonnet-4-6"
+    t0 = time.perf_counter()
     response = client.messages.create(
-        model="claude-sonnet-4-6",
+        model=model,
         max_tokens=512,
         system="Eres un evaluador experto en astrologia helenistica clasica. Responde siempre con JSON valido.",
         messages=[
@@ -81,11 +95,33 @@ def evaluate_pair(ctx_a: str, ctx_b: str, resp_a: str, resp_b: str) -> dict:
             }
         ],
     )
+    latency_ms = int((time.perf_counter() - t0) * 1000)
+
+    usage_obj = getattr(response, "usage", None)
+    input_tokens = int(getattr(usage_obj, "input_tokens", 0) or 0) if usage_obj else 0
+    output_tokens = int(getattr(usage_obj, "output_tokens", 0) or 0) if usage_obj else 0
+    judge_usage = {
+        "model": model,
+        "input_tokens": input_tokens,
+        "output_tokens": output_tokens,
+        "cost_usd": round(_judge_cost(input_tokens, output_tokens), 6),
+        "latency_ms": latency_ms,
+    }
 
     raw = _text_from_response(response) or "{}"
 
+    # Strip markdown code fences if Sonnet wrapped the JSON (it sometimes does).
+    cleaned = raw.strip()
+    cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned)
+    cleaned = re.sub(r"\s*```\s*$", "", cleaned)
+    # Fallback: extract the first {...} block if there's still extra text around.
+    if not cleaned.startswith("{"):
+        match = re.search(r"\{.*\}", cleaned, re.DOTALL)
+        if match:
+            cleaned = match.group(0)
+
     try:
-        scores = json.loads(raw)
+        scores = json.loads(cleaned)
         x_scores = _normalize_scores(scores.get("x", {}))
         y_scores = _normalize_scores(scores.get("y", {}))
         scores_a = x_scores if x_is_a else y_scores
@@ -96,6 +132,12 @@ def evaluate_pair(ctx_a: str, ctx_b: str, resp_a: str, resp_b: str) -> dict:
             "total_a": scores_a.get("total", 0),
             "total_b": scores_b.get("total", 0),
             "judge_order": "x=A,y=B" if x_is_a else "x=B,y=A",
+            "judge_usage": judge_usage,
         }
     except json.JSONDecodeError:
-        return {"raw_judge_output": raw, "total_a": 0, "total_b": 0}
+        return {
+            "raw_judge_output": raw,
+            "total_a": 0,
+            "total_b": 0,
+            "judge_usage": judge_usage,
+        }
