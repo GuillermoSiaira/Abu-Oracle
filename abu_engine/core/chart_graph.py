@@ -80,6 +80,53 @@ SIGNS_BY_LONGITUDE = [
 ]
 
 
+_DIGNITY_FLAGS_PRIORITY = (
+    "domicile",
+    "exaltation",
+    "triplicity",
+    "term",
+    "face",
+    "detriment",
+    "fall",
+)
+
+
+def _extract_dignity_name(raw: Any) -> str:
+    """
+    Normaliza dignity de cualquier shape a un string.
+
+    - Si viene string: la devuelve.
+    - Si viene dict con campo 'dignity' (formato actual /analyze): usa ese.
+    - Si viene dict con flags booleanos (formato legacy): devuelve el primer flag True
+      según jerarquía doctrinal (domicile > exaltation > triplicity > ...).
+    - Default: "peregrine".
+    """
+    if isinstance(raw, str):
+        return raw
+    if isinstance(raw, dict):
+        if isinstance(raw.get("dignity"), str):
+            return raw["dignity"]
+        for flag in _DIGNITY_FLAGS_PRIORITY:
+            if raw.get(flag) is True:
+                return flag
+        return "peregrine"
+    return "peregrine"
+
+
+def _extract_degree(planet: dict) -> float:
+    """
+    Extrae el grado dentro del signo del payload de /analyze.
+    Acepta: 'degree' (test legacy), 'degree_in_sign' (formato actual), 'deg' (fallback).
+    """
+    for key in ("degree", "degree_in_sign", "deg"):
+        if key in planet:
+            try:
+                return float(planet[key])
+            except (TypeError, ValueError):
+                pass
+    return 0.0
+
+
 def _planet_name(name: Any) -> str:
     text = str(name or "")
     return ENGLISH_TO_SPANISH_PLANETS.get(text, text)
@@ -213,7 +260,7 @@ def build_chart_graph(abu_json: dict) -> nx.DiGraph:
             continue
         longitude = planet.get("longitude", planet.get("lon", 0.0))
         sign = _sign_name(planet.get("sign")) or _sign_from_longitude(longitude)
-        degree = planet.get("degree", planet.get("deg", 0.0))
+        degree = _extract_degree(planet)
         house = _house_number(planet.get("house"))
         G.add_node(
             name,
@@ -221,7 +268,7 @@ def build_chart_graph(abu_json: dict) -> nx.DiGraph:
             sign=sign,
             house=house,
             degree=degree,
-            dignity=planet.get("dignity", "peregrine"),
+            dignity=_extract_dignity_name(planet.get("dignity")),
             retrograde=planet.get("retrograde", False),
             longitude=longitude,
         )
@@ -377,7 +424,14 @@ def serialize_subgraph(G: nx.DiGraph, key_planets: List[str]) -> str:
             continue
 
         node = G.nodes[planet]
-        dignity = str(node.get("dignity", "peregrine")).capitalize()
+        # Skip nodes que no son planetas con datos válidos.
+        # (Ej: Nodo Sur/Norte aparecen como referencia en firdaria pero no son
+        # planetas tradicionales con dignidades — son implicitamente creados por
+        # edges sin pre-creación de nodo.)
+        if node.get("type") != "planet":
+            continue
+
+        dignity = _extract_dignity_name(node.get("dignity")).capitalize()
         sign = node.get("sign", "?")
         try:
             degree = float(node.get("degree", 0.0))
