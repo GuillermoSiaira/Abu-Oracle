@@ -112,3 +112,5 @@ abu_media/
 *.mp4
 *.mov
 .aider*
+!.aider.conf.yml
+!.aiderignore
