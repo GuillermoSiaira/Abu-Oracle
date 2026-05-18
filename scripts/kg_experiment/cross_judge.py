@@ -13,6 +13,7 @@ No re-ejecuta Lilly (lecturas ya hechas, $0.052 gastados). Solo re-evalúa.
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import random
@@ -149,18 +150,60 @@ def evaluate_pair_gemini(resp_a: str, resp_b: str) -> dict:
         }
 
 
-def _find_latest_results() -> Path:
-    results_dir = REPO_ROOT / "data" / "kg_experiment"
-    if not results_dir.exists():
+def _find_latest_results(design_id: str | None) -> Path:
+    """
+    Encuentra el último results_*.json para el diseño dado.
+
+    Búsqueda en orden:
+    1. data/kg_experiment/<design_id>/results_*.json (estructura nueva, por diseño)
+    2. data/kg_experiment/results_*.json (estructura vieja, plano)
+
+    Si design_id es None, busca el más reciente entre todos los diseños.
+    """
+    base = REPO_ROOT / "data" / "kg_experiment"
+    if not base.exists():
         raise SystemExit("ERROR: data/kg_experiment/ no existe. Corré runner.py primero.")
-    files = sorted(results_dir.glob("results_*.json"))
-    if not files:
-        raise SystemExit("ERROR: No hay results_*.json en data/kg_experiment/")
-    return files[-1]
+
+    candidates: list[Path] = []
+    if design_id:
+        sub = base / design_id
+        if sub.exists():
+            candidates.extend(sub.glob("results_*.json"))
+    else:
+        for sub in base.iterdir():
+            if sub.is_dir():
+                candidates.extend(sub.glob("results_*.json"))
+
+    # Fallback: estructura vieja (results_*.json directo en data/kg_experiment/)
+    candidates.extend(base.glob("results_*.json"))
+
+    if not candidates:
+        scope = f"diseño '{design_id}'" if design_id else "ningún diseño"
+        raise SystemExit(f"ERROR: No hay results_*.json para {scope}.")
+
+    return sorted(candidates, key=lambda p: p.stat().st_mtime)[-1]
 
 
 def main() -> None:
-    input_file = _find_latest_results()
+    parser = argparse.ArgumentParser(description="KG cross-judge with Gemini 2.5 Pro")
+    parser.add_argument(
+        "--design",
+        default=None,
+        help="Diseño a re-evaluar. Si se omite, usa el results más reciente disponible.",
+    )
+    parser.add_argument(
+        "--input",
+        default=None,
+        help="Path explícito a un results_*.json (sobreescribe --design).",
+    )
+    args = parser.parse_args()
+
+    if args.input:
+        input_file = Path(args.input)
+        if not input_file.exists():
+            raise SystemExit(f"ERROR: No existe el archivo {input_file}")
+    else:
+        input_file = _find_latest_results(args.design)
 
     # ── Banner inicial (esto es lo visible al grabar) ────────────────────
     print()
@@ -255,8 +298,18 @@ def main() -> None:
 
     n = len(cross_results)
 
+    # Derivar design_id del path del input (si está en un subdir de diseño)
+    design_subdir = input_file.parent
+    output_base = REPO_ROOT / "data" / "kg_experiment"
+    if design_subdir.parent.resolve() == output_base.resolve():
+        # input está en data/kg_experiment/<design_id>/...
+        output_dir = design_subdir
+    else:
+        # input legacy (en raíz): output también en raíz
+        output_dir = output_base
+
     output_path = (
-        REPO_ROOT / "data" / "kg_experiment"
+        output_dir
         / f"cross_judge_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.json"
     )
     output_path.parent.mkdir(parents=True, exist_ok=True)
