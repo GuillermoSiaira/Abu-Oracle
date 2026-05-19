@@ -23,14 +23,20 @@ scripts/kg_experiment/
 | ID | Pregunta científica | Status | Resultados |
 |---|---|---|---|
 | **v1_current_life** | ¿KG mejora interpretación de "vida del nativo hoy" vs JSON timeline? | ✅ Corrido 2026-05-18 (2 veces) | `RESULTS_v1_current_life_2026-05-18.md` (1ª corrida); 2ª corrida con `--thinking` en disco pero sin doc |
-| **v2_natal_only** | ¿KG (4 señores) mejora vs JSON natal (10 planetas) cuando el frame es natal puro? | ⚠️ Corrido 2026-05-18/19 (2 corridas — 1ª con bug, 2ª limpia). **Refutó la hipótesis naive: A +11%**. El "test" estaba viciado: A tenía 10 planetas y B solo 4 — no era test de formato sino de cantidad. | Sin doc dedicada; resultado en `data/kg_experiment/v2_natal_only/results_*.json` |
-| **v3_natal_full_kg** | Con MISMA información en A y B (10 planetas + 4 ángulos + 4 partes + 12 señoríos + aspectos + recepciones), ¿el formato KG en tripletas supera al JSON plano? | 🟡 Corrido 2026-05-19, **pendiente de análisis y cross-judge** | En disco; documentar en `RESULTS_v3_natal_full_kg_2026-05-19.md` |
+| **v2_natal_only** | ¿KG (4 señores) mejora vs JSON natal (10 planetas) cuando el frame es natal puro? | ⚠️ Corrido 2026-05-18/19. **Refutó la hipótesis naive: A +11%**. El "test" estaba viciado: A tenía 10 planetas y B solo 4 — no era test de formato sino de cantidad. | Sin doc dedicada; resultado en `data/kg_experiment/v2_natal_only/results_*.json` |
+| **v3_natal_full_kg** | Con MISMA información en A y B (10 planetas + 4 ángulos + 4 partes + 12 señoríos + aspectos + recepciones), ¿el formato KG en tripletas supera al JSON plano? | ✅ Corrido 2 veces (n=4 luego n=5). **Con n=5 y sujeto corregido: TIE (Claude 0%, Gemini +1.3%). Tesis refutada.** | `RESULTS_v3v4v5_n5_2026-05-19.md` |
+| **v4_natal_finops** | ¿KG con downgrade Sonnet→Haiku mantiene calidad? Test FinOps puro. | ✅ Corrido n=5 (2026-05-19). **REFUTADA: −24% calidad en ambos jueces, acuerdo 5/5.** | `RESULTS_v3v4v5_n5_2026-05-19.md` |
+| **v5_natal_kg_haiku** | ¿KG ayuda a Haiku (JSON+Haiku vs KG+Haiku)? Test del scaffolding sobre modelo barato. | ✅ Corrido n=5 (2026-05-19). **CONFIRMADA: +15.8% Claude, +18.1% Gemini, acuerdo 4/5.** | `RESULTS_v3v4v5_n5_2026-05-19.md` |
 
 ### Hallazgos cruzados
 
+- **Tesis revisada con datos (2026-05-19):** "El formato KG es scaffolding para modelos menores: agrega +16-18% de calidad a Haiku. NO mejora cuando el modelo es Sonnet, NO compensa downgrade." Ver `RESULTS_v3v4v5_n5_2026-05-19.md` para el análisis completo.
+- **GS_004 (carta del autor) es outlier en ambas direcciones:** maximiza el efecto KG con Sonnet (v3 B+8/+9) y lo invierte con Haiku (v5 A+4/+1). Carta doctrinalmente densa que satura a Haiku con el KG.
 - **Cross-validation cuenta**: la primera medición de v1 dio B +47% con juez Sonnet. Cross-judge con Gemini sobre los mismos outputs dio B +11%. Lección: siempre cross-validar con modelo distinto antes de declarar finding.
+- **n=4 → n=5 cambia el resultado de v3 dramáticamente** (+6.8% → 0%). Lección: con n pequeño un solo sujeto outlier mueve la aguja. n≥10-12 es necesario para publicación.
 - **Bug del schema vs del lab**: descubrimos que `serialize_subgraph(graph, get_key_planets(graph, {}))` solo emite 4 planetas, contradiciendo lo que el schema doctrinal (`docs/theory/KG_ONTOLOGY_SCHEMA.md`) propone. v3 implementa lo que el schema realmente especifica.
 - **Aspectos no en `/analyze`**: `chart.aspects` viene vacío. v3 los computa localmente desde longitudes (orbe 6° menores / 8° mayores per schema).
+- **Bug de atribución de sujeto resuelto (2026-05-19):** `gs004` en config.py era una carta sintética (1983-10-10 BA), no la del autor. Renombrada a `synth001`; carta real agregada como nueva entrada `gs004` (1978-07-06 Balcarce). Ver `.claude/specs/active/DOC_C01_kg_subject_misattribution.md`.
 
 ## Cómo correr un experimento
 
