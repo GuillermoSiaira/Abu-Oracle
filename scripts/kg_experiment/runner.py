@@ -148,12 +148,20 @@ def count_doctrinal_entities(text: str) -> dict:
     )
     return counts_unique
 
-# Public Anthropic pricing (USD per million tokens) — update if Anthropic changes.
+# Public Anthropic / Vertex pricing (USD per million tokens) — update if vendor changes.
 PRICING: dict[str, dict[str, float]] = {
     "claude-sonnet-4-6":           {"input_per_m": 3.00, "output_per_m": 15.00},
     "claude-haiku-4-5":            {"input_per_m": 0.80, "output_per_m": 4.00},
     "claude-haiku-4-5-20251001":   {"input_per_m": 0.80, "output_per_m": 4.00},
+    # Vertex AI / Gemini 2.5 — pricing per million tokens (≤200K context).
+    "gemini-2.5-pro":              {"input_per_m": 1.25, "output_per_m": 10.00},
+    "gemini-2.5-flash":            {"input_per_m": 0.30, "output_per_m": 2.50},
 }
+
+# Provider IDs admitidos por la condición de un design.
+PROVIDER_ANTHROPIC = "anthropic"
+PROVIDER_VERTEX_GEMINI = "vertex_gemini"
+DEFAULT_PROVIDER = PROVIDER_ANTHROPIC
 
 
 # ── Design loader ─────────────────────────────────────────────────────────
@@ -263,23 +271,20 @@ def _extract_text_and_thinking(response: object) -> tuple[str, str]:
     return "".join(text_chunks), "".join(thinking_chunks)
 
 
-def call_lilly(
+_LILLY_SYSTEM = (
+    "Eres Lilly, astrologo clasico formado en la tradicion helenistica y persa. "
+    "Interpretas cartas natales siguiendo la doctrina de Ptolomeo, Al-Biruni y William Lilly."
+)
+
+
+def _call_lilly_anthropic(
     context: str,
     eval_prompt: str,
-    enable_thinking: bool = False,
-    thinking_budget: int = 4000,
-    model: str = READER_MODEL,
+    enable_thinking: bool,
+    thinking_budget: int,
+    model: str,
 ) -> tuple[str, str, dict]:
-    """
-    Llama al modelo Anthropic indicado con system Lilly + eval_prompt + contexto.
-
-    Si enable_thinking=True, activa extended thinking de Anthropic — la response
-    incluye un bloque 'thinking' separado con el chain-of-thought interno.
-    Los thinking tokens se facturan como output (precio del modelo).
-
-    Returns:
-        (text, thinking, usage) — thinking="" si no fue habilitado.
-    """
+    """Implementación interna: provider = Anthropic API directa."""
     import anthropic
 
     api_key = os.environ.get("ANTHROPIC_API_KEY")
@@ -287,20 +292,13 @@ def call_lilly(
         raise ValueError("ANTHROPIC_API_KEY no configurada")
 
     client = anthropic.Anthropic(api_key=api_key)
-    system = (
-        "Eres Lilly, astrologo clasico formado en la tradicion helenistica y persa. "
-        "Interpretas cartas natales siguiendo la doctrina de Ptolomeo, Al-Biruni y William Lilly."
-    )
     user_msg = f"{eval_prompt}\n\nContexto de la carta:\n{context}"
-
-    # Cuando se activa thinking, max_tokens debe ser > thinking_budget para dejar
-    # espacio al texto final además del razonamiento.
     max_tokens = (thinking_budget + 400) if enable_thinking else 400
 
     request_kwargs = {
         "model": model,
         "max_tokens": max_tokens,
-        "system": system,
+        "system": _LILLY_SYSTEM,
         "messages": [{"role": "user", "content": user_msg}],
     }
     if enable_thinking:
@@ -312,9 +310,102 @@ def call_lilly(
 
     text, thinking = _extract_text_and_thinking(response)
     usage = _extract_usage(response, model, latency_ms)
+    usage["provider"] = PROVIDER_ANTHROPIC
     usage["thinking_enabled"] = enable_thinking
     usage["thinking_chars"] = len(thinking)
     return text, thinking, usage
+
+
+def _call_lilly_gemini(
+    context: str,
+    eval_prompt: str,
+    enable_thinking: bool,
+    thinking_budget: int,
+    model: str,
+) -> tuple[str, str, dict]:
+    """
+    Implementación interna: provider = Vertex AI (Gemini 2.5 Flash/Pro).
+
+    Gemini 2.5 soporta extended thinking nativamente (ThinkingConfig). El trace
+    interno NO es accesible literalmente — solo el conteo de tokens. Para paridad
+    con Anthropic devolvemos thinking="" pero registramos thoughts_token_count
+    como parte del output_tokens (que es como Gemini lo factura).
+    """
+    from google import genai
+    from google.genai import types
+
+    client = genai.Client(
+        vertexai=True,
+        project=os.environ.get("VERTEXAI_PROJECT", "abu-oracle"),
+        location=os.environ.get("VERTEXAI_LOCATION", "us-central1"),
+    )
+
+    user_msg = f"{eval_prompt}\n\nContexto de la carta:\n{context}"
+
+    config_kwargs = {"system_instruction": _LILLY_SYSTEM}
+    if enable_thinking:
+        config_kwargs["thinking_config"] = types.ThinkingConfig(thinking_budget=thinking_budget)
+
+    t0 = time.perf_counter()
+    response = client.models.generate_content(
+        model=model,
+        contents=user_msg,
+        config=types.GenerateContentConfig(**config_kwargs),
+    )
+    latency_ms = int((time.perf_counter() - t0) * 1000)
+
+    text = (response.text or "").strip()
+
+    usage_obj = getattr(response, "usage_metadata", None)
+    input_tokens = int(getattr(usage_obj, "prompt_token_count", 0) or 0) if usage_obj else 0
+    output_tokens = int(getattr(usage_obj, "candidates_token_count", 0) or 0) if usage_obj else 0
+    thoughts = int(getattr(usage_obj, "thoughts_token_count", 0) or 0) if usage_obj else 0
+    # Gemini factura thoughts como output. Sumamos al output_tokens.
+    output_tokens_billed = output_tokens + thoughts
+
+    usage = {
+        "model": model,
+        "provider": PROVIDER_VERTEX_GEMINI,
+        "input_tokens": input_tokens,
+        "output_tokens": output_tokens_billed,
+        "thoughts_tokens": thoughts,
+        "cost_usd": round(_calculate_cost(model, input_tokens, output_tokens_billed), 6),
+        "latency_ms": latency_ms,
+        "thinking_enabled": enable_thinking,
+        # Gemini Vertex no expone el thinking trace; usamos thoughts count como proxy.
+        "thinking_chars": 0,
+    }
+    # thinking="" — sin trace literal disponible.
+    return text, "", usage
+
+
+def call_lilly(
+    context: str,
+    eval_prompt: str,
+    enable_thinking: bool = False,
+    thinking_budget: int = 4000,
+    model: str = READER_MODEL,
+    provider: str = DEFAULT_PROVIDER,
+) -> tuple[str, str, dict]:
+    """
+    Llama al modelo lector indicado con system Lilly + eval_prompt + contexto.
+
+    Dispatcher por provider:
+      - "anthropic"      → Anthropic API directa (Sonnet, Haiku)
+      - "vertex_gemini"  → Vertex AI (Gemini 2.5 Pro/Flash)
+
+    Si enable_thinking=True, activa extended thinking del modelo. La response
+    incluye un bloque thinking separado (Anthropic) o el conteo de thoughts
+    tokens (Gemini). Los thinking tokens se facturan como output.
+
+    Returns:
+        (text, thinking, usage) — thinking="" si Gemini o si no habilitado.
+    """
+    if provider == PROVIDER_ANTHROPIC:
+        return _call_lilly_anthropic(context, eval_prompt, enable_thinking, thinking_budget, model)
+    if provider == PROVIDER_VERTEX_GEMINI:
+        return _call_lilly_gemini(context, eval_prompt, enable_thinking, thinking_budget, model)
+    raise ValueError(f"Provider desconocido: {provider!r}")
 
 
 # ── Acumulación de métricas ───────────────────────────────────────────────
@@ -376,10 +467,12 @@ def run_experiment(
 ) -> Path:
     subjects = design.SUBJECTS
     eval_prompt = design.EVAL_PROMPT
-    # Modelos por condición — opt-in del diseño; fallback a Sonnet para
-    # retrocompatibilidad con v1/v2/v3.
+    # Modelos y providers por condición — opt-in del diseño; fallback a Sonnet
+    # Anthropic para retrocompatibilidad con v1/v2/v3.
     model_a = getattr(design, "READER_MODEL_A", READER_MODEL)
     model_b = getattr(design, "READER_MODEL_B", READER_MODEL)
+    provider_a = getattr(design, "READER_PROVIDER_A", DEFAULT_PROVIDER)
+    provider_b = getattr(design, "READER_PROVIDER_B", DEFAULT_PROVIDER)
 
     results: list[dict] = []
     totals: dict[str, dict] = {
@@ -403,8 +496,10 @@ def run_experiment(
             ctx_a = design.build_context_a(natal, bio)
             ctx_b = design.build_context_b(natal, bio)
 
-            print(f"  Calling Lilly [{model_a}] with context A (JSON)...")
-            resp_a, thinking_a, usage_a = call_lilly(ctx_a, eval_prompt, enable_thinking, model=model_a)
+            print(f"  Calling Lilly [{model_a} / {provider_a}] with context A (JSON)...")
+            resp_a, thinking_a, usage_a = call_lilly(
+                ctx_a, eval_prompt, enable_thinking, model=model_a, provider=provider_a
+            )
             print(
                 f"    A: {usage_a['input_tokens']:>5} in / {usage_a['output_tokens']:>4} out / "
                 f"${usage_a['cost_usd']:.6f} / {usage_a['latency_ms']:>4} ms"
@@ -418,8 +513,10 @@ def run_experiment(
             _print_entities_block("A", entities_a)
             time.sleep(2)
 
-            print(f"\n  Calling Lilly [{model_b}] with context B (KG)...")
-            resp_b, thinking_b, usage_b = call_lilly(ctx_b, eval_prompt, enable_thinking, model=model_b)
+            print(f"\n  Calling Lilly [{model_b} / {provider_b}] with context B (KG)...")
+            resp_b, thinking_b, usage_b = call_lilly(
+                ctx_b, eval_prompt, enable_thinking, model=model_b, provider=provider_b
+            )
             print(
                 f"    B: {usage_b['input_tokens']:>5} in / {usage_b['output_tokens']:>4} out / "
                 f"${usage_b['cost_usd']:.6f} / {usage_b['latency_ms']:>4} ms"
@@ -626,11 +723,21 @@ def _print_banner(design: ModuleType, enable_thinking: bool, show_responses: boo
     print("-" * 72)
     banner_model_a = getattr(design, "READER_MODEL_A", READER_MODEL)
     banner_model_b = getattr(design, "READER_MODEL_B", READER_MODEL)
-    if banner_model_a == banner_model_b:
-        print(f"  READER MODEL (Lilly):  {banner_model_a:<22}  [{READER_PROVIDER}]")
+    banner_provider_a = getattr(design, "READER_PROVIDER_A", DEFAULT_PROVIDER)
+    banner_provider_b = getattr(design, "READER_PROVIDER_B", DEFAULT_PROVIDER)
+
+    def _provider_label(p: str) -> str:
+        if p == PROVIDER_ANTHROPIC:
+            return "Anthropic API directa"
+        if p == PROVIDER_VERTEX_GEMINI:
+            return "Vertex AI"
+        return p
+
+    if banner_model_a == banner_model_b and banner_provider_a == banner_provider_b:
+        print(f"  READER MODEL (Lilly):  {banner_model_a:<22}  [{_provider_label(banner_provider_a)}]")
     else:
-        print(f"  READER MODEL A:        {banner_model_a:<22}  [{READER_PROVIDER}]")
-        print(f"  READER MODEL B:        {banner_model_b:<22}  [{READER_PROVIDER}]")
+        print(f"  READER MODEL A:        {banner_model_a:<22}  [{_provider_label(banner_provider_a)}]")
+        print(f"  READER MODEL B:        {banner_model_b:<22}  [{_provider_label(banner_provider_b)}]")
     print(f"  JUDGE MODEL:           {JUDGE_MODEL_DEFAULT:<22}  [{JUDGE_PROVIDER_DEFAULT}]")
     print(f"  EXTENDED THINKING:     {'ENABLED — chain-of-thought visible' if enable_thinking else 'disabled (default)'}")
     print(f"  SHOW RESPONSES:        {'on' if show_responses else 'off'}")

@@ -40,43 +40,8 @@ NO menciones tránsitos, profecciones, firdaria ni eventos futuros — solo lo n
 Máximo 250 palabras."""
 
 
-SUBJECTS = [
-    {
-        "id": "einstein",
-        "birthDate": "1879-03-14T11:30:00Z",
-        "lat": 48.4,
-        "lon": 10.0,
-        "name": "Einstein",
-    },
-    {
-        "id": "jung",
-        "birthDate": "1875-07-26T19:32:00Z",
-        "lat": 47.5,
-        "lon": 7.5,
-        "name": "Jung",
-    },
-    {
-        "id": "tesla",
-        "birthDate": "1856-07-10T00:00:00Z",
-        "lat": 44.3,
-        "lon": 19.8,
-        "name": "Tesla",
-    },
-    {
-        "id": "synth001",
-        "birthDate": "1983-10-10T08:20:00Z",  # 05:20 local Buenos Aires (UTC-3)
-        "lat": -34.6,
-        "lon": -58.4,
-        "name": "SYNTH_001",
-    },
-    {
-        "id": "gs004",
-        "birthDate": "1978-07-06T00:15:00Z",  # 21:15 local Balcarce 1978-07-05 (UTC-3)
-        "lat": -37.8464,
-        "lon": -58.2556,
-        "name": "GS_004",
-    },
-]
+# Sujetos importados desde config.py (fuente única de verdad).
+from scripts.kg_experiment.config import SUBJECTS  # noqa: E402, F401
 
 
 _SIGNS = [

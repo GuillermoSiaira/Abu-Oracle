@@ -95,16 +95,9 @@ Identifica los talentos, potencias innatas y temperamento del nativo usando:
 NO menciones tránsitos, profecciones, firdaria ni eventos futuros — solo lo natal.
 Máximo 250 palabras."""
 
-# SYNTH_001: carta sintética mal etiquetada como "GS_004" en v1..v5 originales
-# (corridas 2026-05-18/19). Se conserva para reproducibilidad. No es el autor.
-# GS_004: carta real del autor — 1978-07-05 21:15 local Balcarce (UTC-3) -> 1978-07-06T00:15Z UTC.
-SUBJECTS = [
-    {"id": "einstein", "birthDate": "1879-03-14T11:30:00Z", "lat": 48.4, "lon": 10.0, "name": "Einstein"},
-    {"id": "jung",     "birthDate": "1875-07-26T19:32:00Z", "lat": 47.5, "lon": 7.5,  "name": "Jung"},
-    {"id": "tesla",    "birthDate": "1856-07-10T00:00:00Z", "lat": 44.3, "lon": 19.8, "name": "Tesla"},
-    {"id": "synth001", "birthDate": "1983-10-10T08:20:00Z", "lat": -34.6, "lon": -58.4, "name": "SYNTH_001"},
-    {"id": "gs004",    "birthDate": "1978-07-06T00:15:00Z", "lat": -37.8464, "lon": -58.2556, "name": "GS_004"},
-]
+# Sujetos del experimento — importados desde config.py (fuente única de verdad).
+# Con n=12 desde 2026-05-19: 3 históricos + 7 celebridades demo + SYNTH_001 + GS_004.
+from scripts.kg_experiment.config import SUBJECTS  # noqa: E402, F401
 
 
 # ── Helpers de normalización ───────────────────────────────────────
