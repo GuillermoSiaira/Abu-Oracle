@@ -150,8 +150,9 @@ def count_doctrinal_entities(text: str) -> dict:
 
 # Public Anthropic pricing (USD per million tokens) — update if Anthropic changes.
 PRICING: dict[str, dict[str, float]] = {
-    "claude-sonnet-4-6": {"input_per_m": 3.00, "output_per_m": 15.00},
-    "claude-haiku-4-5":  {"input_per_m": 0.80, "output_per_m": 4.00},
+    "claude-sonnet-4-6":           {"input_per_m": 3.00, "output_per_m": 15.00},
+    "claude-haiku-4-5":            {"input_per_m": 0.80, "output_per_m": 4.00},
+    "claude-haiku-4-5-20251001":   {"input_per_m": 0.80, "output_per_m": 4.00},
 }
 
 
@@ -267,13 +268,14 @@ def call_lilly(
     eval_prompt: str,
     enable_thinking: bool = False,
     thinking_budget: int = 4000,
+    model: str = READER_MODEL,
 ) -> tuple[str, str, dict]:
     """
-    Llama a Sonnet 4.6 con system Lilly + eval_prompt + contexto.
+    Llama al modelo Anthropic indicado con system Lilly + eval_prompt + contexto.
 
     Si enable_thinking=True, activa extended thinking de Anthropic — la response
     incluye un bloque 'thinking' separado con el chain-of-thought interno.
-    Los thinking tokens se facturan como output ($15/M).
+    Los thinking tokens se facturan como output (precio del modelo).
 
     Returns:
         (text, thinking, usage) — thinking="" si no fue habilitado.
@@ -285,7 +287,6 @@ def call_lilly(
         raise ValueError("ANTHROPIC_API_KEY no configurada")
 
     client = anthropic.Anthropic(api_key=api_key)
-    model = READER_MODEL
     system = (
         "Eres Lilly, astrologo clasico formado en la tradicion helenistica y persa. "
         "Interpretas cartas natales siguiendo la doctrina de Ptolomeo, Al-Biruni y William Lilly."
@@ -375,6 +376,10 @@ def run_experiment(
 ) -> Path:
     subjects = design.SUBJECTS
     eval_prompt = design.EVAL_PROMPT
+    # Modelos por condición — opt-in del diseño; fallback a Sonnet para
+    # retrocompatibilidad con v1/v2/v3.
+    model_a = getattr(design, "READER_MODEL_A", READER_MODEL)
+    model_b = getattr(design, "READER_MODEL_B", READER_MODEL)
 
     results: list[dict] = []
     totals: dict[str, dict] = {
@@ -398,8 +403,8 @@ def run_experiment(
             ctx_a = design.build_context_a(natal, bio)
             ctx_b = design.build_context_b(natal, bio)
 
-            print(f"  Calling Lilly [{READER_MODEL}] with context A (JSON)...")
-            resp_a, thinking_a, usage_a = call_lilly(ctx_a, eval_prompt, enable_thinking)
+            print(f"  Calling Lilly [{model_a}] with context A (JSON)...")
+            resp_a, thinking_a, usage_a = call_lilly(ctx_a, eval_prompt, enable_thinking, model=model_a)
             print(
                 f"    A: {usage_a['input_tokens']:>5} in / {usage_a['output_tokens']:>4} out / "
                 f"${usage_a['cost_usd']:.6f} / {usage_a['latency_ms']:>4} ms"
@@ -413,8 +418,8 @@ def run_experiment(
             _print_entities_block("A", entities_a)
             time.sleep(2)
 
-            print(f"\n  Calling Lilly [{READER_MODEL}] with context B (KG)...")
-            resp_b, thinking_b, usage_b = call_lilly(ctx_b, eval_prompt, enable_thinking)
+            print(f"\n  Calling Lilly [{model_b}] with context B (KG)...")
+            resp_b, thinking_b, usage_b = call_lilly(ctx_b, eval_prompt, enable_thinking, model=model_b)
             print(
                 f"    B: {usage_b['input_tokens']:>5} in / {usage_b['output_tokens']:>4} out / "
                 f"${usage_b['cost_usd']:.6f} / {usage_b['latency_ms']:>4} ms"
@@ -538,7 +543,12 @@ def _print_extended_summary(design: ModuleType, results: list[dict], totals: dic
     print(f"  Condicion B: avg {avg_out_b:>7,.0f} tokens")
     print(f"  Delta:            {_pct(avg_out_b, avg_out_a)}")
 
-    print("\nCOSTO USD (por lectura, Sonnet 4.6 directo Anthropic):")
+    summary_model_a = getattr(design, "READER_MODEL_A", READER_MODEL)
+    summary_model_b = getattr(design, "READER_MODEL_B", READER_MODEL)
+    if summary_model_a == summary_model_b:
+        print(f"\nCOSTO USD (por lectura, {summary_model_a} directo Anthropic):")
+    else:
+        print(f"\nCOSTO USD (A: {summary_model_a} | B: {summary_model_b}):")
     print(f"  Condicion A: ${avg_cost_a:>10.6f}")
     print(f"  Condicion B: ${avg_cost_b:>10.6f}")
     print(f"  Delta:            {_pct(avg_cost_b, avg_cost_a)}")
@@ -614,7 +624,13 @@ def _print_banner(design: ModuleType, enable_thinking: bool, show_responses: boo
                 current = current + " " + word if current.strip() else current + word
         print(current)
     print("-" * 72)
-    print(f"  READER MODEL (Lilly):  {READER_MODEL:<22}  [{READER_PROVIDER}]")
+    banner_model_a = getattr(design, "READER_MODEL_A", READER_MODEL)
+    banner_model_b = getattr(design, "READER_MODEL_B", READER_MODEL)
+    if banner_model_a == banner_model_b:
+        print(f"  READER MODEL (Lilly):  {banner_model_a:<22}  [{READER_PROVIDER}]")
+    else:
+        print(f"  READER MODEL A:        {banner_model_a:<22}  [{READER_PROVIDER}]")
+        print(f"  READER MODEL B:        {banner_model_b:<22}  [{READER_PROVIDER}]")
     print(f"  JUDGE MODEL:           {JUDGE_MODEL_DEFAULT:<22}  [{JUDGE_PROVIDER_DEFAULT}]")
     print(f"  EXTENDED THINKING:     {'ENABLED — chain-of-thought visible' if enable_thinking else 'disabled (default)'}")
     print(f"  SHOW RESPONSES:        {'on' if show_responses else 'off'}")
