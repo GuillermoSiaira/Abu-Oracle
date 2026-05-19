@@ -27,6 +27,8 @@ scripts/kg_experiment/
 | **v3_natal_full_kg** | Con MISMA información en A y B (10 planetas + 4 ángulos + 4 partes + 12 señoríos + aspectos + recepciones), ¿el formato KG en tripletas supera al JSON plano? | ✅ Corrido 2 veces (n=4 luego n=5). **Con n=5 y sujeto corregido: TIE (Claude 0%, Gemini +1.3%). Tesis refutada.** | `RESULTS_v3v4v5_n5_2026-05-19.md` |
 | **v4_natal_finops** | ¿KG con downgrade Sonnet→Haiku mantiene calidad? Test FinOps puro. | ✅ Corrido n=5 (2026-05-19). **REFUTADA: −24% calidad en ambos jueces, acuerdo 5/5.** | `RESULTS_v3v4v5_n5_2026-05-19.md` |
 | **v5_natal_kg_haiku** | ¿KG ayuda a Haiku (JSON+Haiku vs KG+Haiku)? Test del scaffolding sobre modelo barato. | ✅ Corrido n=5 (2026-05-19). **CONFIRMADA: +15.8% Claude, +18.1% Gemini, acuerdo 4/5.** | `RESULTS_v3v4v5_n5_2026-05-19.md` |
+| **v6_natal_kg_gemini_flash** | H1 cross-familia: ¿KG ayuda a Gemini 2.5 Flash igual que a Haiku? | 🟡 Pendiente de corrida con n=12 | Por documentar |
+| **v7_natal_finops_gemini** | FinOps cross-familia: JSON+Sonnet vs KG+Gemini Flash. ¿KG+modelo barato compensa downgrade? | 🟡 Pendiente de corrida con n=12 | Por documentar |
 
 ### Hallazgos cruzados
 
@@ -40,21 +42,45 @@ scripts/kg_experiment/
 
 ## Cómo correr un experimento
 
-```bash
+```powershell
 # 1. Levantar Abu Engine local
 docker-compose up abu_engine -d
 
-# 2. Setear ANTHROPIC_API_KEY en env
+# 2. Setear ANTHROPIC_API_KEY en env (necesaria para los designs Anthropic + para el judge)
 $env:ANTHROPIC_API_KEY = "sk-ant-..."
 
-# 3. Correr con un diseño específico
-python scripts/kg_experiment/runner.py --design v1_current_life
+# 3. Para designs Gemini (v6, v7): autenticación Vertex AI (gcloud ADC)
+gcloud auth application-default login
 
-# 4. Re-evaluar con cross-judge (Gemini, créditos Vertex)
-python scripts/kg_experiment/cross_judge.py --design v1_current_life
+# 4. Correr con un diseño específico
+python scripts/kg_experiment/runner.py --design v1_current_life
+python scripts/kg_experiment/runner.py --design v6_natal_kg_gemini_flash --thinking
+
+# 5. Re-evaluar con cross-judge (Gemini 2.5 Pro, créditos Vertex)
+python scripts/kg_experiment/cross_judge.py --design v6_natal_kg_gemini_flash
 ```
 
 Outputs van a `data/kg_experiment/<design_id>/results_TIMESTAMP.json` (gitignored).
+
+## Soporte multi-provider en el runner (desde 2026-05-19)
+
+`runner.py` despacha por provider según `READER_PROVIDER_A/B` del design:
+
+| Provider | Modelos soportados | API key / auth |
+|---|---|---|
+| `anthropic` (default) | claude-sonnet-4-6, claude-haiku-4-5-* | `ANTHROPIC_API_KEY` env var |
+| `vertex_gemini` | gemini-2.5-pro, gemini-2.5-flash | ADC (`gcloud auth application-default login`) |
+
+Si un design no exporta `READER_PROVIDER_A/B`, default es `anthropic` con Sonnet.
+
+## Corpus de sujetos (desde 2026-05-19, n=12)
+
+Centralizado en `config.py` (todos los designs importan desde ahí):
+
+1-3. Einstein, Jung, Tesla (históricos originales)
+4-10. Freud, Gandhi, Frida, Picasso, Van Gogh, Borges, Bowie (demo pack)
+11. SYNTH_001 (sintético, ex-mal-atribuido)
+12. GS_004 (autor — Guillermo Siaira, 1978-07-06 Balcarce)
 
 ## Cómo crear un diseño nuevo
 
