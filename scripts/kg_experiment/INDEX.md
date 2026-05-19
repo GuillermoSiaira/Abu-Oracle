@@ -22,8 +22,15 @@ scripts/kg_experiment/
 
 | ID | Pregunta científica | Status | Resultados |
 |---|---|---|---|
-| **v1_current_life** | ¿KG mejora interpretación de "vida del nativo hoy" vs JSON timeline? | ✅ Corrido 2026-05-18 | `RESULTS_2026-05-18.md` |
-| _(próximo: v2_natal_only)_ | ¿KG mejora interpretación de talentos innatos natales sin contexto temporal? | 🔵 Pendiente | — |
+| **v1_current_life** | ¿KG mejora interpretación de "vida del nativo hoy" vs JSON timeline? | ✅ Corrido 2026-05-18 (2 veces) | `RESULTS_v1_current_life_2026-05-18.md` (1ª corrida); 2ª corrida con `--thinking` en disco pero sin doc |
+| **v2_natal_only** | ¿KG (4 señores) mejora vs JSON natal (10 planetas) cuando el frame es natal puro? | ⚠️ Corrido 2026-05-18/19 (2 corridas — 1ª con bug, 2ª limpia). **Refutó la hipótesis naive: A +11%**. El "test" estaba viciado: A tenía 10 planetas y B solo 4 — no era test de formato sino de cantidad. | Sin doc dedicada; resultado en `data/kg_experiment/v2_natal_only/results_*.json` |
+| **v3_natal_full_kg** | Con MISMA información en A y B (10 planetas + 4 ángulos + 4 partes + 12 señoríos + aspectos + recepciones), ¿el formato KG en tripletas supera al JSON plano? | 🟡 Corrido 2026-05-19, **pendiente de análisis y cross-judge** | En disco; documentar en `RESULTS_v3_natal_full_kg_2026-05-19.md` |
+
+### Hallazgos cruzados
+
+- **Cross-validation cuenta**: la primera medición de v1 dio B +47% con juez Sonnet. Cross-judge con Gemini sobre los mismos outputs dio B +11%. Lección: siempre cross-validar con modelo distinto antes de declarar finding.
+- **Bug del schema vs del lab**: descubrimos que `serialize_subgraph(graph, get_key_planets(graph, {}))` solo emite 4 planetas, contradiciendo lo que el schema doctrinal (`docs/theory/KG_ONTOLOGY_SCHEMA.md`) propone. v3 implementa lo que el schema realmente especifica.
+- **Aspectos no en `/analyze`**: `chart.aspects` viene vacío. v3 los computa localmente desde longitudes (orbe 6° menores / 8° mayores per schema).
 
 ## Cómo correr un experimento
 
