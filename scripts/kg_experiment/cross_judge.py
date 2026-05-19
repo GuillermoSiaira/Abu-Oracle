@@ -35,6 +35,15 @@ JUDGE_PROVIDER = "Vertex AI (GCP credits)"
 # Pricing Vertex Gemini 2.5 Pro (≤ 200K context) — USD per million tokens
 GEMINI_PRICING = {"input_per_m": 1.25, "output_per_m": 10.00}
 
+# Criterios doctrinales evaluados por ambos jueces (orden de impresión)
+CRITERIA = [
+    "coherencia_doctrinal",
+    "especificidad",
+    "multi_hop_reasoning",
+    "ausencia_de_generico",
+    "sintesis",
+]
+
 # Mismo template que el judge.py original — comparación justa
 JUDGE_PROMPT_TEMPLATE = """
 Eres un evaluador experto en astrologia helenistica clasica.
@@ -90,6 +99,116 @@ def _normalize_scores(scores: dict) -> dict:
         )
         scores["total"] = total
     return scores
+
+
+def _print_criteria_breakdown(
+    subject_name: str,
+    prior_scores: dict,
+    cross_scores: dict,
+) -> None:
+    """
+    Imprime tabla 5-criterios × {Claude A/B, Gemini A/B} para un sujeto.
+    Permite ver dónde gana cada condición criterio por criterio.
+    """
+    claude_a = prior_scores.get("scores_a", {}) or {}
+    claude_b = prior_scores.get("scores_b", {}) or {}
+    gemini_a = cross_scores.get("scores_a", {}) or {}
+    gemini_b = cross_scores.get("scores_b", {}) or {}
+
+    print()
+    print(f"    BREAKDOWN POR CRITERIO — {subject_name}:")
+    print(f"    {'Criterio':<23} {'Claude A→B (Δ)':<18} {'Gemini A→B (Δ)':<18}")
+    print(f"    {'-' * 23} {'-' * 18} {'-' * 18}")
+    for crit in CRITERIA:
+        ca = claude_a.get(crit, 0)
+        cb = claude_b.get(crit, 0)
+        ga = gemini_a.get(crit, 0)
+        gb = gemini_b.get(crit, 0)
+        c_delta = cb - ca
+        g_delta = gb - ga
+        c_str = f"{ca} → {cb} ({c_delta:+d})"
+        g_str = f"{ga} → {gb} ({g_delta:+d})"
+        print(f"    {crit:<23} {c_str:<18} {g_str:<18}")
+
+
+def _print_criteria_summary(cross_results: list[dict]) -> None:
+    """
+    Resumen agregado: promedio por criterio entre ambos jueces (Claude + Gemini).
+    Identifica DÓNDE está la palanca de mejora (o degradación) de B vs A.
+    """
+    if not cross_results:
+        return
+
+    # Acumular: por criterio, lista de (A, B) entre los dos jueces juntos.
+    per_crit_a: dict[str, list[float]] = {c: [] for c in CRITERIA}
+    per_crit_b: dict[str, list[float]] = {c: [] for c in CRITERIA}
+
+    for r in cross_results:
+        prior = r.get("prior_scores_claude", {}) or {}
+        cross = r.get("cross_scores_gemini", {}) or {}
+        for store, src in [(per_crit_a, prior.get("scores_a", {})),
+                           (per_crit_b, prior.get("scores_b", {})),
+                           (per_crit_a, cross.get("scores_a", {})),
+                           (per_crit_b, cross.get("scores_b", {}))]:
+            if not isinstance(src, dict):
+                continue
+            for crit in CRITERIA:
+                val = src.get(crit)
+                if isinstance(val, (int, float)):
+                    store[crit].append(float(val))
+
+    print()
+    print(f"  ANÁLISIS POR CRITERIO (promedio combinado Claude + Gemini, n={len(cross_results)} sujetos × 2 jueces):")
+    print(f"    {'Criterio':<23} {'A avg':>7} {'B avg':>7} {'Δ':>7}   {'Gana':<6}")
+    print(f"    {'-' * 23} {'-' * 7} {'-' * 7} {'-' * 7}   {'-' * 6}")
+    for crit in CRITERIA:
+        a_vals = per_crit_a[crit]
+        b_vals = per_crit_b[crit]
+        if not a_vals or not b_vals:
+            continue
+        a_avg = sum(a_vals) / len(a_vals)
+        b_avg = sum(b_vals) / len(b_vals)
+        delta = b_avg - a_avg
+        winner = "B" if delta > 0.05 else ("A" if delta < -0.05 else "tie")
+        print(f"    {crit:<23} {a_avg:>7.2f} {b_avg:>7.2f} {delta:>+7.2f}   {winner:<6}")
+
+
+def _print_judge_disagreement(cross_results: list[dict]) -> None:
+    """
+    Para cada criterio, mide en cuánto DISCREPAN Claude y Gemini.
+    Útil para detectar criterios donde los jueces ven cosas distintas.
+    """
+    if not cross_results:
+        return
+
+    diffs_per_crit: dict[str, list[float]] = {c: [] for c in CRITERIA}
+    for r in cross_results:
+        prior = r.get("prior_scores_claude", {}) or {}
+        cross = r.get("cross_scores_gemini", {}) or {}
+        for cond_key in ("scores_a", "scores_b"):
+            c_scores = prior.get(cond_key, {}) or {}
+            g_scores = cross.get(cond_key, {}) or {}
+            for crit in CRITERIA:
+                cv = c_scores.get(crit)
+                gv = g_scores.get(crit)
+                if isinstance(cv, (int, float)) and isinstance(gv, (int, float)):
+                    diffs_per_crit[crit].append(abs(float(gv) - float(cv)))
+
+    print()
+    print(f"  DISCREPANCIA INTER-JUEZ (|Gemini − Claude| por criterio, promedio):")
+    print(f"    {'Criterio':<23} {'avg |Δ|':>9}   {'lectura':<40}")
+    print(f"    {'-' * 23} {'-' * 9}   {'-' * 40}")
+    for crit in CRITERIA:
+        if not diffs_per_crit[crit]:
+            continue
+        avg = sum(diffs_per_crit[crit]) / len(diffs_per_crit[crit])
+        if avg < 0.5:
+            tag = "alta concordancia"
+        elif avg < 1.0:
+            tag = "concordancia razonable"
+        else:
+            tag = "criterio ambiguo / jueces divergen"
+        print(f"    {crit:<23} {avg:>9.2f}   {tag:<40}")
 
 
 def evaluate_pair_gemini(resp_a: str, resp_b: str) -> dict:
@@ -279,6 +398,8 @@ def main() -> None:
             print(f"    Acuerdo:               SÍ — ambos votan {new_winner}")
         else:
             print(f"    Acuerdo:               NO — Claude:{prior_winner} vs Gemini:{new_winner}")
+
+        _print_criteria_breakdown(subject_name, prior_scores, result)
         print()
 
         sum_a += new_a
@@ -350,6 +471,10 @@ def main() -> None:
     print(f"  COSTO DE ESTE CROSS-JUDGE:")
     print(f"    Gemini 2.5 Pro:  ${sum_cost:.6f}")
     print(f"    Provider:        Vertex AI (consume créditos GCP, NO Anthropic)")
+
+    _print_criteria_summary(cross_results)
+    _print_judge_disagreement(cross_results)
+
     print()
     print(f"  Resultados detallados: {output_path}")
     print("=" * 72)
