@@ -5,6 +5,16 @@ ABU_ENGINE_URL = "http://localhost:8000"
 # su hora local real, pero el experimento mide la diferencia A vs B
 # (misma fecha en ambas condiciones), así que el offset no afecta
 # el resultado del A/B.
+#
+# SYNTH_001: carta sintética usada en KG-C03 v1..v5 (corridas 2026-05-18/19).
+#   Originalmente mal etiquetada como "GS_004 — Guillermo Siaira" en config.py
+#   desde commit f5f73db (2026-05-08). NO corresponde a la carta del autor.
+#   Se conserva para reproducibilidad de los resultados publicados.
+#
+# GS_004: carta natal real del autor (Guillermo Siaira).
+#   Fecha: 1978-07-05 21:15 hora local Balcarce (Argentina, UTC-3, sin DST en
+#   1978) → 1978-07-06T00:15:00Z UTC. Coordenadas Balcarce: -37.8464, -58.2556.
+#   Eventos biográficos verificados: data/biographical_events/GS_004_siaira.json
 SUBJECTS = [
     {
         "id": "einstein",
@@ -28,10 +38,17 @@ SUBJECTS = [
         "name": "Tesla",
     },
     {
-        "id": "gs004",
+        "id": "synth001",
         "birthDate": "1983-10-10T08:20:00Z",  # 05:20 local Buenos Aires (UTC-3)
         "lat": -34.6,
         "lon": -58.4,
+        "name": "SYNTH_001",
+    },
+    {
+        "id": "gs004",
+        "birthDate": "1978-07-06T00:15:00Z",  # 21:15 local Balcarce 1978-07-05 (UTC-3)
+        "lat": -37.8464,
+        "lon": -58.2556,
         "name": "GS_004",
     },
 ]
