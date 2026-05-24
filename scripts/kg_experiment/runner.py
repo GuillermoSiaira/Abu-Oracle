@@ -460,6 +460,13 @@ def _print_entities_block(label: str, ent: dict) -> None:
     )
 
 
+def _flush_results(output_path: Path, results: list[dict]) -> None:
+    """Escribe results al JSON (persistencia incremental, tras cada sujeto)."""
+    output_path.write_text(
+        json.dumps(results, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+
+
 def run_experiment(
     design: ModuleType,
     enable_thinking: bool = False,
@@ -480,6 +487,13 @@ def run_experiment(
         "b":     {"input_tokens": 0, "output_tokens": 0, "cost_usd": 0.0, "latency_ms": 0, "n": 0},
         "judge": {"input_tokens": 0, "output_tokens": 0, "cost_usd": 0.0, "latency_ms": 0, "n": 0},
     }
+
+    # Path de salida fijo para toda la corrida (persistencia incremental).
+    output_path = (
+        REPO_ROOT / "data" / "kg_experiment" / design.DESIGN_ID
+        / f"results_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.json"
+    )
+    output_path.parent.mkdir(parents=True, exist_ok=True)
 
     for subject in subjects:
         print(f"\n{'=' * 72}")
@@ -530,15 +544,11 @@ def run_experiment(
             _print_entities_block("B", entities_b)
             time.sleep(2)
 
-            print(f"\n  Evaluating pair with judge [{JUDGE_MODEL_DEFAULT}]...")
-            evaluation = evaluate_pair(ctx_a, ctx_b, resp_a, resp_b)
-            judge_usage = evaluation.pop("judge_usage", None)
-            scores = evaluation
-
+            # Las respuestas del reader (lo costoso) ya están generadas.
+            # Acumulamos su usage y construimos el result base ANTES de evaluar,
+            # para que un fallo del judge NUNCA descarte el trabajo del reader.
             _accumulate(totals, "a", usage_a)
             _accumulate(totals, "b", usage_b)
-            if judge_usage:
-                _accumulate(totals, "judge", judge_usage)
 
             result = {
                 "subject_id": subject["id"],
@@ -552,16 +562,33 @@ def run_experiment(
                 "thinking_a": thinking_a,
                 "thinking_b": thinking_b,
                 "responses_distinct": resp_a.strip() != resp_b.strip(),
-                "scores": scores,
                 "usage_a": usage_a,
                 "usage_b": usage_b,
-                "judge_usage": judge_usage,
                 "entities_a": entities_a,
                 "entities_b": entities_b,
             }
-            results.append(result)
 
-            print(f"\n  Scores: A = {scores.get('total_a', '?')}  |  B = {scores.get('total_b', '?')}")
+            # Evaluación (judge) — en try separado. Si falla (p. ej. 401 de la
+            # API key), guardamos el result CON las respuestas y un judge_error.
+            # Se puede re-evaluar después con cross_judge.py (Gemini) o
+            # re-corriendo el judge sobre el results.json guardado.
+            print(f"\n  Evaluating pair with judge [{JUDGE_MODEL_DEFAULT}]...")
+            try:
+                evaluation = evaluate_pair(ctx_a, ctx_b, resp_a, resp_b)
+                judge_usage = evaluation.pop("judge_usage", None)
+                result["scores"] = evaluation
+                result["judge_usage"] = judge_usage
+                if judge_usage:
+                    _accumulate(totals, "judge", judge_usage)
+                print(f"\n  Scores: A = {evaluation.get('total_a', '?')}  |  B = {evaluation.get('total_b', '?')}")
+            except Exception as judge_exc:
+                result["judge_error"] = str(judge_exc)
+                print(f"\n  JUDGE ERROR (respuestas guardadas igual): {judge_exc}")
+
+            results.append(result)
+            # Persistencia incremental: re-escribimos el JSON tras cada sujeto
+            # para que un crash a mitad de corrida no pierda lo ya generado.
+            _flush_results(output_path, results)
         except Exception as exc:
             print(f"  ERROR: {exc}")
             results.append(
@@ -573,16 +600,11 @@ def run_experiment(
                     "error": str(exc),
                 }
             )
+            _flush_results(output_path, results)
 
-    output_path = (
-        REPO_ROOT
-        / "data"
-        / "kg_experiment"
-        / design.DESIGN_ID
-        / f"results_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.json"
-    )
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(json.dumps(results, ensure_ascii=False, indent=2), encoding="utf-8")
+    # El JSON ya fue escrito incrementalmente tras cada sujeto. Flush final
+    # por las dudas (p. ej. corrida con 0 sujetos válidos).
+    _flush_results(output_path, results)
 
     print(f"\nResultados guardados en {output_path}")
     _print_extended_summary(design, results, totals)
