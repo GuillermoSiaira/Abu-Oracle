@@ -27,11 +27,14 @@ scripts/kg_experiment/
 | **v3_natal_full_kg** | Con MISMA información en A y B (10 planetas + 4 ángulos + 4 partes + 12 señoríos + aspectos + recepciones), ¿el formato KG en tripletas supera al JSON plano? | ✅ Corrido 2 veces (n=4 luego n=5). **Con n=5 y sujeto corregido: TIE (Claude 0%, Gemini +1.3%). Tesis refutada.** | `RESULTS_v3v4v5_n5_2026-05-19.md` |
 | **v4_natal_finops** | ¿KG con downgrade Sonnet→Haiku mantiene calidad? Test FinOps puro. | ✅ Corrido n=5 (2026-05-19). **REFUTADA: −24% calidad en ambos jueces, acuerdo 5/5.** | `RESULTS_v3v4v5_n5_2026-05-19.md` |
 | **v5_natal_kg_haiku** | ¿KG ayuda a Haiku (JSON+Haiku vs KG+Haiku)? Test del scaffolding sobre modelo barato. | ✅ Corrido n=5 (2026-05-19). **CONFIRMADA: +15.8% Claude, +18.1% Gemini, acuerdo 4/5.** | `RESULTS_v3v4v5_n5_2026-05-19.md` |
-| **v6_natal_kg_gemini_flash** | H1 cross-familia: ¿KG ayuda a Gemini 2.5 Flash igual que a Haiku? | 🟡 Pendiente de corrida con n=12 | Por documentar |
-| **v7_natal_finops_gemini** | FinOps cross-familia: JSON+Sonnet vs KG+Gemini Flash. ¿KG+modelo barato compensa downgrade? | 🟡 Pendiente de corrida con n=12 | Por documentar |
+| **v6_natal_kg_gemini_flash** | H1 cross-familia: ¿KG ayuda a Gemini 2.5 Flash igual que a Haiku? | ✅ Corrido n=11 (2026-05-24, juez Claude en sesión). **REFUTADA: empate −0.9%. El KG NO ayuda a Flash (a diferencia de Haiku +16%).** | `RESULTS_v6_n11_2026-05-24.md` |
+| **v7_natal_finops_gemini** | FinOps cross-familia: JSON+Sonnet vs KG+Gemini Flash. ¿KG+modelo barato compensa downgrade? | 🟡 Pendiente (no completado — API key Anthropic caída en intento 2026-05-24) | Por documentar |
 
 ### Hallazgos cruzados
 
+- **Tesis refinada con datos (2026-05-24):** el efecto KG es **específico del modelo, no universal**. Por modelo: Sonnet → KG no aporta (tie); **Haiku → KG ayuda +16-18% (v5)**; **Gemini Flash → KG no ayuda, tie −0.9% (v6)**. El KG funciona como andamiaje solo cuando el modelo es lo bastante débil como para beneficiarse. NO existe la regla "KG + cualquier modelo barato = mejor". Ver `RESULTS_v6_n11_2026-05-24.md`.
+- **Decisión de producto:** lanzar con **Gemini Flash + JSON narrativo** (créditos Google disponibles; Anthropic no respondió pedido de startup). El KG no aporta a Flash, así que no se construye para el modelo elegido.
+- **Brecha de medición:** la latencia del motor de cálculo (Abu Engine) y la latencia total del pipeline (motor + LLM) NO están instrumentadas. Solo medimos la porción LLM. Flash con `--thinking` ≈ 23-24s (lento, ~1.8× Haiku); falta medir Flash SIN thinking para producción.
 - **Tesis revisada con datos (2026-05-19):** "El formato KG es scaffolding para modelos menores: agrega +16-18% de calidad a Haiku. NO mejora cuando el modelo es Sonnet, NO compensa downgrade." Ver `RESULTS_v3v4v5_n5_2026-05-19.md` para el análisis completo.
 - **GS_004 (carta del autor) es outlier en ambas direcciones:** maximiza el efecto KG con Sonnet (v3 B+8/+9) y lo invierte con Haiku (v5 A+4/+1). Carta doctrinalmente densa que satura a Haiku con el KG.
 - **Cross-validation cuenta**: la primera medición de v1 dio B +47% con juez Sonnet. Cross-judge con Gemini sobre los mismos outputs dio B +11%. Lección: siempre cross-validar con modelo distinto antes de declarar finding.
