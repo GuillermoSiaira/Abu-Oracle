@@ -1,0 +1,14 @@
+{
+  "title": "The Mathematical Formalization of Abu Oracle's Algorithms",
+  "author": "Atilio Guillermo Alberto Siaira",
+  "project": "Abu Oracle",
+  "file": "provenance/formalization_v1_en.md",
+  "sha256": "27f81dbe57505a9c0b25119104697a9ac3a4c442a76d31e06bb42ee21a12a1c5",
+  "cid_v1": "bafybeiaecndyl3byyic5auxn3ldopphqorjtiujzcdqhawrc5ggzj63y2i",
+  "ots_file": "provenance/formalization_v1_en.md.ots",
+  "timestamp_utc": "2026-06-05T01:18:00Z",
+  "git_commit": "PENDING_COMMIT",
+  "license": "CC BY 4.0",
+  "public_url": "https://abu-oracle.com/corpus/formalization-en",
+  "ipfs_gateway": "https://ipfs.io/ipfs/bafybeiaecndyl3byyic5auxn3ldopphqorjtiujzcdqhawrc5ggzj63y2i"
+}
