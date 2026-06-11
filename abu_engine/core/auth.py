@@ -1,12 +1,13 @@
 # Middleware de autenticación JWT + quota enforcement via Firestore
 # Fase: Multi-Usuario v1.0
 
+import hmac
 import os
 import sys
 import logging
 from functools import lru_cache
 
-from fastapi import Security, HTTPException
+from fastapi import Header, Security, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 import firebase_admin
@@ -140,6 +141,54 @@ async def verify_token(
         logger.warning(f"No se pudo incrementar quota para uid={uid}: {e}")
 
     return user_data
+
+
+# ── Service key (machine-to-machine: EuYin Agent, runtime diario) ──────────
+#
+# Credencial de SERVICIO, no de persona. Header: X-Abu-Service-Key.
+# - Configuración: env var ABU_SERVICE_KEY (Cloud Run: desde Secret Manager).
+# - Fail-closed: si ABU_SERVICE_KEY no está seteada, esta vía NO existe y todo
+#   se comporta exactamente como antes (solo JWT Firebase).
+# - Alcance: los endpoints de cómputo/lectura astrológica que usan
+#   verify_token_or_service_key. Nunca aplicarla a rutas administrativas.
+# - Rotación: cambiar el secret + la env var del consumidor (MCP/runtime).
+
+ABU_SERVICE_KEY = os.environ.get("ABU_SERVICE_KEY", "").strip()
+
+if ABU_SERVICE_KEY:
+    logger.info("[Auth] Service key habilitada (X-Abu-Service-Key) — principal: euyin-agent")
+
+_optional_bearer = HTTPBearer(auto_error=False)
+
+_SERVICE_PRINCIPAL = {
+    "uid": "euyin-agent",
+    "email": "service@abu-oracle",
+    "plan": "service",
+    "quota_used": 0,
+    "quota_limit": 10**9,
+    "payment_verified": True,
+    "service": True,
+}
+
+
+async def verify_token_or_service_key(
+    x_abu_service_key: str | None = Header(default=None, alias="X-Abu-Service-Key"),
+    credentials: HTTPAuthorizationCredentials | None = Security(_optional_bearer),
+) -> dict:
+    """
+    Acepta service key (header X-Abu-Service-Key) O el JWT Firebase de siempre.
+    La key se compara en tiempo constante. Sin key configurada → solo JWT.
+    """
+    if (
+        ABU_SERVICE_KEY
+        and x_abu_service_key
+        and hmac.compare_digest(x_abu_service_key, ABU_SERVICE_KEY)
+    ):
+        return dict(_SERVICE_PRINCIPAL)
+
+    if credentials is None:
+        raise HTTPException(status_code=401, detail="Missing credentials")
+    return await verify_token(credentials)
 
 
 # ── Dependency opcional (para rutas demo/públicas) ─────────────────────────

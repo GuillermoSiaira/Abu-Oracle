@@ -28,7 +28,7 @@ from skyfield.api import load
 import logging
 from core.solar_return_ranking import rank_solar_return_locations, RELOCATION_CITIES
 from services.relocation import compute_relocation
-from core.auth import verify_token
+from core.auth import verify_token_or_service_key
 import logging
 import time
 from services.logging import init_logging, log_event
@@ -411,7 +411,7 @@ def search_cities(q: str = Query("", description="Búsqueda de ciudad o país"))
     }
 )
 def forecast_timeseries_endpoint(
-    user: dict = Depends(verify_token),
+    user: dict = Depends(verify_token_or_service_key),
     birthDate: str = Query(..., description="Fecha de nacimiento en formato ISO (ej: 1990-01-01T12:00:00Z)"),
     lat: float = Query(..., description="Latitud en grados decimales"),
     lon: float = Query(..., description="Longitud en grados decimales"),
@@ -731,7 +731,7 @@ def get_chart_detailed(
     }
 )
 def get_chart_extended(
-    user: dict = Depends(verify_token),
+    user: dict = Depends(verify_token_or_service_key),
     date: str = Query(..., description="Fecha y hora en formato ISO (ej: 2026-07-05T12:00:00Z)"),
     lat: float = Query(..., description="Latitud en grados decimales"),
     lon: float = Query(..., description="Longitud en grados decimales"),
@@ -971,7 +971,7 @@ def get_chart_extended(
     }
 )
 def get_solar_return(
-    user: dict = Depends(verify_token),
+    user: dict = Depends(verify_token_or_service_key),
     birthDate: str = Query(..., description="Fecha de nacimiento en formato ISO (ej: 1990-07-05T12:00:00Z)"),
     lat: float = Query(..., description="Latitud para el Solar Return"),
     lon: float = Query(..., description="Longitud para el Solar Return"),
@@ -1054,7 +1054,7 @@ def get_solar_return(
     }
 )
 def get_solar_return_ranking(
-    user: dict = Depends(verify_token),
+    user: dict = Depends(verify_token_or_service_key),
     birthDate: str = Query(..., description="Fecha de nacimiento en formato ISO (ej: 1990-07-05T12:00:00Z)"),
     year: int = Query(None, description="Año del Solar Return (opcional, por defecto año actual)"),
     cities: str = Query(None, description="Lista de ciudades separadas por comas (opcional, por defecto las 16 predefinidas)"),
@@ -1194,7 +1194,7 @@ _DOMAIN_TO_HOUSE: dict[str, int] = {
 
 @app.get("/api/astro/relocation-field", response_model=None)
 def get_relocation_field(
-    user: dict = Depends(verify_token),
+    user: dict = Depends(verify_token_or_service_key),
     birthDate: str = Query(..., description="Fecha de nacimiento ISO"),
     lat: float = Query(..., description="Latitud natal"),
     lon: float = Query(..., description="Longitud natal"),
@@ -1250,7 +1250,7 @@ def get_relocation_field(
 
 @app.get("/api/astro/sr-relocation-field", response_model=None)
 def get_sr_relocation_field(
-    user: dict = Depends(verify_token),
+    user: dict = Depends(verify_token_or_service_key),
     birthDate: str = Query(..., description="Fecha de nacimiento ISO"),
     lat: float = Query(..., description="Latitud natal"),
     lon: float = Query(..., description="Longitud natal"),
@@ -1367,7 +1367,7 @@ class SRScoreRequest(BaseModel):
 )
 def get_solar_return_score(
     body: SRScoreRequest = Body(...),
-    user: dict = Depends(verify_token),
+    user: dict = Depends(verify_token_or_service_key),
 ):
     """
     HF escalar por ciudad modulado por Firdaria, para comparación de Retorno Solar.
@@ -1901,7 +1901,7 @@ def _bio_run_scanner(
     }
 )
 def get_biography(
-    user: dict = Depends(verify_token),
+    user: dict = Depends(verify_token_or_service_key),
     birthDate: str = Query(..., description="Fecha de nacimiento UTC (ej: 1978-07-06T00:15:00Z)"),
     birthLat: float = Query(..., description="Latitud de nacimiento"),
     birthLon: float = Query(..., description="Longitud de nacimiento"),
@@ -2294,7 +2294,7 @@ def _build_transit_planets(lat: float, lon: float, dt: datetime) -> list:
 
 @app.get("/api/astro/lunar", response_model=None)
 def lunar_endpoint(
-    user: dict = Depends(verify_token),
+    user: dict = Depends(verify_token_or_service_key),
     birthDate: str = Query(..., description="Fecha de nacimiento ISO UTC"),
     lat: float = Query(..., description="Latitud natal"),
     lon: float = Query(..., description="Longitud natal"),
@@ -2338,7 +2338,7 @@ def lunar_endpoint(
     }
 )
 def get_transits(
-    user: dict = Depends(verify_token),
+    user: dict = Depends(verify_token_or_service_key),
     natalPlanets: str = Query(..., description="JSON array de planetas natales [{name, longitude}]"),
     date: str = Query(..., description="Fecha de los tránsitos en formato ISO"),
     lat: float = Query(..., description="Latitud"),
@@ -2400,7 +2400,7 @@ class TransitsWithNatalRequest(BaseModel):
     },
 )
 def get_transits_with_natal(
-    user: dict = Depends(verify_token),
+    user: dict = Depends(verify_token_or_service_key),
     body: TransitsWithNatalRequest = Body(...),
 ):
     """Conveniencia: genera planetas natales y de tránsito a partir de fechas/lugares y calcula aspectos."""
@@ -2444,7 +2444,7 @@ def get_transits_with_natal(
     },
 )
 def get_domain_score(
-    user: dict = Depends(verify_token),
+    user: dict = Depends(verify_token_or_service_key),
     birthDate: str = Query(..., description="Fecha de nacimiento ISO (ej: 1990-07-05T12:00:00Z)"),
     lat: float = Query(..., description="Latitud de la ciudad a evaluar"),
     lon: float = Query(..., description="Longitud de la ciudad a evaluar"),
@@ -2495,7 +2495,7 @@ def get_domain_score(
     },
 )
 def get_domain_ranking(
-    user: dict = Depends(verify_token),
+    user: dict = Depends(verify_token_or_service_key),
     birthDate: str = Query(..., description="Fecha de nacimiento ISO (ej: 1990-07-05T12:00:00Z)"),
     domain: str = Query(..., description="Dominio: career|love|health|family|resources|creativity|expansion"),
     year: int = Query(None, description="Año del Solar Return (None = año actual)"),
@@ -3121,7 +3121,7 @@ class InterpretInput(BaseModel):
     }
 )
 def interpret_endpoint(
-    user: dict = Depends(verify_token),
+    user: dict = Depends(verify_token_or_service_key),
     data: InterpretInput = Body(
         ...,
         examples={
@@ -3286,7 +3286,7 @@ class IGPOptimizeRequest(BaseModel):
     tags=["IGP"]
 )
 def igp_optimize(
-    user: dict = Depends(verify_token),
+    user: dict = Depends(verify_token_or_service_key),
     data: IGPOptimizeRequest = Body(...),
 ):
     """
