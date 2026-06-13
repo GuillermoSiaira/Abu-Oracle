@@ -64,3 +64,92 @@ def gaussian_resonance(delta_deg: float, aspect_deg: float, sigma: float) -> flo
         raise ValueError("sigma must be positive")
     diff = delta_deg - aspect_deg
     return math.exp(-(diff * diff) / (2 * sigma * sigma))
+
+
+# --- V7 Extensions (Sect and Dignity N1/N2) ---
+
+SECT_MULTIPLIERS = {
+    "luminaria_secta": 1.15,
+    "benefico_secta": 1.15,
+    "benefico_contrario": 1.00,
+    "malefico_secta": 0.85,
+    "malefico_contrario": 1.15,
+    "neutro": 1.00
+}
+
+DIGNITY_MULTIPLIERS = {
+    "domicilio": 1.30,
+    "exaltacion": 1.20,
+    "triplicidad": 1.10,
+    "termino": 1.05,
+    "faz": 1.00,
+    "peregrino": 0.90,
+    "detrimento": 0.75,
+    "caida": 0.70
+}
+
+def get_sect_role(planet: str, sect: str) -> str:
+    """Determine the sect role of a planet given the chart's sect ('diurnal' or 'nocturnal')."""
+    planet = planet.lower()
+    sect = sect.lower()
+    
+    if planet in ("mercury", "uranus", "neptune", "pluto"):
+        return "neutro"
+        
+    is_diurnal = sect == "diurnal"
+    
+    if planet == "sun":
+        return "luminaria_secta" if is_diurnal else "neutro"
+    if planet == "moon":
+        return "luminaria_secta" if not is_diurnal else "neutro"
+        
+    if planet == "jupiter":
+        return "benefico_secta" if is_diurnal else "benefico_contrario"
+    if planet == "venus":
+        return "benefico_secta" if not is_diurnal else "benefico_contrario"
+        
+    if planet == "saturn":
+        return "malefico_secta" if is_diurnal else "malefico_contrario"
+    if planet == "mars":
+        return "malefico_secta" if not is_diurnal else "malefico_contrario"
+        
+    return "neutro"
+
+def compute_planet_weights_v7(
+    sect: str = "diurnal", 
+    dignities: Dict[str, str] = None, 
+    enable_n1_sect: bool = False,
+    enable_n2_dignity: bool = False
+) -> Dict[str, float]:
+    from .schema_v2 import PLANET_ORDER
+    weights = {p: 1.0 for p in PLANET_ORDER}
+    
+    if not enable_n1_sect and not enable_n2_dignity:
+        return weights
+        
+    dignities = dignities or {}
+    
+    for p in PLANET_ORDER:
+        w = 1.0
+        if enable_n1_sect:
+            role = get_sect_role(p, sect)
+            w *= SECT_MULTIPLIERS.get(role, 1.0)
+            
+        if enable_n2_dignity:
+            dig = dignities.get(p.lower(), "peregrino")
+            dig_norm = dig.lower()
+            if dig_norm in ("domicile", "domicilio"): val = DIGNITY_MULTIPLIERS["domicilio"]
+            elif dig_norm in ("exaltation", "exaltacion"): val = DIGNITY_MULTIPLIERS["exaltacion"]
+            elif dig_norm in ("triplicity", "triplicidad"): val = DIGNITY_MULTIPLIERS["triplicidad"]
+            elif dig_norm in ("term", "termino"): val = DIGNITY_MULTIPLIERS["termino"]
+            elif dig_norm in ("face", "faz", "decan"): val = DIGNITY_MULTIPLIERS["faz"]
+            elif dig_norm in ("detriment", "detrimento"): val = DIGNITY_MULTIPLIERS["detrimento"]
+            elif dig_norm in ("fall", "caida"): val = DIGNITY_MULTIPLIERS["caida"]
+            else: val = DIGNITY_MULTIPLIERS["peregrino"]
+            
+            w *= val
+            
+        weights[p] = w
+        
+    return weights
+

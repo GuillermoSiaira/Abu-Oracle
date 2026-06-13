@@ -29,6 +29,7 @@ def planet_angular_strengths(
     planet_positions: Mapping[str, float],
     angles_deg: Mapping[str, float],
     sigma_deg: float = DEFAULT_ANGULAR_SIGMA_DEG,
+    planet_weights: Optional[Mapping[str, float]] = None,
 ) -> Tuple[Dict[str, Dict[str, float]], Dict[str, float]]:
     """Return per-planet angular strengths and aggregated scores.
 
@@ -38,18 +39,24 @@ def planet_angular_strengths(
     """
     per_planet: Dict[str, Dict[str, float]] = {}
     accum = []
+    weights = planet_weights or {}
+    
     for planet in PLANET_ORDER:
         if planet not in planet_positions:
             continue
         p_lon = float(planet_positions[planet]) % 360.0
+        w = float(weights.get(planet, 1.0))
+        
         strengths: Dict[str, float] = {}
         for angle_key in ANGLE_KEYS:
             if angle_key not in angles_deg:
                 continue
             delta = angular_distance_deg(p_lon, float(angles_deg[angle_key]))
-            strengths[angle_key] = gaussian_strength(delta, sigma_deg)
+            strengths[angle_key] = gaussian_strength(delta, sigma_deg) * w
+            
         if not strengths:
             continue
+            
         mean_s = sum(strengths.values()) / len(strengths)
         max_s = max(strengths.values())
         strengths["mean_strength"] = mean_s

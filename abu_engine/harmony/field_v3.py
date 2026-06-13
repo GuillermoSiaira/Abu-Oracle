@@ -13,7 +13,7 @@ import itertools
 import math
 
 from .field import aggregate_field
-from .resonance import ASPECTS, SIGMAS, ASPECT_WEIGHTS, GROUP_WEIGHTS, angular_distance_deg, gaussian_resonance
+from .resonance import ASPECTS, SIGMAS, ASPECT_WEIGHTS, GROUP_WEIGHTS, angular_distance_deg, gaussian_resonance, compute_planet_weights_v7
 from .schema_v2 import PLANET_ORDER, DEFAULT_PLANET_WEIGHTS
 from .houses import assign_planet_houses
 
@@ -66,6 +66,7 @@ def compute_hf_aspects(
     aspect_weights: Mapping[str, float] = ASPECT_WEIGHTS,
     group_weights: Mapping[str, float] = GROUP_WEIGHTS,
     planet_subset: List[str] | None = None,
+    planet_weights: Mapping[str, float] = DEFAULT_PLANET_WEIGHTS,
 ) -> float:
     """Return HF_aspects using HF v4 weighted aggregation.
 
@@ -76,24 +77,38 @@ def compute_hf_aspects(
         group_weights: Group-level weights {w_harmony, w_tension, w_conjunction}.
         planet_subset: Optional list of lowercase planet names (from house_significators).
             If None → all 12 points. If provided → only pairs within the subset.
+        planet_weights: Optional per-planet weights (e.g. from HF v7 N1/N2).
     """
-    if planet_subset is None:
+    is_custom_weights = any(w != 1.0 for w in planet_weights.values())
+
+    if planet_subset is None and not is_custom_weights:
         agg = aggregate_field(angles_deg, aspects=aspects, sigmas=sigmas,
                               aspect_weights=aspect_weights, group_weights=group_weights)
         return float(agg.get("HF_weighted", 0.0))
 
-    # Filtered mode: compute pairwise only for the subset points
-    active = [p for p in _to_title_subset(planet_subset) if p in angles_deg]
+    # Filtered mode or custom weights: compute pairwise manually
+    if planet_subset is not None:
+        active = [p for p in _to_title_subset(planet_subset) if p in angles_deg]
+    else:
+        # ALL points (incl. ASC/MC) — must match aggregate_field exactly so that
+        # at unit weights this path == v6_base. Using PLANET_ORDER here drops the
+        # ASC/MC aspect pairs and breaks the v7 ablation (confound de code-path).
+        active = [p for p in angles_deg]
+
     if len(active) < 2:
         return 0.0
 
     totals: Dict[str, float] = {asp: 0.0 for asp in aspects}
     for a, b in itertools.combinations(active, 2):
         delta = angular_distance_deg(angles_deg[a], angles_deg[b])
+        w_a = planet_weights.get(a, 1.0)
+        w_b = planet_weights.get(b, 1.0)
+        pair_weight = (w_a + w_b) / 2.0
+        
         for asp_name, asp_angle in aspects.items():
             sigma = sigmas[asp_name]
             weight = aspect_weights.get(asp_name, 1.0)
-            totals[asp_name] += weight * gaussian_resonance(delta, asp_angle, sigma)
+            totals[asp_name] += weight * gaussian_resonance(delta, asp_angle, sigma) * pair_weight
 
     hf_harmony = totals.get("sextile", 0.0) + totals.get("trine", 0.0)
     hf_tension = totals.get("square", 0.0) + totals.get("opposition", 0.0)
@@ -196,6 +211,11 @@ def compute_hf_v3(
     house_weights: Mapping[int, float] = DEFAULT_HOUSE_WEIGHTS,
     planet_weights: Mapping[str, float] = DEFAULT_PLANET_WEIGHTS,
     planet_subset: List[str] | None = None,
+    # V7 Extensions
+    sect: str = "diurnal",
+    dignities: Optional[Dict[str, str]] = None,
+    enable_n1_sect: bool = False,
+    enable_n2_dignity: bool = False,
 ) -> Dict[str, float]:
     """Compute HF v3 additive score (now using v4 weighted aspects).
 
@@ -205,14 +225,37 @@ def compute_hf_v3(
         planet_subset: Optional list of lowercase planet names (from house_significators).
             If None → all 12 points (default behaviour).
             If provided → only those planets participate in aspects, angularity, and house scoring.
+        sect: "diurnal" or "nocturnal".
+        dignities: dictionary mapping planet name to traditional dignity string.
+        enable_n1_sect: Toggle v7 Sect N1 weights.
+        enable_n2_dignity: Toggle v7 Dignity N2 weights.
 
     Returns a dict with components and hyperparameters.
     """
+    
+    # Compute combined V7 weights if N1 or N2 is enabled.
+    # If custom planet_weights were passed directly, we use them as base? 
+    # For now, V7 weights override the default 1.0s.
+    if enable_n1_sect or enable_n2_dignity:
+        derived_weights = compute_planet_weights_v7(
+            sect=sect, 
+            dignities=dignities, 
+            enable_n1_sect=enable_n1_sect, 
+            enable_n2_dignity=enable_n2_dignity
+        )
+        # Merge derived_weights with any externally passed planet_weights that are not 1.0
+        # For simplicity, we just use the derived_weights here as they represent W(p)
+        active_planet_weights = derived_weights
+    else:
+        active_planet_weights = planet_weights
+
     hf_aspects = compute_hf_aspects(angles_deg, aspects=aspects, sigmas=sigmas,
                                     aspect_weights=aspect_weights, group_weights=group_weights,
-                                    planet_subset=planet_subset)
+                                    planet_subset=planet_subset, planet_weights=active_planet_weights)
     hf_angles = compute_hf_angles(angles_deg, sigma_angle=sigma_angle,
-                                  planet_weights=planet_weights, planet_subset=planet_subset)
+                                  planet_weights=active_planet_weights, planet_subset=planet_subset)
+    # HF_houses NO recibe los pesos v7: el spec (SPEC-HF-V7-01 §2) acota W(p) a
+    # aspectos + angularidad; las casas se mantienen como v6 (preregistro).
     hf_houses = compute_hf_houses(angles_deg, cusps=cusps, house_weights=house_weights,
                                   planet_weights=planet_weights, planet_subset=planet_subset)
 
@@ -230,6 +273,8 @@ def compute_hf_v3(
                           "w_tension": group_weights.get("w_tension", -0.8),
                           "w_conjunction": group_weights.get("w_conjunction", 1.0)},
         "planet_subset": planet_subset,
+        "n1_enabled": enable_n1_sect,
+        "n2_enabled": enable_n2_dignity,
     }
 
 
