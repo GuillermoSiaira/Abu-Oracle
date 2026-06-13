@@ -173,18 +173,48 @@ _SERVICE_PRINCIPAL = {
 
 async def verify_token_or_service_key(
     x_abu_service_key: str | None = Header(default=None, alias="X-Abu-Service-Key"),
+    x_abu_api_key: str | None = Header(default=None, alias="X-Abu-Api-Key"),
     credentials: HTTPAuthorizationCredentials | None = Security(_optional_bearer),
 ) -> dict:
     """
     Acepta service key (header X-Abu-Service-Key) O el JWT Firebase de siempre.
     La key se compara en tiempo constante. Sin key configurada → solo JWT.
     """
+    if not AUTH_ENABLED and _is_dev:
+        # Dev local — retorna usuario mock, no valida nada
+        return {
+            "uid": "dev-local",
+            "email": "dev@local",
+            "plan": "genesis",
+            "quota_used": 0,
+            "quota_limit": 99999,
+            "payment_verified": True
+        }
+
     if (
         ABU_SERVICE_KEY
         and x_abu_service_key
         and hmac.compare_digest(x_abu_service_key, ABU_SERVICE_KEY)
     ):
         return dict(_SERVICE_PRINCIPAL)
+
+    if x_abu_api_key:
+        db = _get_firestore_client()
+        docs = list(db.collection("users").where("api_key", "==", x_abu_api_key).limit(1).stream())
+        if not docs:
+            raise HTTPException(status_code=401, detail="API key inválida")
+        user_data = docs[0].to_dict()
+        if not user_data.get("payment_verified", False):
+            raise HTTPException(status_code=403, detail="Pago no verificado")
+        quota_used = user_data.get("quota_used", 0)
+        quota_limit = user_data.get("quota_limit", 100)
+        if quota_used >= quota_limit:
+            raise HTTPException(status_code=429, detail=f"Quota excedida ({quota_used}/{quota_limit})")
+        try:
+            docs[0].reference.update({"quota_used": firestore.Increment(1)})
+        except Exception as e:
+            logger.warning(f"No se pudo incrementar quota api_key: {e}")
+        return user_data
 
     if credentials is None:
         raise HTTPException(status_code=401, detail="Missing credentials")

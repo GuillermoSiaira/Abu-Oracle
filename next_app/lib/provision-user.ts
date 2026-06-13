@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
+import { randomBytes } from "crypto";
 import { getAdminAuth, getAdminDb } from "@/lib/firebase-admin";
 
 export type Plan = "genesis" | "monthly" | "annual";
@@ -48,13 +49,15 @@ export async function provisionUser(opts: ProvisionOptions): Promise<ProvisionRe
     emailVerified: false,
   });
 
+  const apiKey = "ak_" + randomBytes(24).toString("hex");
+
   await getAdminDb()
     .collection("users")
     .doc(userRecord.uid)
     .set({
       uid: userRecord.uid,
       email,
-      api_key: uuidv4(),
+      api_key: apiKey,
       plan,
       quota_used: 0,
       quota_limit: QUOTA_LIMITS[plan],
@@ -64,7 +67,7 @@ export async function provisionUser(opts: ProvisionOptions): Promise<ProvisionRe
       ...meta,
     });
 
-  await sendWelcomeEmail(email, password, plan);
+  await sendWelcomeEmail(email, password, plan, apiKey);
 
   console.log(
     `[provision-user] Provisioned: uid=${userRecord.uid} email=${email} plan=${plan}`
@@ -82,7 +85,7 @@ const PLAN_LABELS: Record<Plan, string> = {
   annual: "Annual",
 };
 
-async function sendWelcomeEmail(email: string, password: string, plan: Plan) {
+async function sendWelcomeEmail(email: string, password: string, plan: Plan, apiKey: string) {
   const resendKey = process.env.RESEND_API_KEY;
   if (!resendKey) return;
   try {
@@ -93,7 +96,7 @@ async function sendWelcomeEmail(email: string, password: string, plan: Plan) {
       from: "Abu Oracle <noreply@abu-oracle.com>",
       to: email,
       subject: "Abu Oracle — Acceso activado ♃",
-      html: buildWelcomeHtml(email, password, planLabel),
+      html: buildWelcomeHtml(email, password, planLabel, apiKey),
     });
   } catch (err) {
     // Non-fatal — user was already created in Firebase
@@ -101,7 +104,7 @@ async function sendWelcomeEmail(email: string, password: string, plan: Plan) {
   }
 }
 
-function buildWelcomeHtml(email: string, password: string, planLabel: string): string {
+function buildWelcomeHtml(email: string, password: string, planLabel: string, apiKey: string): string {
   return `<!DOCTYPE html>
 <html lang="es">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
@@ -131,6 +134,17 @@ function buildWelcomeHtml(email: string, password: string, planLabel: string): s
                   <div>
                     <span style="font-size:11px;color:#57534e;display:block;margin-bottom:2px;">Contraseña temporal</span>
                     <span style="font-size:14px;color:#fbbf24;font-family:monospace;">${password}</span>
+                  </div>
+                </td>
+              </tr>
+            </table>
+            <table width="100%" cellpadding="0" cellspacing="0" style="background:#0f0f10;border:1px solid #292524;border-radius:8px;margin-bottom:32px;">
+              <tr>
+                <td style="padding:20px 24px;">
+                  <div style="font-size:10px;letter-spacing:0.2em;color:#78716c;text-transform:uppercase;margin-bottom:16px;">Tu API key + config MCP</div>
+                  <div>
+                    <span style="font-size:11px;color:#57534e;display:block;margin-bottom:2px;">API Key</span>
+                    <span style="font-size:14px;color:#e7e5e4;font-family:monospace;">${apiKey}</span>
                   </div>
                 </td>
               </tr>
