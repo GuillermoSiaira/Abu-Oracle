@@ -3,7 +3,7 @@ import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 import pytest
-from demand_model import SyntheticAbuOracleDemandModel, SyntheticPaperclipDemandModel
+from demand_model import EmpiricalAbuOracleDemandModel, SyntheticAbuOracleDemandModel, SyntheticPaperclipDemandModel
 from milp_solver import MILPInstance, CRITICAL_ROUTES, T_DOMAIN
 
 
@@ -21,6 +21,17 @@ def test_synthetic_demand_loads():
     for u in d.get_units():
         assert d.get_frequency(u) > 0
         assert d.get_tokens_input(u) > 0
+
+
+def test_empirical_demand_loads():
+    d = EmpiricalAbuOracleDemandModel()
+    assert d.get_source() == 'empirical-A2b'
+    assert len(d.get_units()) == 9
+    for u in d.get_units():
+        dist = d.get_output_dist(u)
+        assert dist['mean'] > 0
+        assert dist['std'] > 0
+        assert dist['p99'] >= dist['mean']
 
 
 def test_paperclip_demand_loads():

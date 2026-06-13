@@ -102,6 +102,34 @@ class SyntheticAbuOracleDemandModel(DemandModel):
         return _SESSIONS_PER_MONTH[plan]
 
 
+_EMPIRICAL_OUTPUT_DIST: dict[str, dict] = {
+    'screen-open': {'mean': 960, 'std': 200, 'p99': 1536},
+    'planet':      {'mean': 474, 'std': 72,  'p99': 640},
+    'technique':   {'mean': 450, 'std': 90,  'p99': 660},
+    'transit':     {'mean': 542, 'std': 87,  'p99': 745},
+    'domain':      {'mean': 660, 'std': 147, 'p99': 1002},
+    'house':       {'mean': 474, 'std': 72,  'p99': 640},
+    'city':        {'mean': 451, 'std': 125, 'p99': 742},
+    'sky':         {'mean': 468, 'std': 72,  'p99': 635},
+    'chat':        {'mean': 422, 'std': 244, 'p99': 990},
+}
+
+
+class EmpiricalAbuOracleDemandModel(SyntheticAbuOracleDemandModel):
+    """
+    Demanda Abu Oracle calibrada con mediciones empiricas Fase A-2b.
+
+    Mantiene frecuencia e input tokens del modelo sintetico; solo reemplaza
+    la distribucion de output tokens por los valores canonicos A-2b.
+    """
+
+    def get_output_dist(self, unit: str) -> dict:
+        return _EMPIRICAL_OUTPUT_DIST[unit]
+
+    def get_source(self) -> str:
+        return 'empirical-A2b'
+
+
 # ---------------------------------------------------------------------------
 # Instancia B — Paperclip (sintético)
 # ---------------------------------------------------------------------------

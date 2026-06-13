@@ -113,6 +113,17 @@ function _cap(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
+/** Mapea el nivel de densidad a una etiqueta legible. */
+function _densityLabel(density: string, lang: string): string {
+  const labels: Record<string, Record<string, string>> = {
+    high:   { es: "Alta", en: "High", pt: "Alta", fr: "Haute" },
+    medium: { es: "Media", en: "Medium", pt: "Média", fr: "Moyenne" },
+    low:    { es: "Baja", en: "Low", pt: "Baixa", fr: "Faible" },
+  };
+  const d = density.toLowerCase();
+  return labels[d]?.[lang] ?? labels.medium[lang];
+}
+
 // ── Interfaces exportadas ─────────────────────────────────────────────────────
 
 export interface PlanetPosition {
@@ -194,6 +205,17 @@ export interface BiographicalTimeline {
   }>
 }
 
+export interface MundanaEvent {
+  name:                string
+  is_active:           boolean
+  historical_density:  'high' | 'medium' | 'low'
+  description:         string
+  historical_context?: string
+  exact_date?:         string
+  days_to_exact?:      number
+  transit_planets?:    string[]
+}
+
 export interface ActiveContext {
   current_date:     string
   /** Fecha local del usuario (YYYY-MM-DD), derivada de utcOffsetHours si se provee. */
@@ -269,6 +291,40 @@ export function formatLunarContext(lunarData: any): string {
   }
 
   return lines.join('\n');
+}
+
+/**
+ * Formatea el contexto de Astrología Mundana (Cielo Colectivo).
+ */
+export function formatMundanaContext(events: MundanaEvent[], lang: string): string {
+  if (!events || events.length === 0) return "";
+  const lines: string[] = [];
+
+  const active = events.filter(e => e.is_active);
+  const upcoming = events.filter(e => !e.is_active);
+
+  if (active.length > 0) {
+    lines.push("CONFIGURACIONES COLECTIVAS ACTIVAS");
+    for (const e of active) {
+      const density = _densityLabel(e.historical_density, lang);
+      lines.push(`- ${e.name} (Densidad histórica: ${density})`);
+      lines.push(`  Interpretación: ${e.description}`);
+      if (e.historical_context) lines.push(`  Contexto: ${e.historical_context}`);
+    }
+    lines.push("");
+  }
+
+  if (upcoming.length > 0) {
+    lines.push("CONFIGURACIONES COLECTIVAS PRÓXIMAS (90 días)");
+    for (const e of upcoming) {
+      const dateStr = e.exact_date ? ` · exacto: ${e.exact_date}` : "";
+      const daysStr = e.days_to_exact != null ? ` (en ${e.days_to_exact} días)` : "";
+      lines.push(`- ${e.name}${dateStr}${daysStr}`);
+      lines.push(`  Potencial: ${e.description}`);
+    }
+  }
+
+  return lines.join("\n");
 }
 
 // ── buildNatalContext ─────────────────────────────────────────────────────────
@@ -438,6 +494,7 @@ export function assembleContextBlock(
   lang:     string,
   memoryContext?: string,
   lunarContext?:  string,
+  mundanaContext?: string,
 ): string {
   const lines: string[] = [];
   const SEP = "═══════════════════════════════════════";
@@ -612,6 +669,15 @@ export function assembleContextBlock(
   const convergence = _detectConvergence(timeline);
   if (convergence) {
     lines.push(convergence);
+    lines.push("");
+  }
+
+  // ╔══ CIELO COLECTIVO (Mundana) ════════════════════════════════════════════╗
+  if (mundanaContext) {
+    lines.push(SEP);
+    lines.push("CIELO COLECTIVO — ASTROLOGÍA MUNDANA");
+    lines.push(SEP);
+    lines.push(mundanaContext);
     lines.push("");
   }
 

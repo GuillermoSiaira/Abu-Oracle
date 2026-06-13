@@ -9,24 +9,25 @@ import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 import milp_solver as ms
-from demand_model import SyntheticAbuOracleDemandModel
-from milp_solver import MILPInstance, CRITICAL_ROUTES, SECONDARY_ROUTES
+from demand_model import EmpiricalAbuOracleDemandModel, SyntheticAbuOracleDemandModel
+from milp_solver import MILPInstance
 
 
-def get_recommendations(
+def _run_recommendations(
+    demand,
     b_total: float = 3000.0,
     b_produccion: float | None = None,
 ) -> dict:
-    demand = SyntheticAbuOracleDemandModel()
-
     # --- Escenario 1: Sonnet everywhere ---
     orig_critical  = frozenset(ms.CRITICAL_ROUTES)
     orig_secondary = frozenset(ms.SECONDARY_ROUTES)
-    ms.CRITICAL_ROUTES  = orig_critical | orig_secondary
-    ms.SECONDARY_ROUTES = set()
-    result_sonnet = MILPInstance('abu_oracle', demand, b_total=b_total, b_produccion=b_produccion).solve()
-    ms.CRITICAL_ROUTES  = set(orig_critical)
-    ms.SECONDARY_ROUTES = set(orig_secondary)
+    try:
+        ms.CRITICAL_ROUTES  = set(orig_critical | orig_secondary)
+        ms.SECONDARY_ROUTES = set()
+        result_sonnet = MILPInstance('abu_oracle', demand, b_total=b_total, b_produccion=b_produccion).solve()
+    finally:
+        ms.CRITICAL_ROUTES  = set(orig_critical)
+        ms.SECONDARY_ROUTES = set(orig_secondary)
 
     # --- Escenario 2: MILP libre (críticas=Sonnet, secundarias=decide) ---
     result_milp = MILPInstance('abu_oracle', demand, b_total=b_total, b_produccion=b_produccion).solve()
@@ -74,15 +75,40 @@ def get_recommendations(
     }
 
 
+def get_recommendations(
+    b_total: float = 3000.0,
+    b_produccion: float | None = None,
+) -> dict:
+    return _run_recommendations(
+        SyntheticAbuOracleDemandModel(),
+        b_total=b_total,
+        b_produccion=b_produccion,
+    )
+
+
+def get_recommendations_empirical(
+    b_total: float = 3000.0,
+    b_produccion: float | None = None,
+) -> dict:
+    """Igual que get_recommendations() pero con datos empiricos Fase A-2b."""
+    return _run_recommendations(
+        EmpiricalAbuOracleDemandModel(),
+        b_total=b_total,
+        b_produccion=b_produccion,
+    )
+
+
 def get_config_json(
     b_total: float = 3000.0,
     b_produccion: float | None = None,
+    use_empirical: bool = False,
 ) -> dict:
     """
     Produce el JSON ejecutable para el dashboard de Fase 5.
     Ambos escenarios en un solo dict — el dashboard togglea sin recalcular.
     """
-    rec = get_recommendations(b_total=b_total, b_produccion=b_produccion)
+    get_rec = get_recommendations_empirical if use_empirical else get_recommendations
+    rec = get_rec(b_total=b_total, b_produccion=b_produccion)
 
     def _fmt_scenario(key: str) -> dict:
         s = rec[key]

@@ -2126,6 +2126,7 @@ investigación empírica astrológica.
 | `docs/theory/GRAPHRAG_KG_VISION.md` | Visión GraphRAG: por qué KG + capacidades que habilita + ruta de implementación |
 | `docs/theory/KG_ONTOLOGY_SCHEMA.md` | Schema completo 3 capas — formalizado con Lilly (helenística/persa) |
 | `docs/theory/KG_EXPERIMENT_PROTOCOL.md` | Protocolo experimento A/B: JSON plano vs. KG — tokens, costo, precisión doctrinal |
+| `docs/theory/FORMALIZACION_MATEMATICA_ALGORITMOS.md` | Formalización de la trigonometría esférica del motor (triángulo de posición, oblicuidad de la eclíptica, Placidus/semi-arco diurno, costo Big-O). Render local: `docs/theory/formalizacion_matematica.html` (MathJax). Publicación al corpus/IPFS/Bluesky: specs `PUB-C00..C04`. |
 | `AXIOMATICS_OF_HEAVENS_v0.4.md` | Meta-esquema epistemológico — fundamento de la ontología KG. Ver nota v0.5 al final. |
 
 Vault: `obsidian_vault/06_engineering/` — documentos de ingeniería y producto.

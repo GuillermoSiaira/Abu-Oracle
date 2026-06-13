@@ -121,3 +121,109 @@ def publish_bluesky(text: str, image_bytes: bytes | None = None, image_alt: str 
     except Exception as e:
         print(f"[bluesky] Excepcion: {e}")
         return {"status": "error", "uri": None, "detail": str(e)}
+
+
+def publish_thread(posts: list[dict]) -> dict:
+    """
+    Publica un hilo en Bluesky.
+    Cada post en la lista debe ser un diccionario:
+      {
+         "text": str,
+         "images": list[tuple[bytes, str]] | None,   # lista de (image_bytes, alt_text)
+         "link": str | None,
+      }
+    """
+    handle   = os.environ.get("BLUESKY_HANDLE")
+    password = os.environ.get("BLUESKY_PASSWORD")
+
+    if not handle or not password:
+        return {"status": "error", "uris": [], "detail": "BLUESKY_HANDLE o BLUESKY_PASSWORD no configurados"}
+
+    try:
+        session = _create_session(handle, password)
+        access_token = session.get("accessJwt")
+        did          = session.get("did")
+
+        if not access_token or not did:
+            return {"status": "error", "uris": [], "detail": "No se obtuvo sesión ATP"}
+
+        root_ref = None
+        parent_ref = None
+        published_uris = []
+
+        for p in posts:
+            text = p.get("text", "")
+            if len(text) > 300:
+                text = text[:297] + "..."
+
+            record: dict = {
+                "$type":     "app.bsky.feed.post",
+                "text":      text,
+                "createdAt": datetime.now(timezone.utc).isoformat(),
+            }
+
+            if root_ref and parent_ref:
+                record["reply"] = {
+                    "root": root_ref,
+                    "parent": parent_ref
+                }
+
+            link = p.get("link")
+            if link and link in text:
+                byte_text = text.encode("utf-8")
+                byte_link = link.encode("utf-8")
+                start_idx = byte_text.find(byte_link)
+                if start_idx != -1:
+                    record["facets"] = [{
+                        "index": {
+                            "byteStart": start_idx,
+                            "byteEnd": start_idx + len(byte_link)
+                        },
+                        "features": [{
+                            "$type": "app.bsky.richtext.facet#link",
+                            "uri": link
+                        }]
+                    }]
+
+            images = p.get("images", [])
+            if images:
+                bsky_images = []
+                for img_bytes, alt in images[:4]:
+                    try:
+                        blob_ref = _upload_blob(access_token, img_bytes)
+                        bsky_images.append({"image": blob_ref, "alt": alt})
+                    except Exception as img_err:
+                        print(f"[bluesky] WARNING — no se pudo subir imagen en hilo: {img_err}")
+                
+                if bsky_images:
+                    record["embed"] = {
+                        "$type": "app.bsky.embed.images",
+                        "images": bsky_images
+                    }
+
+            resp = requests.post(
+                f"{ATP_HOST}/xrpc/com.atproto.repo.createRecord",
+                headers={"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"},
+                json={
+                    "repo":       did,
+                    "collection": "app.bsky.feed.post",
+                    "record":     record,
+                },
+                timeout=15,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            uri = data["uri"]
+            cid = data["cid"]
+            published_uris.append(uri)
+
+            ref = {"uri": uri, "cid": cid}
+            if not root_ref:
+                root_ref = ref
+            parent_ref = ref
+
+        return {"status": "published", "uris": published_uris, "detail": "OK"}
+
+    except Exception as e:
+        print(f"[bluesky] Excepcion en hilo: {e}")
+        return {"status": "error", "uris": [], "detail": str(e)}

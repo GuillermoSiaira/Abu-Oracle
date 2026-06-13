@@ -445,10 +445,18 @@ Espíritu [Piscis 3°, Casa1]
 
 # Secta y consecuencias:
 Carta_nocturna →
-  Marte [fuera de secta] → más disruptivo en Casa7
+  Marte [en secta — maléfico de la secta nocturna] → contenido: su acción en Casa7 opera con método, no con estrago
   Saturno [fuera de secta] → más opresivo → explica consecuencias concretas 5 años
   Júpiter [diurno, fuera de secta] → dignidad esencial compensa → reserva estructural activa
 ```
+
+> **Corrección doctrinal 2026-06-10** (detectada por EuYin Agent en uso real): la versión
+> original marcaba `Marte [fuera de secta] → más disruptivo`. Error: en carta **nocturna**
+> Marte pertenece a la secta (Luna, Venus, Marte) y está **contenido**; los fuera de secta
+> son los planetas diurnos (Sol, Júpiter, Saturno). El origen probable del error es asociar
+> "maléfico → fuera de secta" — la secta se computa por **pertenencia**, no por naturaleza
+> benéfica/maléfica. La derivación automática de Capa 3 (`fuera_de_secta`) debe implementar
+> la regla de pertenencia. Coincide con LILLY_SYSTEM_PROMPT §1 y la skill lilly-interpretacion.
 
 ### Ventanas críticas antes del umbral de julio
 

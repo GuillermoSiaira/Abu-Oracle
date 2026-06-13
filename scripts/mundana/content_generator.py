@@ -41,6 +41,13 @@ import anthropic
 from anthropic import AnthropicVertex
 from image_generator import generate_sky_diagram
 
+try:
+    from doctrinal_rag import retrieve as _rag_retrieve
+    _RAG_AVAILABLE = True
+except ImportError:
+    _RAG_AVAILABLE = False
+    def _rag_retrieve(config, k=3): return []
+
 # ---------------------------------------------------------------------------
 # Configuración
 # ---------------------------------------------------------------------------
@@ -523,7 +530,7 @@ _LILLY_PUBLICATION_SYSTEM = _lilly_system("es")
 # Context block (datos de la configuración → prompt de usuario)
 # ---------------------------------------------------------------------------
 
-def _build_context_block(config: dict, history: Optional[dict] = None) -> str:
+def _build_context_block(config: dict, history: Optional[dict] = None, doctrinal_passages: Optional[list] = None) -> str:
     lines = []
 
     ctype      = config.get("type", "")
@@ -551,6 +558,11 @@ def _build_context_block(config: dict, history: Optional[dict] = None) -> str:
         lines.append("\nEventos históricos en ventanas similares:")
         for ev in history["sample_events"][:3]:
             lines.append(f"  - {ev.get('date', '')}: {ev.get('description', '')[:80]}")
+
+    if doctrinal_passages:
+        lines.append("\nPASAJES DOCTRINALES RECUPERADOS:")
+        for passage in doctrinal_passages:
+            lines.append(passage)
 
     return "\n".join(lines)
 
@@ -717,7 +729,8 @@ def generate_post(
         else anthropic.Anthropic(api_key=api_key)
     )
 
-    context_block = _build_context_block(config, history)
+    doctrinal_passages = _rag_retrieve(config, k=3) if _RAG_AVAILABLE else []
+    context_block = _build_context_block(config, history, doctrinal_passages=doctrinal_passages or None)
     user_prompt   = _prompt_for_platform(platform, context_block, style=style, lang=lang)
 
     # Retry con backoff para rate limits (429) de Vertex AI

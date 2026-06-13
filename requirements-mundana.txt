@@ -21,5 +21,9 @@ matplotlib>=3.8.0
 Pillow>=10.0.0
 numpy>=1.26.0
 
+# RAG doctrinal — extracción PDF + índice BM25
+pymupdf>=1.24.0
+rank-bm25>=0.2.2
+
 # Utilidades estándar (incluidas en Python 3.11)
 # json, hashlib, datetime, pathlib, os, sys — sin instalar

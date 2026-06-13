@@ -221,10 +221,24 @@ def _call_lilly(context_block: str) -> str:
     return response.content[0].text if response.content else ""
 
 
+def _sanitize_output_text(text: str, subject_real: str, chart: dict) -> str:
+    """Reemplaza `subject_real` y `birth_city` en el texto de salida para evitar fugas."""
+    output = text
+    # Reemplazar nombre real (insensible a mayúsculas)
+    if subject_real:
+        output = re.sub(re.escape(subject_real), "[IDENTIDAD OCULTA]", output, flags=re.IGNORECASE)
+
+    # Reemplazar ciudad de nacimiento (insensible a mayúsculas)
+    birth_city = chart.get("birth_city") or chart.get("chart", {}).get("birth_city")
+    if birth_city and isinstance(birth_city, str):
+        output = re.sub(re.escape(birth_city), "[LUGAR OCULTO]", output, flags=re.IGNORECASE)
+
+    return output
+
+
 def _render_bv_md(
     bv_id: str,
     opaque_id: str,
-    subject_real: str,
     rodden: str,
     birth_date: str,
     birth_time: str,
@@ -242,7 +256,6 @@ def _render_bv_md(
 
 > **ID:** {bv_id}
 > **ID opaco:** {opaque_id}
-> **Identidad real:** {subject_real} *(solo para registro interno — no revelar en ejecución del protocolo)*
 > **Fecha del experimento:** {experiment_date}
 > **Estado:** Completado (pendiente verificación manual)
 > **Rodden Rating:** {rodden}
@@ -445,7 +458,8 @@ def main() -> None:
     # 2. Construir contextBlock y llamar a Lilly
     print(f"[BV] Generando lectura doctrinal con {BV_MODEL}...", flush=True)
     context_block = _build_doctrinal_context(chart, opaque_id)
-    lilly_reading = _call_lilly(context_block)
+    lilly_reading_raw = _call_lilly(context_block)
+    lilly_reading = _sanitize_output_text(lilly_reading_raw, args.subject_real, chart)
 
     # 3. Renderizar fichas
     bv_filename = f"{bv_id}_{opaque_id}.md"
@@ -454,7 +468,6 @@ def main() -> None:
     bv_md = _render_bv_md(
         bv_id=bv_id,
         opaque_id=opaque_id,
-        subject_real=args.subject_real,
         rodden=args.rodden,
         birth_date=args.date,
         birth_time=args.time,
