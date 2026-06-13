@@ -1,0 +1,214 @@
+{
+  "subject": "Sigmund Freud",
+  "natal": {
+    "date": "1856-05-06",
+    "time": "18:30",
+    "lat": 49.64,
+    "lon": 18.14,
+    "rodden": "AA"
+  },
+  "relocations": [
+    {
+      "place": "Freiberg, Czechia",
+      "lat": 49.64,
+      "lon": 18.14,
+      "from": "1856-05",
+      "to": "1859-01",
+      "events": [
+        {
+          "date": "1859-01-01",
+          "desc": "La familia Freud dejó Freiberg y se trasladó a Leipzig.",
+          "valence": "0",
+          "domain": "h4",
+          "source": "Wikipedia/biografía"
+        }
+      ]
+    },
+    {
+      "place": "Vienna, Austria",
+      "lat": 48.2,
+      "lon": 16.37,
+      "from": "1860-01",
+      "to": "1938-06",
+      "events": [
+        {
+          "date": "1860-01-01",
+          "desc": "La familia Freud se mudó a Viena, donde Freud creció y se educó.",
+          "valence": "0",
+          "domain": "h4",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1873-01-01",
+          "desc": "Freud se graduó con honores del Leopoldstädter Kommunal-Realgymnasium.",
+          "valence": "+",
+          "domain": "h9",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1876-01-01",
+          "desc": "Freud pasó cuatro semanas en la estación de investigación zoológica de Claus en Trieste.",
+          "valence": "0",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1879-01-01",
+          "desc": "Freud fue llamado a cumplir un año de servicio militar obligatorio.",
+          "valence": "0",
+          "domain": "h1",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1881-03-01",
+          "desc": "Freud se graduó con un MD de la Universidad de Viena.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1882-01-01",
+          "desc": "Freud comenzó su carrera médica en el Hospital General de Viena.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1884-01-01",
+          "desc": "Publicó un artículo influyente sobre los efectos paliativos de la cocaína.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1886-01-01",
+          "desc": "Matrimonio con Martha Bernays.",
+          "valence": "+",
+          "domain": "h7",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1886-09-14",
+          "desc": "Freud se casó con Martha Bernays en una ceremonia civil y religiosa.",
+          "valence": "+",
+          "domain": "h7",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1887-01-01",
+          "desc": "Nacimiento de hijo/a: Mathilde Freud.",
+          "valence": "+",
+          "domain": "h5",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1888-01-01",
+          "desc": "Nacimiento de hijo/a: Mathilde Freud.",
+          "valence": "+",
+          "domain": "h5",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1889-12-06",
+          "desc": "Nacimiento de hijo/a: Martin Freud.",
+          "valence": "+",
+          "domain": "h5",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1891-01-01",
+          "desc": "Publicó su primer libro, 'On Aphasia: A Critical Study'.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1891-02-19",
+          "desc": "Nacimiento de hijo/a: Oliver Freud.",
+          "valence": "+",
+          "domain": "h5",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1892-04-06",
+          "desc": "Nacimiento de hijo/a: Ernst L. Freud.",
+          "valence": "+",
+          "domain": "h5",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1893-04-12",
+          "desc": "Nacimiento de hijo/a: Sophie Freud.",
+          "valence": "+",
+          "domain": "h5",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1895-12-03",
+          "desc": "Nacimiento de hijo/a: Anna Freud.",
+          "valence": "+",
+          "domain": "h5",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1897-12-08",
+          "desc": "Freud fue iniciado en la asociación cultural judía alemana B'nai B'rith.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1899-01-01",
+          "desc": "Publicó 'La interpretación de los sueños', que tuvo un gran impacto en la psicología.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1908-01-01",
+          "desc": "Freud comenzó a ser reconocido como una figura influyente en la psicología moderna.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1930-01-01",
+          "desc": "Premio: Goethe Prize.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1936-06-25",
+          "desc": "Premio: Foreign Member of the Royal Society.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1938-01-01",
+          "desc": "Freud y su familia abandonaron Viena debido a la amenaza nazi.",
+          "valence": "-",
+          "domain": "h4",
+          "source": "Wikipedia/biografía"
+        }
+      ]
+    },
+    {
+      "place": "London, UK",
+      "lat": 51.5,
+      "lon": -0.12,
+      "from": "1938-06",
+      "to": "1939-09",
+      "events": [
+        {
+          "date": "1939-09-23",
+          "desc": "Sigmund Freud falleció en Londres.",
+          "valence": "-",
+          "domain": "h8",
+          "source": "Wikipedia/biografía"
+        }
+      ]
+    }
+  ]
+}

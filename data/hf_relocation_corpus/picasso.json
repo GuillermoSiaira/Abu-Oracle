@@ -1,0 +1,232 @@
+{
+  "subject": "Pablo Picasso",
+  "natal": {
+    "date": "1881-10-25",
+    "time": "23:15",
+    "lat": 36.72,
+    "lon": -4.42,
+    "rodden": "AA"
+  },
+  "relocations": [
+    {
+      "place": "Málaga, Spain",
+      "lat": 36.72,
+      "lon": -4.42,
+      "from": "1881-10",
+      "to": "1891-01",
+      "events": [
+        {
+          "date": "1891-01-01",
+          "desc": "La familia de Picasso se mudó a A Coruña, donde su padre se convirtió en profesor en la Escuela de Bellas Artes.",
+          "valence": "0",
+          "domain": "h4",
+          "source": "Wikipedia/biografía"
+        }
+      ]
+    },
+    {
+      "place": "A Coruña, Spain",
+      "lat": 43.36,
+      "lon": -8.41,
+      "from": "1891-01",
+      "to": "1895-01",
+      "events": [
+        {
+          "date": "1895-01-01",
+          "desc": "La hermana de Picasso, Conchita, murió de difteria, lo que traumatizó al joven artista.",
+          "valence": "-",
+          "domain": "h8",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1895-01-01",
+          "desc": "Después de la muerte de su hermana, la familia se mudó a Barcelona.",
+          "valence": "0",
+          "domain": "h4",
+          "source": "Wikipedia/biografía"
+        }
+      ]
+    },
+    {
+      "place": "Barcelona, Spain",
+      "lat": 41.38,
+      "lon": 2.17,
+      "from": "1895-01",
+      "to": "1904-01",
+      "events": [
+        {
+          "date": "1897-01-01",
+          "desc": "Inicio de estudios en Royal Academy of Fine Arts of San Fernando.",
+          "valence": "0",
+          "domain": "h9",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1900-01-01",
+          "desc": "Picasso realizó su primer viaje a París, donde conoció a su primer amigo parisino, Max Jacob.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1901-01-01",
+          "desc": "Comenzó el Período Azul, caracterizado por pinturas sombrías en tonos azules.",
+          "valence": "0",
+          "domain": "h1",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1901-03-31",
+          "desc": "Se publicó el primer número de la revista 'Arte Joven', que Picasso ayudó a fundar.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1904-01-01",
+          "desc": "Inició el Período Rosa, que se caracteriza por un tono más ligero y el uso de colores cálidos.",
+          "valence": "+",
+          "domain": "h1",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1904-01-01",
+          "desc": "Picasso conoció a Fernande Olivier, quien se convirtió en su amante y musa durante el Período Rosa.",
+          "valence": "+",
+          "domain": "h7",
+          "source": "Wikipedia/biografía"
+        }
+      ]
+    },
+    {
+      "place": "Paris, France",
+      "lat": 48.85,
+      "lon": 2.35,
+      "from": "1904-01",
+      "to": "1946-01",
+      "events": [
+        {
+          "date": "1905-01-01",
+          "desc": "Picasso se convirtió en un favorito de los coleccionistas de arte estadounidenses Leo y Gertrude Stein.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1907-01-01",
+          "desc": "Picasso se unió a una galería de arte en París dirigida por Daniel-Henry Kahnweiler, quien se convirtió en su promotor.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1918-07-12",
+          "desc": "Matrimonio con Fernande Olivier.",
+          "valence": "+",
+          "domain": "h7",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1918-07-12",
+          "desc": "Matrimonio con Olha Khokhlova.",
+          "valence": "+",
+          "domain": "h7",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1918-07-12",
+          "desc": "Matrimonio con Jacqueline Roque.",
+          "valence": "+",
+          "domain": "h7",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1921-02-04",
+          "desc": "Nacimiento de hijo/a: Paulo Picasso.",
+          "valence": "+",
+          "domain": "h5",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1935-09-05",
+          "desc": "Nacimiento de hijo/a: Maya Ruiz-Picasso.",
+          "valence": "+",
+          "domain": "h5",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1937-01-01",
+          "desc": "Picasso pintó 'Guernica', una obra emblemática en respuesta al bombardeo de la ciudad durante la Guerra Civil Española.",
+          "valence": "-",
+          "domain": "h1",
+          "source": "Wikipedia/biografía"
+        }
+      ]
+    },
+    {
+      "place": "Mougins, France",
+      "lat": 43.6,
+      "lon": 6.99,
+      "from": "1946-01",
+      "to": "1973-04",
+      "events": [
+        {
+          "date": "1947-05-15",
+          "desc": "Nacimiento de hijo/a: Claude Picasso.",
+          "valence": "+",
+          "domain": "h5",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1949-04-19",
+          "desc": "Nacimiento de hijo/a: Paloma Ruiz Picasso.",
+          "valence": "+",
+          "domain": "h5",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1961-03-02",
+          "desc": "Matrimonio con Fernande Olivier.",
+          "valence": "+",
+          "domain": "h7",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1961-03-02",
+          "desc": "Matrimonio con Olha Khokhlova.",
+          "valence": "+",
+          "domain": "h7",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1961-03-02",
+          "desc": "Matrimonio con Jacqueline Roque.",
+          "valence": "+",
+          "domain": "h7",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1962-01-01",
+          "desc": "Premio: Lenin Peace Prize.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1971-12-17",
+          "desc": "Premio: honorary doctor of the University of Paris 1 Pantheon-Sorbonne.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1973-04-08",
+          "desc": "Pablo Picasso falleció a los 91 años en Francia.",
+          "valence": "-",
+          "domain": "h8",
+          "source": "Wikipedia/biografía"
+        }
+      ]
+    }
+  ]
+}

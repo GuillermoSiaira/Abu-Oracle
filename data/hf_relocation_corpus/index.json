@@ -1,0 +1,91 @@
+{
+  "subjects": [
+    "einstein",
+    "freud",
+    "gandhi",
+    "picasso",
+    "vangogh",
+    "bowie",
+    "jung",
+    "tesla"
+  ],
+  "n_tramos": 47,
+  "n_eventos": 163,
+  "balance_valencias": {
+    "+": 111,
+    "-": 20,
+    "0": 32
+  },
+  "balance_por_dominio": {
+    "h1": {
+      "+": 8,
+      "-": 4,
+      "0": 3
+    },
+    "h2": {
+      "+": 0,
+      "-": 0,
+      "0": 0
+    },
+    "h3": {
+      "+": 0,
+      "-": 0,
+      "0": 0
+    },
+    "h4": {
+      "+": 1,
+      "-": 2,
+      "0": 15
+    },
+    "h5": {
+      "+": 20,
+      "-": 0,
+      "0": 0
+    },
+    "h6": {
+      "+": 0,
+      "-": 0,
+      "0": 0
+    },
+    "h7": {
+      "+": 19,
+      "-": 1,
+      "0": 0
+    },
+    "h8": {
+      "+": 0,
+      "-": 12,
+      "0": 1
+    },
+    "h9": {
+      "+": 4,
+      "-": 0,
+      "0": 7
+    },
+    "h10": {
+      "+": 57,
+      "-": 0,
+      "0": 3
+    },
+    "h11": {
+      "+": 2,
+      "-": 1,
+      "0": 2
+    },
+    "h12": {
+      "+": 0,
+      "-": 0,
+      "0": 1
+    }
+  },
+  "archivos": {
+    "einstein.json": "a61e9b7125765b222ad0f30bcc19074c2103fb9e2fdc0212ccb220fa4282b116",
+    "freud.json": "9eae881eaf05d5541fadee02fb592c1f4ae96dadd6a4d073dd62f924597e3e0d",
+    "gandhi.json": "2abe6817f46a60283cc020948aae611b758d7ba2187f96315262fa8c78ab34fb",
+    "picasso.json": "ff6938651b9e68a1305edddafac6ac54165a86f9920996f16d648ccd8c1c03e7",
+    "vangogh.json": "85399a7b6e84fc4dda2a710626d5bfff1d7f9ba713ed3eaa2755fdbdb0da6aa5",
+    "bowie.json": "ec0764c4b403c508a2c3bbe3cfd25f597aada7883021fb2bd6ce4f5640aa6c02",
+    "jung.json": "1ebc0c027092c339674d7b1a7aa8e8edfefdaf9625c49fbc6f036e0a5f076c19",
+    "tesla.json": "64fdf8f4adc9c1cb48188ed6425761aa1b5af840f63d1b9d50abcdabf49b11b5"
+  }
+}

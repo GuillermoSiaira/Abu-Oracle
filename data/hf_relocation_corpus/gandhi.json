@@ -1,0 +1,197 @@
+{
+  "subject": "Mohandas Gandhi",
+  "natal": {
+    "date": "1869-10-02",
+    "time": "07:11",
+    "lat": 21.64,
+    "lon": 69.6,
+    "rodden": "AA"
+  },
+  "relocations": [
+    {
+      "place": "Porbandar, India",
+      "lat": 21.64,
+      "lon": 69.6,
+      "from": "1869-10",
+      "to": "1888-09",
+      "events": [
+        {
+          "date": "1883-05-01",
+          "desc": "Gandhi se casó con Kasturbai Gokuldas Kapadia en un matrimonio arreglado.",
+          "valence": "+",
+          "domain": "h7",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1887-11-01",
+          "desc": "Gandhi se graduó de la escuela secundaria en Ahmedabad.",
+          "valence": "+",
+          "domain": "h9",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1888-01-01",
+          "desc": "Gandhi se inscribió en el Samaldas College en Bhavnagar, pero abandonó poco después.",
+          "valence": "0",
+          "domain": "h9",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1888-08-10",
+          "desc": "Gandhi dejó Porbandar para ir a Bombay con el objetivo de estudiar derecho en Londres.",
+          "valence": "0",
+          "domain": "h4",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1888-08-23",
+          "desc": "Nacimiento de hijo/a: Harilal Gandhi.",
+          "valence": "+",
+          "domain": "h5",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1888-09-04",
+          "desc": "Gandhi zarpó hacia Londres para continuar sus estudios de derecho.",
+          "valence": "0",
+          "domain": "h4",
+          "source": "Wikipedia/biografía"
+        }
+      ]
+    },
+    {
+      "place": "London, UK",
+      "lat": 51.5,
+      "lon": -0.12,
+      "from": "1888-09",
+      "to": "1891-06",
+      "events": [
+        {
+          "date": "1889-01-01",
+          "desc": "Gandhi comenzó a asistir a la Universidad de Londres y se inscribió en la Inns of Court School of Law.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        }
+      ]
+    },
+    {
+      "place": "Bombay, India",
+      "lat": 18.96,
+      "lon": 72.82,
+      "from": "1891-06",
+      "to": "1893-04",
+      "events": [
+        {
+          "date": "1892-10-28",
+          "desc": "Nacimiento de hijo/a: Manilal Gandhi.",
+          "valence": "+",
+          "domain": "h5",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1893-01-01",
+          "desc": "Gandhi se trasladó a Sudáfrica para representar a un comerciante indio en un juicio.",
+          "valence": "0",
+          "domain": "h4",
+          "source": "Wikipedia/biografía"
+        }
+      ]
+    },
+    {
+      "place": "Pretoria, South Africa",
+      "lat": -25.74,
+      "lon": 28.18,
+      "from": "1893-04",
+      "to": "1915-01",
+      "events": [
+        {
+          "date": "1897-01-02",
+          "desc": "Nacimiento de hijo/a: Manilal gandhi.",
+          "valence": "+",
+          "domain": "h5",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1900-05-22",
+          "desc": "Nacimiento de hijo/a: Devdas Gandhi.",
+          "valence": "+",
+          "domain": "h5",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1914-01-01",
+          "desc": "Se le otorgó el honorífico 'Mahātmā' en Sudáfrica, que significa 'gran alma'.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1915-01-01",
+          "desc": "Gandhi regresó a India después de vivir 21 años en Sudáfrica.",
+          "valence": "0",
+          "domain": "h4",
+          "source": "Wikipedia/biografía"
+        }
+      ]
+    },
+    {
+      "place": "Ahmedabad, India",
+      "lat": 23.02,
+      "lon": 72.57,
+      "from": "1915-01",
+      "to": "1948-01",
+      "events": [
+        {
+          "date": "1921-01-01",
+          "desc": "Gandhi asumió el liderazgo del Congreso Nacional Indio.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1930-03-12",
+          "desc": "Gandhi lideró la Marcha de la Sal de Dandi, desafiando el impuesto británico sobre la sal.",
+          "valence": "+",
+          "domain": "h11",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1930-12-01",
+          "desc": "Premio: Time Person of the Year.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1942-01-01",
+          "desc": "Gandhi lanzó la campaña 'Quit India' pidiendo el fin del dominio británico.",
+          "valence": "+",
+          "domain": "h11",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1947-08-15",
+          "desc": "India obtuvo su independencia del dominio británico, aunque fue dividida en India y Pakistán.",
+          "valence": "0",
+          "domain": "h11",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1948-01-12",
+          "desc": "Gandhi comenzó una huelga de hambre en Delhi para detener la violencia religiosa tras la partición de India.",
+          "valence": "-",
+          "domain": "h8",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1948-01-30",
+          "desc": "Gandhi fue asesinado por Nathuram Godse durante una reunión de oración en Delhi.",
+          "valence": "-",
+          "domain": "h8",
+          "source": "Wikipedia/biografía"
+        }
+      ]
+    }
+  ]
+}

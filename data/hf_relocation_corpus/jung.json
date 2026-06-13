@@ -1,0 +1,121 @@
+{
+  "subject": "Carl Gustav Jung",
+  "natal": {
+    "date": "1875-07-26",
+    "time": "19:29",
+    "lat": 47.59,
+    "lon": 9.31,
+    "rodden": "AA"
+  },
+  "relocations": [
+    {
+      "place": "Kesswil, Switzerland",
+      "lat": 47.59,
+      "lon": 9.31,
+      "from": "1875-07",
+      "to": "1876-01",
+      "events": []
+    },
+    {
+      "place": "Basel, Switzerland",
+      "lat": 47.55,
+      "lon": 7.59,
+      "from": "1879-01",
+      "to": "1900-01",
+      "events": []
+    },
+    {
+      "place": "Zürich, Switzerland",
+      "lat": 47.37,
+      "lon": 8.54,
+      "from": "1900-01",
+      "to": "1961-06",
+      "events": [
+        {
+          "date": "1900-12-01",
+          "desc": "Jung se mudó a Zürich para comenzar como interno en el hospital psiquiátrico Burghölzli bajo la dirección de Eugen Bleuler.",
+          "valence": "0",
+          "domain": "h4",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1902-01-01",
+          "desc": "Jung estudió con Pierre Janet en París, lo que influyó en su comprensión de los complejos psicológicos.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1903-01-01",
+          "desc": "Publicó su tesis doctoral titulada 'On the Psychology and Pathology of So-Called Occult Phenomena'.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1907-01-01",
+          "desc": "Jung comenzó su amistad y correspondencia con Sigmund Freud, quien lo vio como su sucesor en el psicoanálisis.",
+          "valence": "+",
+          "domain": "h7",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1910-01-01",
+          "desc": "Jung se estableció como una figura influyente en la psicología, desarrollando su propia escuela de psicología analítica.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1913-01-06",
+          "desc": "Ruptura formal de relaciones profesionales y personales con Freud.",
+          "valence": "0",
+          "domain": "h12",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1926-01-01",
+          "desc": "Jung trató al empresario estadounidense Rowland Hazard, influyendo en la formación de Alcohólicos Anónimos.",
+          "valence": "+",
+          "domain": "h1",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1933-01-01",
+          "desc": "Jung se distanció de Freud y el psicoanálisis, lo que marcó una división significativa en su carrera.",
+          "valence": "-",
+          "domain": "h11",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1944-01-01",
+          "desc": "Jung sufrió un colapso físico que lo llevó a reflexionar sobre su vida y su trabajo.",
+          "valence": "-",
+          "domain": "h8",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1944-02-11",
+          "desc": "Infarto de miocardio seguido de embolia pulmonar y estado de coma.",
+          "valence": "0",
+          "domain": "h8",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1953-01-01",
+          "desc": "Publicó 'Psychological Aspects of the Personality', consolidando su influencia en la psicología.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1961-06-06",
+          "desc": "Carl Jung falleció, dejando un legado duradero en la psicología y la psicoterapia.",
+          "valence": "-",
+          "domain": "h8",
+          "source": "Wikipedia/biografía"
+        }
+      ]
+    }
+  ]
+}

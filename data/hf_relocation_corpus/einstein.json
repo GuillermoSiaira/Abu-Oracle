@@ -1,0 +1,319 @@
+{
+  "subject": "Albert Einstein",
+  "natal": {
+    "date": "1879-03-14",
+    "time": "11:30",
+    "lat": 48.4,
+    "lon": 9.99,
+    "rodden": "AA"
+  },
+  "relocations": [
+    {
+      "place": "Ulm, Germany",
+      "lat": 48.4,
+      "lon": 9.99,
+      "from": "1879-03",
+      "to": "1880-06",
+      "events": []
+    },
+    {
+      "place": "Munich, Germany",
+      "lat": 48.13,
+      "lon": 11.58,
+      "from": "1880-06",
+      "to": "1894-06",
+      "events": [
+        {
+          "date": "1888-01-01",
+          "desc": "Inicio de estudios en Luitpold-Gymnasium.",
+          "valence": "0",
+          "domain": "h9",
+          "source": "Wikipedia/biografía"
+        }
+      ]
+    },
+    {
+      "place": "Milan, Italy",
+      "lat": 45.46,
+      "lon": 9.19,
+      "from": "1894-06",
+      "to": "1895-10",
+      "events": [
+        {
+          "date": "1895-01-01",
+          "desc": "Inicio de estudios en old Kantonsschule (Albert Einstein House).",
+          "valence": "0",
+          "domain": "h9",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1895-01-01",
+          "desc": "Einstein se mudó a Suiza, abandonando su ciudadanía alemana al año siguiente.",
+          "valence": "0",
+          "domain": "h4",
+          "source": "Wikipedia/biografía"
+        }
+      ]
+    },
+    {
+      "place": "Aarau, Switzerland",
+      "lat": 47.39,
+      "lon": 8.04,
+      "from": "1895-10",
+      "to": "1896-10",
+      "events": [
+        {
+          "date": "1896-01-01",
+          "desc": "Inicio de estudios en ETH Zurich.",
+          "valence": "0",
+          "domain": "h9",
+          "source": "Wikipedia/biografía"
+        }
+      ]
+    },
+    {
+      "place": "Zürich, Switzerland",
+      "lat": 47.37,
+      "lon": 8.54,
+      "from": "1896-10",
+      "to": "1902-06",
+      "events": [
+        {
+          "date": "1897-01-01",
+          "desc": "Einstein se inscribió en el programa de diploma de enseñanza de matemáticas y física en la escuela politécnica federal en Zúrich.",
+          "valence": "+",
+          "domain": "h9",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1900-01-01",
+          "desc": "Einstein se graduó de la escuela politécnica federal en Zúrich.",
+          "valence": "+",
+          "domain": "h9",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1902-01-01",
+          "desc": "Nacimiento de hijo/a: Lieserl (Einstein).",
+          "valence": "+",
+          "domain": "h5",
+          "source": "Wikipedia/biografía"
+        }
+      ]
+    },
+    {
+      "place": "Bern, Switzerland",
+      "lat": 46.95,
+      "lon": 7.45,
+      "from": "1902-06",
+      "to": "1909-10",
+      "events": [
+        {
+          "date": "1903-01-16",
+          "desc": "Matrimonio con Mileva Marić.",
+          "valence": "+",
+          "domain": "h7",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1903-01-16",
+          "desc": "Matrimonio con Elsa Einstein.",
+          "valence": "+",
+          "domain": "h7",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1904-05-14",
+          "desc": "Nacimiento de hijo/a: Hans Albert Einstein.",
+          "valence": "+",
+          "domain": "h5",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1905-01-01",
+          "desc": "Einstein publicó cuatro artículos fundamentales, incluyendo su teoría del efecto fotoeléctrico y la teoría de la relatividad especial.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        }
+      ]
+    },
+    {
+      "place": "Zürich, Switzerland",
+      "lat": 47.37,
+      "lon": 8.54,
+      "from": "1909-10",
+      "to": "1911-03",
+      "events": [
+        {
+          "date": "1910-07-28",
+          "desc": "Nacimiento de hijo/a: Eduard Einstein.",
+          "valence": "+",
+          "domain": "h5",
+          "source": "Wikipedia/biografía"
+        }
+      ]
+    },
+    {
+      "place": "Prague, Czechia",
+      "lat": 50.07,
+      "lon": 14.43,
+      "from": "1911-03",
+      "to": "1912-08",
+      "events": []
+    },
+    {
+      "place": "Zürich, Switzerland",
+      "lat": 47.37,
+      "lon": 8.54,
+      "from": "1912-08",
+      "to": "1914-04",
+      "events": [
+        {
+          "date": "1914-01-01",
+          "desc": "Einstein se mudó a Berlín para unirse a la Academia Prusiana de Ciencias.",
+          "valence": "0",
+          "domain": "h4",
+          "source": "Wikipedia/biografía"
+        }
+      ]
+    },
+    {
+      "place": "Berlin, Germany",
+      "lat": 52.52,
+      "lon": 13.4,
+      "from": "1914-04",
+      "to": "1933-10",
+      "events": [
+        {
+          "date": "1919-01-01",
+          "desc": "Einstein se casó con Elsa Löwenthal.",
+          "valence": "+",
+          "domain": "h7",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1919-01-01",
+          "desc": "Matrimonio con Elsa Einstein.",
+          "valence": "+",
+          "domain": "h7",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1919-02-14",
+          "desc": "Einstein y Mileva Marić se divorciaron después de haber vivido separados durante cinco años.",
+          "valence": "-",
+          "domain": "h7",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1920-01-01",
+          "desc": "Premio: Barnard Medal for Meritorious Service to Science.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1921-01-01",
+          "desc": "Einstein recibió el Premio Nobel de Física por su descubrimiento de la ley del efecto fotoeléctrico.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1921-01-01",
+          "desc": "Premio: Nobel Prize in Physics.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1921-05-05",
+          "desc": "Premio: Foreign Member of the Royal Society.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1923-01-01",
+          "desc": "Premio: honorary doctor of the University of Madrid Complutense.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1926-01-01",
+          "desc": "Premio: Gold Medal of the Royal Astronomical Society.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1928-01-01",
+          "desc": "Premio: doctor honoris causa from the University of Paris.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1929-01-01",
+          "desc": "Premio: Max Planck Medal.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1933-01-01",
+          "desc": "Einstein emigró a los Estados Unidos debido a la persecución nazi en Alemania.",
+          "valence": "-",
+          "domain": "h4",
+          "source": "Wikipedia/biografía"
+        }
+      ]
+    },
+    {
+      "place": "Princeton, USA",
+      "lat": 40.35,
+      "lon": -74.65,
+      "from": "1933-10",
+      "to": "1955-04",
+      "events": [
+        {
+          "date": "1935-01-01",
+          "desc": "Premio: Franklin Medal.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1939-01-01",
+          "desc": "Einstein firmó una carta al presidente Franklin D. Roosevelt alertando sobre el potencial programa nuclear alemán.",
+          "valence": "0",
+          "domain": "h11",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1942-01-01",
+          "desc": "Premio: Member of the National Academy of Sciences of the United States.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1949-01-01",
+          "desc": "Premio: honorary doctor of the Hebrew University of Jerusalem.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1955-04-18",
+          "desc": "Albert Einstein falleció.",
+          "valence": "-",
+          "domain": "h8",
+          "source": "Wikipedia/biografía"
+        }
+      ]
+    }
+  ]
+}

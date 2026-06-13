@@ -1,0 +1,251 @@
+{
+  "subject": "David Bowie",
+  "natal": {
+    "date": "1947-01-08",
+    "time": "09:00",
+    "lat": 51.5,
+    "lon": -0.12,
+    "rodden": "AA"
+  },
+  "relocations": [
+    {
+      "place": "London, UK",
+      "lat": 51.5,
+      "lon": -0.12,
+      "from": "1947-01",
+      "to": "1974-01",
+      "events": [
+        {
+          "date": "1962-01-01",
+          "desc": "David Bowie formó su primera banda, los Konrads, a la edad de 15 años.",
+          "valence": "0",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1966-01-01",
+          "desc": "Bowie lanzó su primer sencillo bajo el nombre de David Bowie, titulado 'Can't Help Thinking About Me'.",
+          "valence": "0",
+          "domain": "h1",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1969-07-11",
+          "desc": "Bowie alcanzó su primer éxito en el top cinco de la lista de sencillos del Reino Unido con 'Space Oddity'.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1970-03-19",
+          "desc": "Matrimonio con Angela Bowie.",
+          "valence": "+",
+          "domain": "h7",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1970-03-19",
+          "desc": "Matrimonio con Iman.",
+          "valence": "+",
+          "domain": "h7",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1971-05-30",
+          "desc": "Nacimiento de hijo/a: Duncan Jones.",
+          "valence": "+",
+          "domain": "h5",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1972-01-01",
+          "desc": "Bowie se reemergió en la escena musical durante la era glam rock con su alter ego Ziggy Stardust.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        }
+      ]
+    },
+    {
+      "place": "Los Angeles, USA",
+      "lat": 34.05,
+      "lon": -118.24,
+      "from": "1974-01",
+      "to": "1976-01",
+      "events": [
+        {
+          "date": "1975-01-01",
+          "desc": "Bowie logró su primer gran éxito en Estados Unidos con el sencillo 'Fame' y el álbum 'Young Americans'.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1976-01-01",
+          "desc": "Premio: Saturn Award for Best Actor.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1976-01-01",
+          "desc": "Bowie protagonizó la película de culto 'The Man Who Fell to Earth' y lanzó el álbum 'Station to Station'.",
+          "valence": "+",
+          "domain": "h1",
+          "source": "Wikipedia/biografía"
+        }
+      ]
+    },
+    {
+      "place": "Berlin, Germany",
+      "lat": 52.52,
+      "lon": 13.4,
+      "from": "1976-01",
+      "to": "1979-01",
+      "events": [
+        {
+          "date": "1977-01-01",
+          "desc": "Bowie lanzó el álbum 'Low', el primero de tres colaboraciones con Brian Eno que se conocieron como la 'Trilogía de Berlín'.",
+          "valence": "+",
+          "domain": "h1",
+          "source": "Wikipedia/biografía"
+        }
+      ]
+    },
+    {
+      "place": "New York, USA",
+      "lat": 40.71,
+      "lon": -74.0,
+      "from": "1980-01",
+      "to": "2016-01",
+      "events": [
+        {
+          "date": "1980-01-01",
+          "desc": "Bowie tuvo tres éxitos número uno, incluyendo el sencillo 'Ashes to Ashes' y el álbum 'Scary Monsters (and Super Creeps)'.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1983-01-01",
+          "desc": "Bowie alcanzó su mayor éxito comercial en la década de 1980 con el álbum 'Let's Dance'.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1992-04-24",
+          "desc": "Matrimonio con Angela Bowie.",
+          "valence": "+",
+          "domain": "h7",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1992-04-24",
+          "desc": "Matrimonio con Iman.",
+          "valence": "+",
+          "domain": "h7",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1996-01-01",
+          "desc": "Bowie fue incluido en el Salón de la Fama del Rock and Roll.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1997-02-12",
+          "desc": "Premio: star on Hollywood Walk of Fame.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1998-01-01",
+          "desc": "Premio: Grammy Hall of Fame.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "2000-01-01",
+          "desc": "Premio: Commander of the Order of the British Empire.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "2000-08-15",
+          "desc": "Nacimiento de hijo/a: Lexi Jones.",
+          "valence": "+",
+          "domain": "h5",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "2002-01-01",
+          "desc": "Premio: Great Britons.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "2004-01-01",
+          "desc": "Premio: Rolling Stone's 100 Greatest Artists of All Time.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "2004-01-01",
+          "desc": "Bowie se retiró de las giras musicales.",
+          "valence": "-",
+          "domain": "h1",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "2006-01-01",
+          "desc": "Premio: Grammy Lifetime Achievement Award.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "2006-01-01",
+          "desc": "Bowie realizó su última actuación en vivo en un evento benéfico.",
+          "valence": "0",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "2007-01-01",
+          "desc": "Premio: Webby Lifetime Achievement Award.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "2013-01-01",
+          "desc": "Premio: Science Fiction and Fantasy Hall of Fame.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "2013-01-01",
+          "desc": "Bowie regresó de una pausa de diez años en la grabación con el álbum 'The Next Day'.",
+          "valence": "+",
+          "domain": "h1",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "2016-01-10",
+          "desc": "David Bowie falleció dos días después del lanzamiento de su último álbum, 'Blackstar'.",
+          "valence": "-",
+          "domain": "h8",
+          "source": "Wikipedia/biografía"
+        }
+      ]
+    }
+  ]
+}

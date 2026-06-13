@@ -1,0 +1,177 @@
+{
+  "subject": "Nikola Tesla",
+  "natal": {
+    "date": "1856-07-10",
+    "time": "00:00",
+    "lat": 44.56,
+    "lon": 15.31,
+    "rodden": "B"
+  },
+  "relocations": [
+    {
+      "place": "Smiljan, Croatia",
+      "lat": 44.56,
+      "lon": 15.31,
+      "from": "1856-07",
+      "to": "1870-01",
+      "events": [
+        {
+          "date": "1870-01-01",
+          "desc": "Inicio de estudios en Karlovac Gymnasium.",
+          "valence": "0",
+          "domain": "h9",
+          "source": "Wikipedia/biografía"
+        }
+      ]
+    },
+    {
+      "place": "Karlovac, Croatia",
+      "lat": 45.49,
+      "lon": 15.55,
+      "from": "1870-01",
+      "to": "1873-01",
+      "events": []
+    },
+    {
+      "place": "Graz, Austria",
+      "lat": 47.07,
+      "lon": 15.43,
+      "from": "1875-01",
+      "to": "1878-01",
+      "events": [
+        {
+          "date": "1875-01-01",
+          "desc": "Inicio de estudios en Graz University of Technology.",
+          "valence": "0",
+          "domain": "h9",
+          "source": "Wikipedia/biografía"
+        }
+      ]
+    },
+    {
+      "place": "Prague, Czechia",
+      "lat": 50.07,
+      "lon": 14.43,
+      "from": "1880-01",
+      "to": "1881-01",
+      "events": []
+    },
+    {
+      "place": "Budapest, Hungary",
+      "lat": 47.49,
+      "lon": 19.04,
+      "from": "1881-01",
+      "to": "1882-01",
+      "events": []
+    },
+    {
+      "place": "Paris, France",
+      "lat": 48.85,
+      "lon": 2.35,
+      "from": "1882-01",
+      "to": "1884-06",
+      "events": [
+        {
+          "date": "1884-06-01",
+          "desc": "Tesla emigró a los Estados Unidos y comenzó a trabajar en Edison Machine Works en Nueva York.",
+          "valence": "0",
+          "domain": "h4",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1884-06-06",
+          "desc": "Llegada a New York.",
+          "valence": "0",
+          "domain": "h4",
+          "source": "Wikipedia/biografía"
+        }
+      ]
+    },
+    {
+      "place": "New York, USA",
+      "lat": 40.71,
+      "lon": -74.0,
+      "from": "1884-06",
+      "to": "1943-01",
+      "events": [
+        {
+          "date": "1888-01-01",
+          "desc": "Tesla obtuvo patentes para su motor de inducción de corriente alterna, que fueron licenciadas por Westinghouse Electric.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1893-01-01",
+          "desc": "Tesla hizo pronunciamientos sobre la posibilidad de comunicación inalámbrica con sus dispositivos.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1894-01-01",
+          "desc": "Premio: Elliott Cresson Medal.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1895-01-01",
+          "desc": "Tesla realizó experimentos con tubos de descarga eléctrica y comenzó a desarrollar imágenes de rayos X.",
+          "valence": "+",
+          "domain": "h1",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1899-01-01",
+          "desc": "Tesla llevó a cabo experimentos de alta frecuencia y alta tensión en Colorado Springs.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1901-01-01",
+          "desc": "Tesla comenzó la construcción de la Torre Wardenclyffe, un transmisor de comunicación y energía inalámbrica.",
+          "valence": "+",
+          "domain": "h1",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1916-01-01",
+          "desc": "Premio: Edison Medal.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1917-01-01",
+          "desc": "Tesla enfrentó dificultades financieras y vivió en una serie de hoteles en Nueva York.",
+          "valence": "-",
+          "domain": "h1",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1934-01-01",
+          "desc": "Premio: John Scott Award.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1936-01-01",
+          "desc": "Premio: Grand cross of the Order of the White Lion.",
+          "valence": "+",
+          "domain": "h10",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1943-01-07",
+          "desc": "Nikola Tesla falleció en Nueva York.",
+          "valence": "-",
+          "domain": "h8",
+          "source": "Wikipedia/biografía"
+        }
+      ]
+    }
+  ]
+}

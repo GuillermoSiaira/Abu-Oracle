@@ -1,0 +1,138 @@
+{
+  "subject": "Vincent van Gogh",
+  "natal": {
+    "date": "1853-03-30",
+    "time": "11:00",
+    "lat": 51.47,
+    "lon": 4.66,
+    "rodden": "AA"
+  },
+  "relocations": [
+    {
+      "place": "Zundert, Netherlands",
+      "lat": 51.47,
+      "lon": 4.66,
+      "from": "1853-03",
+      "to": "1869-01",
+      "events": []
+    },
+    {
+      "place": "The Hague, Netherlands",
+      "lat": 52.07,
+      "lon": 4.3,
+      "from": "1869-01",
+      "to": "1873-01",
+      "events": []
+    },
+    {
+      "place": "London, UK",
+      "lat": 51.5,
+      "lon": -0.12,
+      "from": "1873-01",
+      "to": "1875-01",
+      "events": []
+    },
+    {
+      "place": "Paris, France",
+      "lat": 48.85,
+      "lon": 2.35,
+      "from": "1875-01",
+      "to": "1876-01",
+      "events": [
+        {
+          "date": "1876-01-01",
+          "desc": "Vincent van Gogh regresó a Inglaterra para trabajar como profesor suplente en una pequeña escuela de internado en Ramsgate.",
+          "valence": "0",
+          "domain": "h4",
+          "source": "Wikipedia/biografía"
+        }
+      ]
+    },
+    {
+      "place": "Nuenen, Netherlands",
+      "lat": 51.47,
+      "lon": 5.55,
+      "from": "1881-01",
+      "to": "1886-02",
+      "events": [
+        {
+          "date": "1881-01-01",
+          "desc": "Van Gogh comenzó a pintar seriamente, impulsado por su interés en el arte.",
+          "valence": "+",
+          "domain": "h1",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1886-01-01",
+          "desc": "Van Gogh se mudó a París, donde conoció a miembros de la vanguardia artística.",
+          "valence": "0",
+          "domain": "h4",
+          "source": "Wikipedia/biografía"
+        }
+      ]
+    },
+    {
+      "place": "Paris, France",
+      "lat": 48.85,
+      "lon": 2.35,
+      "from": "1886-02",
+      "to": "1888-02",
+      "events": [
+        {
+          "date": "1888-02-01",
+          "desc": "Van Gogh se mudó a Arles, Francia, para establecer un retiro artístico y una comuna.",
+          "valence": "+",
+          "domain": "h4",
+          "source": "Wikipedia/biografía"
+        }
+      ]
+    },
+    {
+      "place": "Arles, France",
+      "lat": 43.67,
+      "lon": 4.62,
+      "from": "1888-02",
+      "to": "1889-05",
+      "events": [
+        {
+          "date": "1888-10-01",
+          "desc": "La amistad de Van Gogh con Paul Gauguin terminó tras una confrontación violenta.",
+          "valence": "-",
+          "domain": "h1",
+          "source": "Wikipedia/biografía"
+        },
+        {
+          "date": "1889-01-01",
+          "desc": "Van Gogh pasó tiempo en hospitales psiquiátricos debido a sus episodios psicóticos.",
+          "valence": "-",
+          "domain": "h8",
+          "source": "Wikipedia/biografía"
+        }
+      ]
+    },
+    {
+      "place": "Saint-Rémy, France",
+      "lat": 43.78,
+      "lon": 4.83,
+      "from": "1889-05",
+      "to": "1890-05",
+      "events": []
+    },
+    {
+      "place": "Auvers-sur-Oise, France",
+      "lat": 49.07,
+      "lon": 2.17,
+      "from": "1890-05",
+      "to": "1890-08",
+      "events": [
+        {
+          "date": "1890-07-29",
+          "desc": "Vincent van Gogh murió a los 37 años tras dispararse en el pecho.",
+          "valence": "-",
+          "domain": "h8",
+          "source": "Wikipedia/biografía"
+        }
+      ]
+    }
+  ]
+}
