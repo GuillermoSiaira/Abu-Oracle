@@ -14,10 +14,12 @@ export const ABU_BASE_URL =
 
 export class AbuApiError extends Error {
   status?: number;
+  kind: "network" | "server";
   constructor(message: string, status?: number) {
     super(message);
     this.name = "AbuApiError";
     this.status = status;
+    this.kind = "server"; // Default to server error
   }
 }
 
@@ -43,23 +45,31 @@ export async function runAbuAnalyze(
 
     if (!response.ok) {
       const text = await response.text().catch(() => "");
-      throw new AbuApiError(
+      const error = new AbuApiError(
         `Abu /analyze failed (${response.status}): ${text || response.statusText}`,
         response.status
       );
+      // 'kind' is "server" by default, which is correct here.
+      throw error;
     }
 
     const data = (await response.json()) as AbuAnalyzeResponse;
     console.log("[Abu] Response OK");
     return data;
   } catch (err: any) {
+    // Preservar errores de status HTTP (kind="server"): si los re-envolvemos acá
+    // todo error del engine se reportaría como "network". Solo envolvemos fallos
+    // genuinos de red/parseo (fetch rechaza, TypeError) que NO son AbuApiError.
+    if (err instanceof AbuApiError) throw err;
     console.error("[Abu] Network/Parse error", err);
-    throw new AbuApiError(
+    const apiError = new AbuApiError(
       `Network or parsing error in Abu /analyze: ${String(
         err?.message || err
       )}`,
       0
     );
+    apiError.kind = "network";
+    throw apiError;
   }
 }
 

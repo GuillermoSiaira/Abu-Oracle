@@ -6,6 +6,7 @@ import { useAppStore } from "@/lib/store";
 import { UI } from "@/lib/i18n";
 import { runAbuAnalyze } from "@/services/abu";
 import CityAutocomplete from "./city-autocomplete";
+import { UpgradeModal } from "./UpgradeModal";
 
 export default function BirthDataPanel() {
   const router = useRouter();
@@ -20,6 +21,9 @@ export default function BirthDataPanel() {
     lang,
   } = useAppStore();
   const t = UI[lang];
+
+  const userPlan = useAppStore((s) => s.userPlan);
+  const isPro = userPlan === "genesis" || userPlan === "oracle";
 
   const [nameInput, setNameInput] = useState(userName);
   const [birthDate, setBirthDate] = useState("");
@@ -46,6 +50,7 @@ export default function BirthDataPanel() {
   const [futureLon, setFutureLon] = useState("");
   const [futureDate, setFutureDate] = useState("");
 
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
 
   // Convert local datetime + UTC offset → UTC ISO string "1978-07-06T00:15:00.000Z"
@@ -60,13 +65,34 @@ export default function BirthDataPanel() {
     return new Date(localMs - offsetMs).toISOString();
   }
 
+  const handleFutureToggle = () => {
+    if (isPro) {
+      setShowFuture((v) => !v);
+    } else {
+      setShowUpgradeModal(true);
+    }
+  };
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLocalError(null);
     setError(null);
 
-    if (!birthDate || !birthLat || !birthLon) {
-      setLocalError(t.formErrorRequired);
+    if (!birthLat || !birthLon) {
+      setLocalError(t.formErrorCityRequired);
+      return;
+    }
+
+    let isoDate: string;
+    try {
+      isoDate = buildISODate(birthDate, utcOffset);
+      if (!isoDate) {
+        setLocalError(t.formErrorInvalidDate);
+        return;
+      }
+    } catch (e) {
+      console.error("Error building ISO date", e);
+      setLocalError(t.formErrorInvalidDate);
       return;
     }
 
@@ -78,8 +104,6 @@ export default function BirthDataPanel() {
     // Persist userName if changed
     const trimmedName = nameInput.trim();
     if (trimmedName !== userName) setUserName(trimmedName);
-
-    const isoDate = buildISODate(birthDate, utcOffset);
 
     const birthDataPayload = {
       birthDate: isoDate,
@@ -112,7 +136,13 @@ export default function BirthDataPanel() {
     } catch (err: any) {
       console.error(err);
       setError(err.message || "Error inesperado.");
-      setLocalError(t.formErrorGeneric);
+      if (err.kind === "network") {
+        setLocalError(t.formErrorNetwork);
+      } else if (err.kind === "server") {
+        setLocalError(t.formErrorServer);
+      } else {
+        setLocalError(t.formErrorGeneric);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -246,18 +276,23 @@ export default function BirthDataPanel() {
       <div className="border-t border-slate-700/40 pt-4">
         <button
           type="button"
-          onClick={() => setShowFuture((v) => !v)}
+          onClick={handleFutureToggle}
           className="flex items-center gap-2 text-sm font-semibold text-amber-600 hover:text-amber-700 transition-colors"
         >
-          <span>{showFuture ? "▼" : "▶"}</span>
+          <span>{showFuture && isPro ? "▼" : "▶"}</span>
           {t.formFuture}
+          {!isPro && (
+            <span className="ml-2 rounded-full bg-amber-500/20 px-2 py-0.5 text-xs font-bold text-amber-400">
+              {t.formFuturePro}
+            </span>
+          )}
         </button>
         <p className="text-xs text-gray-500 mt-1">
           {t.formFutureHint}
         </p>
 
-        {showFuture && (
-          <div className="mt-4 space-y-4 p-4 bg-amber-500/5 rounded-lg border border-amber-500/20">
+        {showFuture && isPro && (
+          <div className="mt-4 space-y-4 rounded-lg border border-amber-500/20 bg-amber-500/5 p-4">
             <CityAutocomplete
               label={t.formFutureCity}
               placeholder={t.formFutureCityPlaceholder}
@@ -300,6 +335,13 @@ export default function BirthDataPanel() {
       >
         {t.formSubmit}
       </button>
+
+      <UpgradeModal
+        open={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        title={t.upgradeModalTitle}
+        subtitle={t.upgradeModalSubtitle}
+      />
     </form>
   );
 }

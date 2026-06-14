@@ -61,6 +61,10 @@
     timeline: BiographicalTimeline | null
     /** Datos lunares actuales — fuente única de verdad. Fetch en OracleChat junto al biography. */
     lunarData: LunarData | null
+    /** Plan del usuario (genesis/oracle/monthly/…). Slot designado para el gating
+     * free-tier del formulario. HOY SIN CABLEAR: no se carga desde auth/Firestore
+     * todavía → queda null → isPro=false. Wiring del plan = tarea aparte. */
+    userPlan: string | null
 
     onboardingStage: OnboardingStage
     onboardingData: OnboardingData
@@ -203,6 +207,7 @@
       lillySuggestions: null,
       timeline: null,
       lunarData: null,
+      userPlan: null,
 
       // ---- Estado de onboarding ----
       onboardingStage: "idle",

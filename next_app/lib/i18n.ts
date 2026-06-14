@@ -178,6 +178,7 @@ export const UI: Record<Lang, {
   formResidenceCityHint: string;
   formFuture: string;
   formFutureHint: string;
+  formFuturePro: string;
   formFutureCity: string;
   formFutureCityPlaceholder: string;
   formFutureDate: string;
@@ -185,6 +186,12 @@ export const UI: Record<Lang, {
   formSubmit: string;
   formErrorRequired: string;
   formErrorGeneric: string;
+  upgradeModalTitle: string;
+  upgradeModalSubtitle:string;
+  formErrorInvalidDate: string;
+  formErrorCityRequired: string;
+  formErrorNetwork: string;
+  formErrorServer: string;
 }> = {
   es: {
     tabChart: "Carta Natal",
@@ -274,6 +281,7 @@ export const UI: Record<Lang, {
     formResidenceCityHint: "Se usa para calcular tus tránsitos actuales. Por defecto igual a ciudad natal.",
     formFuture: "Proyección futura (opcional)",
     formFutureHint: "Calculá tu HF en otra ciudad y fecha para explorar relocalización.",
+    formFuturePro: "PRO",
     formFutureCity: "Ciudad objetivo",
     formFutureCityPlaceholder: "¿A dónde querés mudarte?",
     formFutureDate: "Fecha objetivo",
@@ -281,6 +289,12 @@ export const UI: Record<Lang, {
     formSubmit: "Generar Carta Astral",
     formErrorRequired: "Seleccioná una ciudad de nacimiento y una fecha.",
     formErrorGeneric: "Ocurrió un error. Intentalo nuevamente.",
+    upgradeModalTitle: "Función PRO",
+    upgradeModalSubtitle: "La proyección futura requiere un plan de pago.",
+    formErrorInvalidDate: "La fecha de nacimiento es inválida o está incompleta.",
+    formErrorCityRequired: "Por favor, seleccioná una ciudad de nacimiento.",
+    formErrorNetwork: "Error de red. Verificá tu conexión e intentalo de nuevo.",
+    formErrorServer: "El motor astrológico no está disponible. Intentalo más tarde.",
     tpSysArch: "Arquitectura del Sistema",
     tpCoreKernel: "Kernel",
     tpEphemeris: "Efemérides",
@@ -437,6 +451,7 @@ export const UI: Record<Lang, {
     formResidenceCityHint: "Used to calculate your current transits. Defaults to birth city.",
     formFuture: "Future projection (optional)",
     formFutureHint: "Calculate your HF in another city and date to explore relocation.",
+    formFuturePro: "PRO",
     formFutureCity: "Target city",
     formFutureCityPlaceholder: "Where do you want to move?",
     formFutureDate: "Target date",
@@ -444,6 +459,12 @@ export const UI: Record<Lang, {
     formSubmit: "Generate Birth Chart",
     formErrorRequired: "Select a birth city and a date.",
     formErrorGeneric: "An error occurred. Please try again.",
+    upgradeModalTitle: "PRO Feature",
+    upgradeModalSubtitle: "Future projection requires a paid plan.",
+    formErrorInvalidDate: "The birth date is invalid or incomplete.",
+    formErrorCityRequired: "Please select a birth city.",
+    formErrorNetwork: "Network error. Check your connection and try again.",
+    formErrorServer: "The astrological engine is unavailable. Please try again later.",
     tpSysArch: "System Architecture",
     tpCoreKernel: "Kernel",
     tpEphemeris: "Ephemeris",
@@ -600,6 +621,7 @@ export const UI: Record<Lang, {
     formResidenceCityHint: "Usado para calcular seus trânsitos atuais. Padrão igual à cidade natal.",
     formFuture: "Projeção futura (opcional)",
     formFutureHint: "Calcule seu HF em outra cidade e data para explorar relocalização.",
+    formFuturePro: "PRO",
     formFutureCity: "Cidade alvo",
     formFutureCityPlaceholder: "Para onde você quer se mudar?",
     formFutureDate: "Data alvo",
@@ -607,6 +629,12 @@ export const UI: Record<Lang, {
     formSubmit: "Gerar Carta Astral",
     formErrorRequired: "Selecione uma cidade natal e uma data.",
     formErrorGeneric: "Ocorreu um erro. Tente novamente.",
+    upgradeModalTitle: "Recurso PRO",
+    upgradeModalSubtitle: "A projeção futura requer um plano pago.",
+    formErrorInvalidDate: "A data de nascimento é inválida ou está incompleta.",
+    formErrorCityRequired: "Por favor, selecione uma cidade natal.",
+    formErrorNetwork: "Erro de rede. Verifique sua conexão e tente novamente.",
+    formErrorServer: "O motor astrológico não está disponível. Tente novamente mais tarde.",
     tpSysArch: "Arquitetura do Sistema",
     tpCoreKernel: "Kernel",
     tpEphemeris: "Efemérides",
@@ -763,6 +791,7 @@ export const UI: Record<Lang, {
     formResidenceCityHint: "Utilisé pour calculer vos transits actuels. Par défaut égal à la ville de naissance.",
     formFuture: "Projection future (optionnel)",
     formFutureHint: "Calculez votre HF dans une autre ville et date pour explorer la relocalisation.",
+    formFuturePro: "PRO",
     formFutureCity: "Ville cible",
     formFutureCityPlaceholder: "Où souhaitez-vous déménager ?",
     formFutureDate: "Date cible",
@@ -770,6 +799,12 @@ export const UI: Record<Lang, {
     formSubmit: "Générer le Thème Natal",
     formErrorRequired: "Sélectionnez une ville de naissance et une date.",
     formErrorGeneric: "Une erreur s'est produite. Veuillez réessayer.",
+    upgradeModalTitle: "Fonctionnalité PRO",
+    upgradeModalSubtitle: "La projection future nécessite un plan payant.",
+    formErrorInvalidDate: "La date de naissance est invalide ou incomplète.",
+    formErrorCityRequired: "Veuillez sélectionner une ville de naissance.",
+    formErrorNetwork: "Erreur réseau. Vérifiez votre connexion et réessayez.",
+    formErrorServer: "Le moteur astrologique n'est pas disponible. Veuillez réessayer plus tard.",
     tpSysArch: "Architecture du Système",
     tpCoreKernel: "Noyau",
     tpEphemeris: "Éphémérides",

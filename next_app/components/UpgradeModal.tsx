@@ -5,9 +5,11 @@ import { PLANS, openCheckout } from '@/lib/paddle';
 interface UpgradeModalProps {
   open: boolean;
   onClose: () => void;
+  title?: string;
+  subtitle?: string;
 }
 
-export function UpgradeModal({ open, onClose }: UpgradeModalProps) {
+export function UpgradeModal({ open, onClose, title, subtitle }: UpgradeModalProps) {
   if (!open) return null;
 
   return (
@@ -25,10 +27,10 @@ export function UpgradeModal({ open, onClose }: UpgradeModalProps) {
         <div className="mb-6 text-center">
           <div className="mb-2 text-2xl">⟡</div>
           <h2 className="text-lg font-semibold text-slate-100">
-            Consultas gratuitas agotadas
+            {title || "Consultas gratuitas agotadas"}
           </h2>
           <p className="mt-1 text-sm text-slate-400">
-            Elegí un plan para continuar con Lilly
+            {subtitle || "Elegí un plan para continuar con Lilly"}
           </p>
         </div>
 
