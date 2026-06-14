@@ -6,6 +6,7 @@ import os
 import sys
 import logging
 from functools import lru_cache
+from datetime import datetime, timezone, timedelta
 
 from fastapi import Header, Security, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -33,6 +34,17 @@ logger.info(
     f"ENV={os.environ.get('ENV', 'production')} | "
     f"cloud_run={_is_cloud_run}"
 )
+
+# --- Límites por tier (fallback si no está en el doc del usuario) ---
+# Aprobado en SPEC-METER-01 (auditoría Fable)
+DEFAULT_DAILY_LIMITS = {
+    "free": 20,
+    "monthly": 100,
+    "annual": 100,
+    "genesis": 200,
+    "b2b": 1000,
+}
+
 
 security = HTTPBearer()
 
@@ -203,17 +215,56 @@ async def verify_token_or_service_key(
         docs = list(db.collection("users").where("api_key", "==", x_abu_api_key).limit(1).stream())
         if not docs:
             raise HTTPException(status_code=401, detail="API key inválida")
+
+        user_doc_ref = docs[0].reference
         user_data = docs[0].to_dict()
+        user_data["api_key_used"] = x_abu_api_key  # Para endpoint /usage
+
         if not user_data.get("payment_verified", False):
             raise HTTPException(status_code=403, detail="Pago no verificado")
+
+        # 1. Verificar quota mensual (total)
         quota_used = user_data.get("quota_used", 0)
         quota_limit = user_data.get("quota_limit", 100)
         if quota_used >= quota_limit:
-            raise HTTPException(status_code=429, detail=f"Quota excedida ({quota_used}/{quota_limit})")
+            raise HTTPException(status_code=429, detail=f"Quota mensual excedida ({quota_used}/{quota_limit})")
+
+        # 2. Verificar quota diaria (SPEC-METER-01)
+        plan = user_data.get("plan", "free")
+        daily_limit = user_data.get("daily_limit") or DEFAULT_DAILY_LIMITS.get(plan, 20)
+
+        usage_data = user_data.get("usage", {})
+        calls_today = usage_data.get("calls_today", 0)
+        daily_date = usage_data.get("daily_date")
+
+        today_utc_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        is_new_day = daily_date != today_utc_str
+
+        if is_new_day:
+            calls_today = 0
+
+        if calls_today >= daily_limit:
+            now_utc = datetime.now(timezone.utc)
+            midnight_utc = (now_utc + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+            retry_after_seconds = int((midnight_utc - now_utc).total_seconds())
+            raise HTTPException(
+                status_code=429,
+                detail=f"Quota diaria excedida ({calls_today}/{daily_limit})",
+                headers={"Retry-After": str(retry_after_seconds)},
+            )
+
+        # 3. Incrementar contadores (fire-and-forget)
         try:
-            docs[0].reference.update({"quota_used": firestore.Increment(1)})
+            update_payload = {"quota_used": firestore.Increment(1)}
+            if is_new_day:
+                update_payload["usage.daily_date"] = today_utc_str
+                update_payload["usage.calls_today"] = 1
+            else:
+                update_payload["usage.calls_today"] = firestore.Increment(1)
+            user_doc_ref.update(update_payload)
         except Exception as e:
-            logger.warning(f"No se pudo incrementar quota api_key: {e}")
+            logger.warning(f"No se pudo incrementar quota para api_key: {e}")
+
         return user_data
 
     if credentials is None:
