@@ -7,6 +7,7 @@ GET /api/mundana/history      → estadísticas empíricas + eventos representat
 """
 
 from datetime import datetime, timezone
+from typing import Optional
 
 from fastapi import APIRouter, Query
 import swisseph as swe
@@ -18,14 +19,29 @@ router = APIRouter(tags=["mundana"])
 
 
 @router.get("/sky")
-def sky_endpoint():
+def sky_endpoint(
+    date: Optional[str] = Query(
+        default=None,
+        description="Fecha en formato YYYY-MM-DD. Si se omite, usa la fecha y hora actual.",
+    )
+):
     """
-    Posiciones planetarias actuales y configuraciones activas.
+    Posiciones planetarias y configuraciones activas para una fecha dada (o la actual).
 
     Retorna configuraciones mundanas detectadas (conjunciones, oposiciones, stellia)
     con estadísticas empíricas de H_mundana_A cuando están disponibles.
     """
-    return get_current_sky()
+    ref_dt = None
+    if date:
+        try:
+            # Se asume mediodía UTC para una fecha dada, para evitar ambigüedades de zona horaria.
+            ref_dt = datetime.fromisoformat(date).replace(
+                hour=12, minute=0, second=0, microsecond=0, tzinfo=timezone.utc
+            )
+        except ValueError:
+            # Si el formato es inválido, se usa la fecha actual (ref_dt=None)
+            pass
+    return get_current_sky(ref_dt=ref_dt)
 
 
 @router.get("/forecast")

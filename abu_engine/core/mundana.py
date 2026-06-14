@@ -410,11 +410,15 @@ def _detect_mercury_station(positions: dict, prev_positions: dict) -> Optional[d
 # API principal
 # ---------------------------------------------------------------------------
 
-def get_current_sky() -> dict:
+def get_current_sky(ref_dt: Optional[datetime] = None) -> dict:
     """
-    Calcula posiciones planetarias actuales y configuraciones activas.
+    Calcula posiciones planetarias y configuraciones activas para una fecha dada.
+    Si no se provee fecha, usa la actual.
     """
-    now  = datetime.now(timezone.utc)
+    now = ref_dt if ref_dt else datetime.now(timezone.utc)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=timezone.utc)
+
     prev = now - timedelta(days=1)
     positions      = _get_positions(now.year,  now.month,  now.day,  now.hour + now.minute / 60.0)
     prev_positions = _get_positions(prev.year, prev.month, prev.day, prev.hour + prev.minute / 60.0)

@@ -223,31 +223,26 @@ def calculate_dignity(planet_name: str, lon: float, system: str = 'traditional')
     falls       = FALLS_TRADITIONAL       if system == 'traditional' else FALLS_MODERN
 
     sign        = get_sign_name(lon)
-    deg_in_sign = get_degree_in_sign(lon)
 
     # Domicile
     domicile = (rulerships.get(sign) == planet_name)
 
-    # Exaltation — within 5° of exact degree (with wrap-around guard)
+    # Exaltation
     exaltation = False
     if planet_name in exaltations:
-        exalt_sign, exalt_deg = exaltations[planet_name]
+        exalt_sign, _ = exaltations[planet_name]
         if sign == exalt_sign:
-            diff = abs(deg_in_sign - exalt_deg)
-            if diff <= 5 or diff >= 25:
-                exaltation = True
+            exaltation = True
 
     # Detriment
     detriment = (detriments.get(sign) == planet_name)
 
-    # Fall — within 5° of exact degree (with wrap-around guard)
+    # Fall
     fall = False
     if planet_name in falls:
-        fall_sign, fall_deg = falls[planet_name]
+        fall_sign, _ = falls[planet_name]
         if sign == fall_sign:
-            diff = abs(deg_in_sign - fall_deg)
-            if diff <= 5 or diff >= 25:
-                fall = True
+            fall = True
 
     # D4 scoring: domicile+5, exaltation+4, peregrine 0, detriment-4, fall-5
     score = 0
