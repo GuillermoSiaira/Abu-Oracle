@@ -153,3 +153,33 @@ def compute_planet_weights_v7(
         
     return weights
 
+
+# --- V7 N3a (Mutual Reception) ---
+
+SIGNS = [
+    "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
+    "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"
+]
+
+def check_mutual_reception_v7(a_name: str, a_lon: float, b_name: str, b_lon: float) -> bool:
+    """Check if two planets are in mutual reception by domicile or exaltation."""
+    from abu_engine.core.dignities import RULERSHIPS, EXALTATIONS
+    
+    a_sign = SIGNS[int((a_lon % 360) // 30)]
+    b_sign = SIGNS[int((b_lon % 360) // 30)]
+    
+    # Check if A is received by B
+    a_in_b_domicile = (RULERSHIPS.get(a_sign) == b_name)
+    b_exaltation_sign = EXALTATIONS.get(b_name, {}).get("sign") if isinstance(EXALTATIONS.get(b_name), dict) else None
+    a_in_b_exaltation = (a_sign == b_exaltation_sign)
+    a_received_by_b = a_in_b_domicile or a_in_b_exaltation
+    
+    # Check if B is received by A
+    b_in_a_domicile = (RULERSHIPS.get(b_sign) == a_name)
+    a_exaltation_sign = EXALTATIONS.get(a_name, {}).get("sign") if isinstance(EXALTATIONS.get(a_name), dict) else None
+    b_in_a_exaltation = (b_sign == a_exaltation_sign)
+    b_received_by_a = b_in_a_domicile or b_in_a_exaltation
+    
+    return a_received_by_b and b_received_by_a
+
+

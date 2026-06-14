@@ -13,9 +13,10 @@ import itertools
 import math
 
 from .field import aggregate_field
-from .resonance import ASPECTS, SIGMAS, ASPECT_WEIGHTS, GROUP_WEIGHTS, angular_distance_deg, gaussian_resonance, compute_planet_weights_v7
+from .resonance import ASPECTS, SIGMAS, ASPECT_WEIGHTS, GROUP_WEIGHTS, angular_distance_deg, gaussian_resonance, compute_planet_weights_v7, check_mutual_reception_v7
 from .schema_v2 import PLANET_ORDER, DEFAULT_PLANET_WEIGHTS
 from .houses import assign_planet_houses
+from .antiscia import compute_antiscia_score
 
 
 # Normalise lowercase planet names (from house_significators) → Title-case used in angles_deg
@@ -67,6 +68,7 @@ def compute_hf_aspects(
     group_weights: Mapping[str, float] = GROUP_WEIGHTS,
     planet_subset: List[str] | None = None,
     planet_weights: Mapping[str, float] = DEFAULT_PLANET_WEIGHTS,
+    enable_n3a_reception: bool = False,
 ) -> float:
     """Return HF_aspects using HF v4 weighted aggregation.
 
@@ -78,10 +80,11 @@ def compute_hf_aspects(
         planet_subset: Optional list of lowercase planet names (from house_significators).
             If None → all 12 points. If provided → only pairs within the subset.
         planet_weights: Optional per-planet weights (e.g. from HF v7 N1/N2).
+        enable_n3a_reception: Toggle v7 Reception N3a attenuator.
     """
     is_custom_weights = any(w != 1.0 for w in planet_weights.values())
 
-    if planet_subset is None and not is_custom_weights:
+    if planet_subset is None and not is_custom_weights and not enable_n3a_reception:
         agg = aggregate_field(angles_deg, aspects=aspects, sigmas=sigmas,
                               aspect_weights=aspect_weights, group_weights=group_weights)
         return float(agg.get("HF_weighted", 0.0))
@@ -91,8 +94,7 @@ def compute_hf_aspects(
         active = [p for p in _to_title_subset(planet_subset) if p in angles_deg]
     else:
         # ALL points (incl. ASC/MC) — must match aggregate_field exactly so that
-        # at unit weights this path == v6_base. Using PLANET_ORDER here drops the
-        # ASC/MC aspect pairs and breaks the v7 ablation (confound de code-path).
+        # at unit weights this path == v6_base.
         active = [p for p in angles_deg]
 
     if len(active) < 2:
@@ -108,6 +110,13 @@ def compute_hf_aspects(
         for asp_name, asp_angle in aspects.items():
             sigma = sigmas[asp_name]
             weight = aspect_weights.get(asp_name, 1.0)
+            
+            # N3a - Mutual Reception Attenuator
+            if enable_n3a_reception and asp_name in ("square", "opposition"):
+                if a in PLANET_ORDER and b in PLANET_ORDER:
+                    if check_mutual_reception_v7(a, angles_deg[a], b, angles_deg[b]):
+                        weight *= 0.5
+            
             totals[asp_name] += weight * gaussian_resonance(delta, asp_angle, sigma) * pair_weight
 
     hf_harmony = totals.get("sextile", 0.0) + totals.get("trine", 0.0)
@@ -216,6 +225,8 @@ def compute_hf_v3(
     dignities: Optional[Dict[str, str]] = None,
     enable_n1_sect: bool = False,
     enable_n2_dignity: bool = False,
+    enable_n3a_reception: bool = False,
+    enable_n3b_antiscia: bool = False,
 ) -> Dict[str, float]:
     """Compute HF v3 additive score (now using v4 weighted aspects).
 
@@ -229,13 +240,13 @@ def compute_hf_v3(
         dignities: dictionary mapping planet name to traditional dignity string.
         enable_n1_sect: Toggle v7 Sect N1 weights.
         enable_n2_dignity: Toggle v7 Dignity N2 weights.
+        enable_n3a_reception: Toggle v7 Reception N3a attenuator.
+        enable_n3b_antiscia: Toggle v7 Antiscia N3b operator.
 
     Returns a dict with components and hyperparameters.
     """
     
     # Compute combined V7 weights if N1 or N2 is enabled.
-    # If custom planet_weights were passed directly, we use them as base? 
-    # For now, V7 weights override the default 1.0s.
     if enable_n1_sect or enable_n2_dignity:
         derived_weights = compute_planet_weights_v7(
             sect=sect, 
@@ -243,15 +254,19 @@ def compute_hf_v3(
             enable_n1_sect=enable_n1_sect, 
             enable_n2_dignity=enable_n2_dignity
         )
-        # Merge derived_weights with any externally passed planet_weights that are not 1.0
-        # For simplicity, we just use the derived_weights here as they represent W(p)
         active_planet_weights = derived_weights
     else:
         active_planet_weights = planet_weights
 
     hf_aspects = compute_hf_aspects(angles_deg, aspects=aspects, sigmas=sigmas,
                                     aspect_weights=aspect_weights, group_weights=group_weights,
-                                    planet_subset=planet_subset, planet_weights=active_planet_weights)
+                                    planet_subset=planet_subset, planet_weights=active_planet_weights,
+                                    enable_n3a_reception=enable_n3a_reception)
+                                    
+    if enable_n3b_antiscia:
+        active_list = _to_title_subset(planet_subset) if planet_subset is not None else list(angles_deg.keys())
+        antiscia_score = compute_antiscia_score(angles_deg, active_list, active_planet_weights)
+        hf_aspects += antiscia_score
     hf_angles = compute_hf_angles(angles_deg, sigma_angle=sigma_angle,
                                   planet_weights=active_planet_weights, planet_subset=planet_subset)
     # HF_houses NO recibe los pesos v7: el spec (SPEC-HF-V7-01 §2) acota W(p) a
@@ -275,6 +290,8 @@ def compute_hf_v3(
         "planet_subset": planet_subset,
         "n1_enabled": enable_n1_sect,
         "n2_enabled": enable_n2_dignity,
+        "n3a_enabled": enable_n3a_reception,
+        "n3b_enabled": enable_n3b_antiscia,
     }
 
 
