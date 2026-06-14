@@ -18,12 +18,12 @@ import { getAdminDb } from "@/lib/firebase-admin";
 import { getUserIdFromRequest } from "@/lib/get-user-id";
 
 export const DAILY_LIMIT = 50;
-export const FREE_TIER_LIMIT = 15;
+export const FREE_TIER_LIMIT = 7;
 
 export const LIMIT_MESSAGE =
   "Has alcanzado el límite diario de consultas a Lilly. Vuelve mañana.";
 export const FREE_LIMIT_MESSAGE =
-  "Has completado tus 3 consultas gratuitas. Para continuar con Lilly, adquirí acceso Genesis en abu-oracle.com";
+  "Has completado tus 7 consultas gratuitas. Para continuar con Lilly, adquirí acceso Genesis en abu-oracle.com";
 
 export async function checkFreeTierUsage(
   userId: string

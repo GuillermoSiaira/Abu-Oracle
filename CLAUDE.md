@@ -246,8 +246,8 @@ En Cloud Run abu_engine ya tiene `AUTH_ENABLED=true` por defecto — no tocar es
 
 ### Fixes UI + Acceso (2026-04-09) � Free tier + sidebar global + idioma chat
 
-**Free tier 3 consultas (usuarios no pagos)** (`usage-limiter.ts`, routes Lilly)
-- Nuevo `FREE_TIER_LIMIT=3` y `FREE_LIMIT_MESSAGE`.
+**Free tier 7 consultas (usuarios no pagos)** (`usage-limiter.ts`, routes Lilly)
+- `FREE_TIER_LIMIT=7` (de por vida) y `FREE_LIMIT_MESSAGE`. Constante, mensaje y doc alineados (2026-06-14).
 - `applyRateLimit()` ahora aplica free tier lifetime + daily limit solo para pagos.
 - Routes actualizadas: `/api/lilly/screen-open`, `/api/chat`, `/api/lilly/solar-return`.
 
