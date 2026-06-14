@@ -163,7 +163,7 @@ SIGNS = [
 
 def check_mutual_reception_v7(a_name: str, a_lon: float, b_name: str, b_lon: float) -> bool:
     """Check if two planets are in mutual reception by domicile or exaltation."""
-    from abu_engine.core.dignities import RULERSHIPS, EXALTATIONS
+    from core.dignities import RULERSHIPS, EXALTATIONS
     
     a_sign = SIGNS[int((a_lon % 360) // 30)]
     b_sign = SIGNS[int((b_lon % 360) // 30)]

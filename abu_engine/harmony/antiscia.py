@@ -2,7 +2,7 @@
 
 from typing import Mapping, List
 import itertools
-from abu_engine.harmony.resonance import angular_distance_deg
+from .resonance import angular_distance_deg
 
 def compute_antiscia_score(
     angles_deg: Mapping[str, float],
@@ -17,7 +17,7 @@ def compute_antiscia_score(
     total_score = 0.0
     
     # We only consider planet <-> planet
-    from abu_engine.harmony.schema_v2 import PLANET_ORDER
+    from .schema_v2 import PLANET_ORDER
     planets_only = [p for p in active_planets if p in PLANET_ORDER]
     
     for a, b in itertools.combinations(planets_only, 2):
