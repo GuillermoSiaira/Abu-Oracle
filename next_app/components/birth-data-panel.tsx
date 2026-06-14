@@ -23,7 +23,13 @@ export default function BirthDataPanel() {
   const t = UI[lang];
 
   const userPlan = useAppStore((s) => s.userPlan);
-  const isPro = userPlan === "genesis" || userPlan === "oracle";
+  // Planes pagos provisionados (provision-user.ts: genesis/monthly/annual) +
+  // "oracle" (plan futuro). Cualquiera de ellos desbloquea la proyección futura.
+  const isPro =
+    userPlan === "genesis" ||
+    userPlan === "oracle" ||
+    userPlan === "monthly" ||
+    userPlan === "annual";
 
   const [nameInput, setNameInput] = useState(userName);
   const [birthDate, setBirthDate] = useState("");

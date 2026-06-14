@@ -87,6 +87,7 @@
     setLillySuggestions: (s: Array<{ type: string; target: string; label: string }> | null) => void
     setTimeline:   (t: BiographicalTimeline | null) => void
     setLunarData:  (d: LunarData | null) => void
+    setUserPlan:   (plan: string | null) => void
     clearAll: () => void
 
     setOnboardingStage: (stage: OnboardingStage) => void
@@ -278,6 +279,7 @@
 
       setTimeline:  (t) => set({ timeline: t }),
       setLunarData: (d) => set({ lunarData: d }),
+      setUserPlan:  (plan) => set({ userPlan: plan }),
 
       // ---------------------------------------------------
       // ONBOARDING MUTATORS
