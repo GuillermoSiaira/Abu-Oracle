@@ -3,11 +3,14 @@ from __future__ import annotations
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import ContextTypes
 
+import os
+
 import lilly_client
 import subscriber_store
 
 
 SUPPORTED_LANGS = ("es", "en", "fr", "pt")
+ADMIN_TELEGRAM_USER_ID = os.environ.get("ADMIN_TELEGRAM_USER_ID", "")
 
 MESSAGES = {
     "es": {
@@ -237,3 +240,98 @@ async def format_daily_broadcast(lang: str) -> str:
         return _msg(lang, "sky_clear")
     except Exception:
         return _msg(lang, "error")
+
+async def notify_admin_queue(queue_id: str, bot):
+    if not ADMIN_TELEGRAM_USER_ID:
+        return
+    from google.cloud import firestore
+    db = firestore.Client()
+    doc = db.collection("post_queue").document(queue_id).get()
+    if not doc.exists:
+        return
+    data = doc.to_dict()
+    
+    text = f"📝 *Borrador Pendiente*\nConfig: {data.get('configuracion')}\n"
+    for plat, pdata in data.get("posts", {}).items():
+        text += f"\n*{plat.upper()}*:\n`{pdata.get('text')}`\n"
+        
+    keyboard = InlineKeyboardMarkup([
+        [InlineKeyboardButton("✅ Aprobar", callback_data=f"admin_approve:{queue_id}"),
+         InlineKeyboardButton("❌ Rechazar", callback_data=f"admin_reject:{queue_id}")]
+    ])
+    await bot.send_message(chat_id=ADMIN_TELEGRAM_USER_ID, text=text, reply_markup=keyboard, parse_mode="Markdown")
+
+async def callback_admin_approve(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    if str(update.effective_user.id) != ADMIN_TELEGRAM_USER_ID:
+        await query.answer("No autorizado", show_alert=True)
+        return
+    
+    queue_id = query.data.split(":", 1)[1]
+    from google.cloud import firestore
+    db = firestore.Client()
+    doc_ref = db.collection("post_queue").document(queue_id)
+    doc = doc_ref.get()
+    
+    if not doc.exists:
+        await query.answer("Documento no encontrado", show_alert=True)
+        return
+        
+    data = doc.to_dict()
+    if data.get("status") != "pending":
+        status_text = "Aprobado ✅" if data.get("status") in ("approved", "published") else "Rechazado ❌"
+        await query.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton(status_text, callback_data="none")]]))
+        await query.answer("Ya procesado", show_alert=True)
+        return
+
+    # Update to approved immediately to prevent race conditions
+    doc_ref.update({"status": "approved", "approved_by": str(update.effective_user.id), "approved_at": firestore.SERVER_TIMESTAMP})
+    
+    await query.answer("Aprobando y publicando...")
+    await query.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Aprobado ✅ (Publicando...)", callback_data="none")]]))
+    
+    # Do the actual publishing
+    from scripts.mundana.publishers import publish_all
+    
+    results = {}
+    for platform, pdata in data.get("posts", {}).items():
+        content = {"text": pdata.get("text")}
+        if "image_gcs_uri" in pdata:
+            content["image_gcs_uri"] = pdata["image_gcs_uri"]
+            
+        try:
+            res = publish_all(platform, content, lang=data.get("lang", "es"))
+            results[platform] = res
+        except Exception as e:
+            results[platform] = {"status": "error", "detail": str(e)}
+
+    # Mark as published
+    doc_ref.update({"status": "published", "published_at": firestore.SERVER_TIMESTAMP, "publish_errors": results})
+    await query.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Publicado ✅", callback_data="none")]]))
+
+async def callback_admin_reject(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    if str(update.effective_user.id) != ADMIN_TELEGRAM_USER_ID:
+        await query.answer("No autorizado", show_alert=True)
+        return
+    
+    queue_id = query.data.split(":", 1)[1]
+    from google.cloud import firestore
+    db = firestore.Client()
+    doc_ref = db.collection("post_queue").document(queue_id)
+    doc = doc_ref.get()
+    
+    if not doc.exists:
+        await query.answer("Documento no encontrado", show_alert=True)
+        return
+        
+    data = doc.to_dict()
+    if data.get("status") != "pending":
+        status_text = "Aprobado ✅" if data.get("status") in ("approved", "published") else "Rechazado ❌"
+        await query.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton(status_text, callback_data="none")]]))
+        await query.answer("Ya procesado", show_alert=True)
+        return
+        
+    doc_ref.update({"status": "rejected", "approved_by": str(update.effective_user.id), "approved_at": firestore.SERVER_TIMESTAMP})
+    await query.answer("Rechazado")
+    await query.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Rechazado ❌", callback_data="none")]]))

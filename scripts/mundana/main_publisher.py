@@ -143,7 +143,14 @@ def _publish_platforms(
     run_log: list[dict] = []
     first_published: str | None = None
 
+    approval_mode = os.environ.get("APPROVAL_MODE", "direct").lower()
+    telegram_bot_url = os.environ.get("TELEGRAM_BOT_URL", "http://localhost:8000")
+    internal_secret = os.environ.get("INTERNAL_SECRET", "")
+
     for lang in languages:
+        queue_payload = None
+        queue_platforms = []
+
         for platform in platforms:
             print(f"\n[main] Platform: {platform} | Lang: {lang}")
 
@@ -167,31 +174,108 @@ def _publish_platforms(
                 })
                 continue
 
+            if approval_mode == "direct" or platform == "bluesky":
+                try:
+                    result = publish_all(platform, content, lang=lang)
+                    print(f"       Result: {result.get('status')} - {result}")
+                except Exception as exc:
+                    print(f"       ERROR publishing: {exc}")
+                    run_log.append({"platform": platform, "lang": lang, "status": "error_publish", "detail": str(exc)})
+                    continue
+
+                try:
+                    meta = config_for_record or {"type": content.get("config_type", "unknown")}
+                    register_prediction(content["text"], meta, platform=platform)
+                except Exception as exc:
+                    print(f"       Warning: registry failed: {exc}")
+
+                run_log.append({
+                    "platform": platform,
+                    "lang": lang,
+                    "status": result.get("status"),
+                    "style": content.get("style"),
+                    "config_type": content.get("config_type"),
+                    "detail": result,
+                })
+
+                if result.get("status") in ("published", "pending_approval") and first_published is None:
+                    first_published = platform
+            else:
+                import uuid
+                if queue_payload is None:
+                    queue_payload = {
+                        "id": str(uuid.uuid4()),
+                        "created_at": datetime.now(timezone.utc).isoformat(),
+                        "status": "pending",
+                        "cielo_fecha": date.today().isoformat(),
+                        "configuracion": (config_for_record or {}).get("label") or (config_for_record or {}).get("type", "unknown"),
+                        "estilo": content.get("style"),
+                        "lang": lang,
+                        "posts": {},
+                        "doctrina_usada": content.get("doctrina_usada", []),
+                        "approved_by": None,
+                        "approved_at": None,
+                        "published_at": None,
+                        "publish_errors": {}
+                    }
+                
+                post_data = {
+                    "text": content["text"],
+                    "chars": len(content["text"]),
+                }
+                
+                if content.get("image_bytes"):
+                    from google.cloud import storage
+                    bucket_name = os.environ.get("GCS_DRAFTS_BUCKET")
+                    if not bucket_name:
+                        print("       ERROR: GCS_DRAFTS_BUCKET not set. Cannot queue image.")
+                    else:
+                        try:
+                            storage_client = storage.Client()
+                            bucket = storage_client.bucket(bucket_name)
+                            blob_name = f"drafts/{queue_payload['id']}_{platform}.png"
+                            blob = bucket.blob(blob_name)
+                            blob.upload_from_string(content["image_bytes"], content_type="image/png")
+                            post_data["image_gcs_uri"] = f"gs://{bucket_name}/{blob_name}"
+                            print(f"       [queue] Image uploaded to {post_data['image_gcs_uri']}")
+                        except Exception as exc:
+                            print(f"       ERROR uploading image to GCS: {exc}")
+                
+                queue_payload["posts"][platform] = post_data
+                queue_platforms.append(platform)
+                
+                run_log.append({
+                    "platform": platform,
+                    "lang": lang,
+                    "status": "queued",
+                    "style": content.get("style"),
+                    "config_type": content.get("config_type"),
+                    "queue_id": queue_payload["id"]
+                })
+
+        if queue_payload and queue_platforms:
             try:
-                result = publish_all(platform, content, lang=lang)
-                print(f"       Result: {result.get('status')} - {result}")
+                from google.cloud import firestore
+                db = firestore.Client()
+                db.collection("post_queue").document(queue_payload["id"]).set(queue_payload)
+                print(f"       [queue] Document {queue_payload['id']} saved to Firestore post_queue.")
+                
+                notify_url = f"{telegram_bot_url}/admin_notify_queue"
+                resp = requests.post(
+                    notify_url,
+                    json={"queue_id": queue_payload["id"]},
+                    headers={"X-Internal-Secret": internal_secret},
+                    timeout=10
+                )
+                if resp.ok:
+                    print("       [queue] Admin notified via telegram_bot.")
+                else:
+                    print(f"       [queue] Failed to notify admin: {resp.status_code} {resp.text}")
+                    
+                if first_published is None:
+                    first_published = queue_platforms[0]
             except Exception as exc:
-                print(f"       ERROR publishing: {exc}")
-                run_log.append({"platform": platform, "lang": lang, "status": "error_publish", "detail": str(exc)})
-                continue
-
-            try:
-                meta = config_for_record or {"type": content.get("config_type", "unknown")}
-                register_prediction(content["text"], meta, platform=platform)
-            except Exception as exc:
-                print(f"       Warning: registry failed: {exc}")
-
-            run_log.append({
-                "platform": platform,
-                "lang": lang,
-                "status": result.get("status"),
-                "style": content.get("style"),
-                "config_type": content.get("config_type"),
-                "detail": result,
-            })
-
-            if result.get("status") in ("published", "pending_approval") and first_published is None:
-                first_published = platform
+                print(f"       ERROR queueing draft to Firestore/Telegram: {exc}")
 
     return run_log, first_published
 

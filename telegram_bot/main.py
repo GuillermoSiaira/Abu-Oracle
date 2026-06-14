@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 
 from fastapi import FastAPI, Header, HTTPException, Request
+from pydantic import BaseModel
 from telegram import Update
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, MessageHandler, filters
 
@@ -26,6 +27,8 @@ bot_app.add_handler(CommandHandler("chart", handlers.cmd_chart))
 bot_app.add_handler(CommandHandler("setbirth", handlers.cmd_setbirth))
 bot_app.add_handler(CommandHandler("language", handlers.cmd_language))
 bot_app.add_handler(CallbackQueryHandler(handlers.callback_language, pattern=r"^lang:"))
+bot_app.add_handler(CallbackQueryHandler(handlers.callback_admin_approve, pattern=r"^admin_approve:"))
+bot_app.add_handler(CallbackQueryHandler(handlers.callback_admin_reject, pattern=r"^admin_reject:"))
 bot_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handlers.handle_message))
 
 
@@ -80,3 +83,13 @@ async def broadcast(x_internal_secret: str | None = Header(default=None)):
         raise HTTPException(status_code=401, detail="unauthorized")
     result = await run_daily_broadcast()
     return {"ok": True, **result}
+
+class NotifyQueueRequest(BaseModel):
+    queue_id: str
+
+@app.post("/admin_notify_queue")
+async def admin_notify_queue(req: NotifyQueueRequest, x_internal_secret: str | None = Header(default=None)):
+    if not INTERNAL_SECRET or x_internal_secret != INTERNAL_SECRET:
+        raise HTTPException(status_code=401, detail="unauthorized")
+    await handlers.notify_admin_queue(req.queue_id, bot_app.bot)
+    return {"ok": True}

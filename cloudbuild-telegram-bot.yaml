@@ -24,8 +24,8 @@ steps:
       - --platform=managed
       - --allow-unauthenticated
       - --service-account=abu-engine-sa@abu-oracle.iam.gserviceaccount.com
-      - --set-env-vars=ABU_ENGINE_URL=https://abu-engine-455329737285.us-central1.run.app,LILLY_URL=https://app.abu-oracle.com
-      - --set-secrets=TELEGRAM_BOT_TOKEN=telegram-bot-token:latest,INTERNAL_SECRET=telegram-internal-secret:latest
+      - --set-env-vars=ABU_ENGINE_URL=https://abu-engine-455329737285.us-central1.run.app,LILLY_URL=https://app.abu-oracle.com,GCS_DRAFTS_BUCKET=abu-oracle-public-assets
+      - --set-secrets=TELEGRAM_BOT_TOKEN=telegram-bot-token:latest,INTERNAL_SECRET=telegram-internal-secret:latest,TWITTER_API_KEY=twitter-api-key:latest,TWITTER_API_SECRET=twitter-api-secret:latest,TWITTER_ACCESS_TOKEN=twitter-access-token:latest,TWITTER_ACCESS_TOKEN_SECRET=twitter-access-token-secret:latest,IG_ACCESS_TOKEN=ig-access-token:latest,IG_ACCOUNT_ID=ig-account-id:latest
 
 images:
   - gcr.io/abu-oracle/telegram-bot:latest
