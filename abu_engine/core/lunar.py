@@ -140,42 +140,51 @@ def _phase_name(elong: float) -> str:
     return "Waning Crescent"
 
 
+def _crossed_target(e_prev: float, e_cur: float, target: float) -> bool:
+    """
+    True si la elongación cruzó `target` entre dos muestras consecutivas
+    (e_prev → e_cur), siguiendo la elongación cruda que crece ~12°/día.
+
+    - target=0 (Luna Nueva): la elongación envuelve de ~360° a ~0° → e_cur < e_prev.
+    - target=180 (Luna Llena): la elongación cruza 180° de forma creciente.
+    """
+    if target == 0.0:
+        return e_cur < e_prev          # wrap 360°→0°
+    return e_prev < 180.0 <= e_cur     # cruce ascendente de 180°
+
+
 def _find_next_lunation(dt: datetime, target: float) -> datetime:
     """
-    Próxima fecha en que elongation(Moon-Sun) == target (0=Luna Nueva, 180=Luna Llena).
-    Escaneo cada 6h + bisección para precisión ~1 min.
-    Arranca 12h adelante para evitar la posición actual si ya estamos cerca del target.
+    Próxima fecha en que elongation(Moon-Sun) cruza `target`
+    (0=Luna Nueva, 180=Luna Llena).
+
+    Sigue la elongación cruda (monótona creciente que envuelve 360°→0°) y
+    detecta el cruce REAL entre muestras, sin funciones con discontinuidades
+    artificiales ni saltos de 12h. Esto evita: (a) que la Nueva y la Llena
+    devuelvan la misma fecha, y (b) saltearse una lunación inminente (<12h).
     """
     step = 0.25  # días (6 horas)
-    jd = _to_jd(dt) + 0.5  # +12h para saltear posición actual
-
-    # Para target=0 (Luna Nueva), signed_dist tiene un falso cruce de cero en
-    # elongation=180° (Luna Llena) porque (180-0)%360=180 cruza el umbral.
-    # Si la elongación actual es < 180°, saltamos hasta pasarla.
-    if target == 0.0:
-        e_now = _elongation(jd)
-        if e_now < 180.0:
-            # días hasta 180° a velocidad media 13.18°/día + 1 día de margen
-            jd += (180.0 - e_now) / 13.18 + 1.0
-
-    def signed_dist(jd_x: float) -> float:
-        e = _elongation(jd_x)
-        d = (e - target) % 360.0
-        return d if d <= 180.0 else d - 360.0
+    jd = _to_jd(dt)
+    e_prev = _elongation(jd)
 
     # Escaneo hacia adelante — máx 60 días
+    found_lo = None
     for _ in range(60 * 4):
-        d0 = signed_dist(jd)
-        d1 = signed_dist(jd + step)
-        if d0 * d1 <= 0:
+        jd_next = jd + step
+        e_cur = _elongation(jd_next)
+        if _crossed_target(e_prev, e_cur, target):
+            found_lo = jd
             break
-        jd += step
+        jd, e_prev = jd_next, e_cur
 
-    # Bisección — 20 iteraciones → precisión ~0.001° ≈ 5 segundos
-    lo, hi = jd, jd + step
-    for _ in range(20):
+    if found_lo is None:
+        return _from_jd(jd)  # fallback — no debería ocurrir dentro de 60 días
+
+    # Bisección sobre [found_lo, found_lo+step] — 30 iteraciones ≈ 1 segundo
+    lo, hi = found_lo, found_lo + step
+    for _ in range(30):
         mid = (lo + hi) / 2.0
-        if signed_dist(lo) * signed_dist(mid) <= 0:
+        if _crossed_target(_elongation(lo), _elongation(mid), target):
             hi = mid
         else:
             lo = mid
