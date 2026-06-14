@@ -68,3 +68,50 @@ def planet_angular_strengths(
     angularity_mean = float(angularity_sum / len(accum)) if accum else 0.0
     aggregate = {"angularity_sum": angularity_sum, "angularity_mean": angularity_mean}
     return per_planet, aggregate
+
+
+def compute_n3d_angle_aspects(
+    planet_positions: Mapping[str, float],
+    angles_deg: Mapping[str, float],
+    planet_weights: Optional[Mapping[str, float]] = None,
+) -> float:
+    """Compute N3d contribution: aspects from planets to local ASC and MC."""
+    from .resonance import gaussian_resonance
+
+    sigma = 3.0
+    aspects = {
+        "sextile": 60.0,
+        "square": 90.0,
+        "trine": 120.0,
+        "opposition": 180.0
+    }
+    # Pesos N3d explícitos: aspecto armónico al ángulo local favorece (+), tenso
+    # perjudica (−). NO se reusa GROUP_WEIGHTS (w_harmony=w_tension=-1.0, calibrado
+    # para el agregado global donde ambos restan): acá la distinción armónico/tenso
+    # al ángulo es el punto del operador, y W(p) modula fuerza, no valencia.
+    w_h = 1.0
+    w_t = -1.0
+    
+    score = 0.0
+    weights = planet_weights or {}
+    
+    targets = []
+    if "ASC" in angles_deg:
+        targets.append(float(angles_deg["ASC"]) % 360.0)
+    if "MC" in angles_deg:
+        targets.append(float(angles_deg["MC"]) % 360.0)
+        
+    for planet in PLANET_ORDER:
+        if planet not in planet_positions:
+            continue
+        p_lon = float(planet_positions[planet]) % 360.0
+        w = float(weights.get(planet, 1.0))
+        
+        for target_lon in targets:
+            delta = angular_distance_deg(p_lon, target_lon)
+            for asp_name, asp_angle in aspects.items():
+                asp_w = w_h if asp_name in ("sextile", "trine") else w_t
+                res = gaussian_resonance(delta, asp_angle, sigma)
+                score += res * asp_w * w
+                
+    return score

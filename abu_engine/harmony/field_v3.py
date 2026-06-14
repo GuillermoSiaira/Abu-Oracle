@@ -133,6 +133,7 @@ def compute_hf_angles(
     sigma_angle: float = DEFAULT_SIGMA_ANGLE,
     planet_weights: Mapping[str, float] = DEFAULT_PLANET_WEIGHTS,
     planet_subset: List[str] | None = None,
+    enable_n3d_angle_aspects: bool = False,
 ) -> float:
     """Compute angular contribution using proximity to ASC and MC (additive score).
 
@@ -142,6 +143,7 @@ def compute_hf_angles(
         planet_weights: Optional per-planet weights (default 1.0 each).
         planet_subset: Optional lowercase planet names to include. ASC/MC are always
             used as angular targets regardless of this filter.
+        enable_n3d_angle_aspects: Toggle for N3d operator (aspects to local ASC/MC).
     """
     asc = angles_deg.get("ASC")
     mc = angles_deg.get("MC")
@@ -167,6 +169,12 @@ def compute_hf_angles(
         s_mc = gaussian_strength(delta_mc, sigma_angle)
 
         total += w * (s_asc + s_mc)
+
+    if enable_n3d_angle_aspects:
+        from .angularity import compute_n3d_angle_aspects
+        # Extract subset of positions for active planets
+        pos = {p: angles_deg[p] for p in active_titles}
+        total += compute_n3d_angle_aspects(pos, angles_deg, planet_weights)
 
     return float(total)
 
@@ -227,6 +235,7 @@ def compute_hf_v3(
     enable_n2_dignity: bool = False,
     enable_n3a_reception: bool = False,
     enable_n3b_antiscia: bool = False,
+    enable_n3d_angle_aspects: bool = False,
 ) -> Dict[str, float]:
     """Compute HF v3 additive score (now using v4 weighted aspects).
 
@@ -242,6 +251,7 @@ def compute_hf_v3(
         enable_n2_dignity: Toggle v7 Dignity N2 weights.
         enable_n3a_reception: Toggle v7 Reception N3a attenuator.
         enable_n3b_antiscia: Toggle v7 Antiscia N3b operator.
+        enable_n3d_angle_aspects: Toggle v7 Aspects to angles N3d operator.
 
     Returns a dict with components and hyperparameters.
     """
@@ -268,7 +278,8 @@ def compute_hf_v3(
         antiscia_score = compute_antiscia_score(angles_deg, active_list, active_planet_weights)
         hf_aspects += antiscia_score
     hf_angles = compute_hf_angles(angles_deg, sigma_angle=sigma_angle,
-                                  planet_weights=active_planet_weights, planet_subset=planet_subset)
+                                  planet_weights=active_planet_weights, planet_subset=planet_subset,
+                                  enable_n3d_angle_aspects=enable_n3d_angle_aspects)
     # HF_houses NO recibe los pesos v7: el spec (SPEC-HF-V7-01 §2) acota W(p) a
     # aspectos + angularidad; las casas se mantienen como v6 (preregistro).
     hf_houses = compute_hf_houses(angles_deg, cusps=cusps, house_weights=house_weights,
@@ -292,6 +303,7 @@ def compute_hf_v3(
         "n2_enabled": enable_n2_dignity,
         "n3a_enabled": enable_n3a_reception,
         "n3b_enabled": enable_n3b_antiscia,
+        "n3d_enabled": enable_n3d_angle_aspects,
     }
 
 
