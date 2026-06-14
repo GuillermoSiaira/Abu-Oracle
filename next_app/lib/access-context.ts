@@ -45,12 +45,37 @@ export async function getAccessContext(req: Request): Promise<AccessContext> {
 
   const operatorUid = process.env.OPERATOR_UID;
   if (operatorUid && userId === operatorUid) {
+    let providerChoice: LlmProvider | undefined;
+
+    // Operator can choose provider. Precedence: query param > body > env > default.
+    try {
+      const url = new URL(req.url);
+      const queryProvider = url.searchParams.get('provider');
+      if (queryProvider === 'anthropic' || queryProvider === 'gemini') {
+        providerChoice = queryProvider;
+      }
+    } catch (e) { /* ignore URL parsing errors */ }
+
+    if (!providerChoice) {
+      try {
+        const body = await req.clone().json();
+        if (body.providerChoice === 'anthropic' || body.providerChoice === 'gemini') {
+          providerChoice = body.providerChoice;
+        }
+      } catch (e) { /* ignore body parsing errors */ }
+    }
+
+    const envProvider = process.env.LILLY_OPERATOR_PROVIDER;
+    const provider: LlmProvider =
+      providerChoice ||
+      (envProvider === 'anthropic' || envProvider === 'gemini' ? envProvider : 'gemini');
+
     return {
       userId,
       plan: 'genesis',
       paying: true,
       allowed: true,
-      provider: 'anthropic',
+      provider,
     };
   }
 
@@ -84,7 +109,7 @@ export async function getAccessContext(req: Request): Promise<AccessContext> {
       userId,
       plan,
       paying: true,
-      provider: 'anthropic',
+      provider: 'gemini',
       ...result,
     };
   }
