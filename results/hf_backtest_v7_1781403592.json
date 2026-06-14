@@ -1,0 +1,145 @@
+{
+  "meta": {
+    "hf_version": "v7_ablation",
+    "seed": 42,
+    "timestamp": "2026-06-14T02:19:52.290202+00:00",
+    "limitations": [
+      "(a) Spatial corpus N1-N3b operators are constant per subject, so delta is a low-power between-subjects effect.",
+      "(b) Temporal split test measures generalization, but v6 base saw it during calibration. Only spatial is purely held-out."
+    ]
+  },
+  "arms": {
+    "v6_base": {
+      "temporal": {
+        "train": {
+          "pearson": 0.05058749245621733,
+          "rank_biserial": -0.0888354272476164,
+          "p_value": 0.1755563381205293,
+          "n": 304
+        },
+        "test": {
+          "pearson": 0.11282083204193871,
+          "rank_biserial": -0.14058355437665782,
+          "p_value": 0.13229010284750825,
+          "n": 142
+        }
+      },
+      "spatial": {
+        "hit_rate": 0.5267175572519084,
+        "n_events": 131,
+        "baseline_rate": 0.5,
+        "mean_permutation_p_value": 0.5112322791712104
+      }
+    },
+    "v6+N1": {
+      "temporal": {
+        "train": {
+          "pearson": 0.04937499977517492,
+          "rank_biserial": -0.08847901630580068,
+          "p_value": 0.17652526538544705,
+          "n": 304
+        },
+        "test": {
+          "pearson": 0.10480589243253483,
+          "rank_biserial": -0.13461538461538458,
+          "p_value": 0.14272481681640947,
+          "n": 142
+        }
+      },
+      "spatial": {
+        "hit_rate": 0.5267175572519084,
+        "n_events": 131,
+        "baseline_rate": 0.5,
+        "mean_permutation_p_value": 0.5121046892039257
+      }
+    },
+    "v6+N1+N2": {
+      "temporal": {
+        "train": {
+          "pearson": 0.05099049866273598,
+          "rank_biserial": -0.09204312572395978,
+          "p_value": 0.16698815636090097,
+          "n": 304
+        },
+        "test": {
+          "pearson": 0.10796300850715908,
+          "rank_biserial": -0.13925729442970813,
+          "p_value": 0.13456222627866216,
+          "n": 142
+        }
+      },
+      "spatial": {
+        "hit_rate": 0.5190839694656488,
+        "n_events": 131,
+        "baseline_rate": 0.5,
+        "mean_permutation_p_value": 0.5077426390403489
+      }
+    },
+    "v6+N1+N2+N3a": {
+      "temporal": {
+        "train": {
+          "pearson": 0.05355531357471553,
+          "rank_biserial": -0.0940033859039473,
+          "p_value": 0.1618871282791794,
+          "n": 304
+        },
+        "test": {
+          "pearson": 0.11052675399980177,
+          "rank_biserial": -0.14522546419098137,
+          "p_value": 0.12454659399709572,
+          "n": 142
+        }
+      },
+      "spatial": {
+        "hit_rate": 0.5190839694656488,
+        "n_events": 131,
+        "baseline_rate": 0.5,
+        "mean_permutation_p_value": 0.5077426390403489
+      }
+    },
+    "v6+N1+N2+N3a+N3b": {
+      "temporal": {
+        "train": {
+          "pearson": 0.061537621347289025,
+          "rank_biserial": -0.10416109774570081,
+          "p_value": 0.13709685378271502,
+          "n": 304
+        },
+        "test": {
+          "pearson": 0.1070586157616872,
+          "rank_biserial": -0.11273209549071628,
+          "p_value": 0.18563764827910434,
+          "n": 142
+        }
+      },
+      "spatial": {
+        "hit_rate": 0.5190839694656488,
+        "n_events": 131,
+        "baseline_rate": 0.5,
+        "mean_permutation_p_value": 0.5077426390403489
+      }
+    },
+    "v7_full": {
+      "temporal": {
+        "train": {
+          "pearson": 0.046883385717235916,
+          "rank_biserial": -0.06406486679141055,
+          "p_value": 0.250735903756607,
+          "n": 304
+        },
+        "test": {
+          "pearson": 0.07359343102419748,
+          "rank_biserial": -0.02586206896551735,
+          "p_value": 0.41953557645865003,
+          "n": 142
+        }
+      },
+      "spatial": {
+        "hit_rate": 0.4732824427480916,
+        "n_events": 131,
+        "baseline_rate": 0.5,
+        "mean_permutation_p_value": 0.5214830970556161
+      }
+    }
+  }
+}
