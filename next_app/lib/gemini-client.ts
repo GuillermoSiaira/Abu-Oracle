@@ -67,6 +67,11 @@ export async function completeLillyGemini(
       systemInstruction: system,
       maxOutputTokens: maxTokens,
       temperature: 0.7,
+      // Gemini 2.5 usa "thinking" tokens que consumen el presupuesto de salida,
+      // dejando la respuesta truncada (se corta a media frase) o vacía (rutas con
+      // maxTokens chico → error "Los astros tardan"). Desactivado: todo el budget
+      // va a la respuesta visible.
+      thinkingConfig: { thinkingBudget: 0 },
     },
     contents: messages.map((m) => ({
       role: m.role,
