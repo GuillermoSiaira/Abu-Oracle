@@ -1,7 +1,9 @@
 import { GoogleGenAI } from '@google/genai';
 import type { LillyResult } from './lilly-complete';
 
-export const GEMINI_FLASH_MODEL = 'gemini-2.0-flash';
+// Vertex (us-central1) solo tiene la familia 2.5 habilitada en este proyecto;
+// gemini-2.0-flash da 404. Env-var-driven para cambiar sin rebuild.
+export const GEMINI_FLASH_MODEL = process.env.LILLY_GEMINI_MODEL || 'gemini-2.5-flash';
 
 type GeminiMessage = {
   role: 'user' | 'model';
