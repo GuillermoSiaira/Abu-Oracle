@@ -13,6 +13,7 @@ steps:
       - --build-arg=NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=abu-oracle.firebaseapp.com
       - --build-arg=NEXT_PUBLIC_FIREBASE_PROJECT_ID=abu-oracle
       - --build-arg=NEXT_PUBLIC_APP_URL=https://app.abu-oracle.com
+      - --build-arg=NEXT_PUBLIC_OPERATOR_UID=xJhOVmVFRUXoRBRGK6mJWyMeZOu1
       - -t
       - gcr.io/abu-oracle/abu-oracle-app:latest
       - ./next_app
