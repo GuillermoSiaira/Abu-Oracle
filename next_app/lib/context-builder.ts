@@ -234,6 +234,19 @@ export interface ActiveContext {
 
 // ── formatLunarContext ────────────────────────────────────────────────────────
 
+/** Calcula "en N días" desde ahora. Empty string si ya pasó. Server-side: Date.now() es UTC. */
+const daysUntil = (isoStr: string): string => {
+  if (!isoStr) return '';
+  try {
+    const target = new Date(isoStr.length === 10 ? `${isoStr}T00:00:00Z` : isoStr);
+    const diff = Math.round((target.getTime() - Date.now()) / 86_400_000);
+    if (diff < 0)  return '';
+    if (diff === 0) return ' · hoy';
+    if (diff === 1) return ' · mañana';
+    return ` · en ${diff} días`;
+  } catch { return ''; }
+};
+
 /**
  * Formatea datos del endpoint /api/astro/lunar para inyección en contextBlock.
  * Omite líneas cuyos valores sean null/undefined — never injects empty fields.
@@ -245,19 +258,6 @@ export function formatLunarContext(lunarData: any): string {
   const fmtDate = (iso: string): string => (iso ?? '').slice(0, 10);
   const fmtHouse = (sign: string, house: number | null | undefined): string =>
     house ? `${sign} · Casa ${house} natal` : sign;
-
-  /** Calcula "en N días" desde ahora. Empty string si ya pasó. Server-side: Date.now() es UTC. */
-  const daysUntil = (isoStr: string): string => {
-    if (!isoStr) return '';
-    try {
-      const target = new Date(isoStr.length === 10 ? `${isoStr}T00:00:00Z` : isoStr);
-      const diff = Math.round((target.getTime() - Date.now()) / 86_400_000);
-      if (diff < 0)  return '';
-      if (diff === 0) return ' · hoy';
-      if (diff === 1) return ' · mañana';
-      return ` · en ${diff} días`;
-    } catch { return ''; }
-  };
 
   const phase = lunarData.phase;
   if (phase?.name) {
@@ -645,7 +645,7 @@ export function assembleContextBlock(
       if (g.passes.length === 1) {
         const p = g.passes[0];
         lines.push(
-          `- ${g.transit_planet} ${g.aspect} ${g.natal_planet} natal · exacto: ${p.exact_date}${p.is_active ? " [activo]" : ""}`
+          `- ${g.transit_planet} ${g.aspect} ${g.natal_planet} natal · exacto: ${p.exact_date}${p.is_active ? " [activo]" : ""}${daysUntil(p.exact_date)}`
         );
       } else {
         // Tránsito multi-paso — muestra ventana completa + cada paso
@@ -657,7 +657,7 @@ export function assembleContextBlock(
         for (let i = 0; i < g.passes.length; i++) {
           const p = g.passes[i];
           lines.push(
-            `  Paso ${i + 1}: ${p.exact_date}${p.is_active ? " [activo]" : ""}`
+            `  Paso ${i + 1}: ${p.exact_date}${p.is_active ? " [activo]" : ""}${daysUntil(p.exact_date)}`
           );
         }
       }
