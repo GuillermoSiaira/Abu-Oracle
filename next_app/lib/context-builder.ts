@@ -57,7 +57,7 @@ function _natalLunarPhase(planets: NatalContext["planets"]): { name: string; pct
  * cierran en una ventana de 30 días.
  * Devuelve el bloque de texto para Lilly, o null si no hay convergencia.
  */
-function _detectConvergence(timeline: BiographicalTimeline): string | null {
+function _detectConvergence(timeline: BiographicalTimeline, lang: string): string | null {
   const activeProf = timeline.profections.find(p => p.is_active);
   const activeFird = timeline.firdaria.find(f => f.is_active);
   if (!activeProf || !activeFird) return null;
@@ -76,7 +76,7 @@ function _detectConvergence(timeline: BiographicalTimeline): string | null {
   const windowEnd   = new Date(Math.max(profEnd, firdEnd)).toISOString().slice(0, 10);
   const transitDesc = activeSlowTransits
     .slice(0, 2)
-    .map(t => `${t.transit_planet} ${t.aspect} ${t.natal_planet}`)
+    .map(t => `${localizePlanet(t.transit_planet, lang)} ${t.aspect} ${localizePlanet(t.natal_planet, lang)}`)
     .join(", ");
 
   const activeIdx = timeline.profections.findIndex(p => p.is_active);
@@ -86,7 +86,7 @@ function _detectConvergence(timeline: BiographicalTimeline): string | null {
   const lines = [
     "VENTANA DE CONVERGENCIA",
     `${windowStart} — ${windowEnd}`,
-    `Cambio de profección a ${nextHouse} · Cierre Firdaria ${activeFird.minor_planet}/${activeFird.major_planet} · ${transitDesc}`,
+    `Cambio de profección a ${nextHouse} · Cierre Firdaria ${localizePlanet(activeFird.minor_planet, lang)}/${localizePlanet(activeFird.major_planet, lang)} · ${transitDesc}`,
     "Tres técnicas convergen en este período.",
   ];
   return lines.join("\n");
@@ -111,6 +111,30 @@ function _dignityStr(d: any): string {
 /** Capitaliza primera letra para display. */
 function _cap(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+const _PLANETS_ES: Record<string, string> = {
+  Sun: "Sol", Moon: "Luna", Mercury: "Mercurio", Venus: "Venus", Mars: "Marte",
+  Jupiter: "Júpiter", Saturn: "Saturno", Uranus: "Urano", Neptune: "Neptuno", Pluto: "Plutón",
+  "North Node": "Nodo Norte", "South Node": "Nodo Sur"
+};
+const _PLANETS_PT: Record<string, string> = {
+  Sun: "Sol", Moon: "Lua", Mercury: "Mercúrio", Venus: "Vênus", Mars: "Marte",
+  Jupiter: "Júpiter", Saturn: "Saturno", Uranus: "Urano", Neptune: "Netuno", Pluto: "Plutão",
+  "North Node": "Nodo Norte", "South Node": "Nodo Sul"
+};
+const _PLANETS_FR: Record<string, string> = {
+  Sun: "Soleil", Moon: "Lune", Mercury: "Mercure", Venus: "Vénus", Mars: "Mars",
+  Jupiter: "Jupiter", Saturn: "Saturne", Uranus: "Uranus", Neptune: "Neptune", Pluto: "Pluton",
+  "North Node": "Nœud Nord", "South Node": "Nœud Sud"
+};
+
+export function localizePlanet(name: string, lang: string): string {
+  if (name === "ASC" || name === "MC" || name === "—" || !name) return name;
+  if (lang === "es") return _PLANETS_ES[name] ?? name;
+  if (lang === "pt") return _PLANETS_PT[name] ?? name;
+  if (lang === "fr") return _PLANETS_FR[name] ?? name;
+  return name;
 }
 
 /** Mapea el nivel de densidad a una etiqueta legible. */
@@ -234,16 +258,63 @@ export interface ActiveContext {
 
 // ── formatLunarContext ────────────────────────────────────────────────────────
 
-/** Calcula "en N días" desde ahora. Empty string si ya pasó. Server-side: Date.now() es UTC. */
+/** Marca temporal relativa a hoy. Pasado se marca EXPLÍCITO para que el modelo
+ *  no hable de un tránsito ya ocurrido como si fuera futuro. Server-side: Date.now() es UTC. */
 const daysUntil = (isoStr: string): string => {
   if (!isoStr) return '';
   try {
     const target = new Date(isoStr.length === 10 ? `${isoStr}T00:00:00Z` : isoStr);
     const diff = Math.round((target.getTime() - Date.now()) / 86_400_000);
-    if (diff < 0)  return '';
+    if (diff < 0) {
+      const ago = -diff;
+      return ago === 1 ? ' · YA OCURRIÓ (ayer)' : ` · YA OCURRIÓ (hace ${ago} días)`;
+    }
     if (diff === 0) return ' · hoy';
     if (diff === 1) return ' · mañana';
     return ` · en ${diff} días`;
+  } catch { return ''; }
+};
+
+/** Convierte una diferencia de días en unidades humanas (días, meses, ~años). */
+const _humanDeltaRaw = (diffDays: number): string => {
+  const abs = Math.abs(diffDays);
+  if (abs < 45) return `${abs} días`;
+  if (abs < 730) return `${Math.round(abs / 30)} meses`;
+  return `~${Math.round(abs / 365)} años`;
+};
+
+/** Formatea fechas con humanDelta indicando futuro/pasado. */
+const humanDelta = (isoStr: string): string => {
+  if (!isoStr) return '';
+  try {
+    const target = new Date(isoStr.length === 10 ? `${isoStr}T00:00:00Z` : isoStr);
+    const diff = Math.round((target.getTime() - Date.now()) / 86_400_000);
+    if (diff === 0) return 'hoy';
+    if (diff === 1) return 'mañana';
+    if (diff < 0) return `hace ${_humanDeltaRaw(diff)}`;
+    return `en ${_humanDeltaRaw(diff)}`;
+  } catch { return ''; }
+};
+
+/** Determina el estado temporal de un tránsito o paso en ventana. */
+const transitTemporal = (ingress: string, egress: string, exact: string): string => {
+  if (!exact) return '';
+  const iStr = ingress || exact;
+  const eStr = egress || exact;
+  try {
+    const tStart = new Date(iStr.length === 10 ? `${iStr}T00:00:00Z` : iStr).getTime();
+    const tEnd = new Date(eStr.length === 10 ? `${eStr}T00:00:00Z` : eStr).getTime();
+    const now = Date.now();
+    const dEnd = Math.round((tEnd - now) / 86_400_000);
+    const dStart = Math.round((tStart - now) / 86_400_000);
+
+    if (dEnd < 0) {
+      return ` · YA OCURRIÓ (${humanDelta(exact)}) [usar PASADO]`;
+    }
+    if (dStart <= 0 && dEnd >= 0) {
+      return ` · EN CURSO (exacto: ${exact}) [usar PRESENTE]`;
+    }
+    return ` · COMIENZA ${humanDelta(iStr)} (exacto: ${exact}) [usar FUTURO]`;
   } catch { return ''; }
 };
 
@@ -510,17 +581,17 @@ export function assembleContextBlock(
   // Ángulos
   lines.push("ÁNGULOS");
   lines.push(
-    `ASC: ${natal.asc.sign} ${natal.asc.deg.toFixed(1)}° · Señor: ${natal.asc.lord} (${_cap(natal.asc.lord_dignity)})`
+    `ASC: ${natal.asc.sign} ${natal.asc.deg.toFixed(1)}° · Señor: ${localizePlanet(natal.asc.lord, lang)} (${_cap(natal.asc.lord_dignity)})`
   );
   lines.push(
-    `MC:  ${natal.mc.sign} ${natal.mc.deg.toFixed(1)}°  · Señor: ${natal.mc.lord} (${_cap(natal.mc.lord_dignity)})`
+    `MC:  ${natal.mc.sign} ${natal.mc.deg.toFixed(1)}°  · Señor: ${localizePlanet(natal.mc.lord, lang)} (${_cap(natal.mc.lord_dignity)})`
   );
   lines.push(`Casa 1 = ${natal.house_1_sign} — ancla de identidad.`);
   lines.push("");
 
   // Secta
   lines.push("SECTA");
-  lines.push(`Carta ${natal.sect} · Maestro de secta: ${natal.sect_master}`);
+  lines.push(`Carta ${natal.sect} · Maestro de secta: ${localizePlanet(natal.sect_master, lang)}`);
   lines.push("");
 
   // Planetas
@@ -528,7 +599,7 @@ export function assembleContextBlock(
   for (const p of natal.planets) {
     const retro = p.retrograde ? " ℞" : "";
     lines.push(
-      `${p.name} · ${p.sign} ${p.deg.toFixed(1)}° · Casa ${p.house} · ${_cap(p.dignity)}${retro}`
+      `${localizePlanet(p.name, lang)} · ${p.sign} ${p.deg.toFixed(1)}° · Casa ${p.house} · ${_cap(p.dignity)}${retro}`
     );
   }
   lines.push("");
@@ -545,7 +616,7 @@ export function assembleContextBlock(
     lines.push("ASPECTOS NATALES (orbe < 3°)");
     for (const a of natal.aspects) {
       const app = a.applying ? " ↑" : "";
-      lines.push(`${a.planet_a} ${a.type} ${a.planet_b} · orbe ${a.orb.toFixed(1)}°${app}`);
+      lines.push(`${localizePlanet(a.planet_a, lang)} ${a.type} ${localizePlanet(a.planet_b, lang)} · orbe ${a.orb.toFixed(1)}°${app}`);
     }
     lines.push("");
   }
@@ -555,16 +626,17 @@ export function assembleContextBlock(
   const f = natal.lots.fortuna;
   const s = natal.lots.spirit;
   if (f.sign !== "—") {
-    lines.push(`Fortuna: ${f.sign} ${f.deg.toFixed(1)}° · Casa ${f.house} · Señor: ${f.lord}`);
+    lines.push(`Fortuna: ${f.sign} ${f.deg.toFixed(1)}° · Casa ${f.house} · Señor: ${localizePlanet(f.lord, lang)}`);
   }
   if (s.sign !== "—") {
-    lines.push(`Espíritu: ${s.sign} ${s.deg.toFixed(1)}° · Casa ${s.house} · Señor: ${s.lord}`);
+    lines.push(`Espíritu: ${s.sign} ${s.deg.toFixed(1)}° · Casa ${s.house} · Señor: ${localizePlanet(s.lord, lang)}`);
   }
   lines.push("");
 
   // ╔══ LÍNEA DE TIEMPO ══════════════════════════════════════════════════════╗
   lines.push(SEP);
   lines.push("LÍNEA DE TIEMPO");
+  lines.push("Tránsitos marcados [usar PASADO] ya ocurrieron · [usar PRESENTE] están en curso · [usar FUTURO] aún no comienzan — respetá el tiempo verbal y la distancia indicada.");
   lines.push(SEP);
   lines.push("");
 
@@ -574,7 +646,7 @@ export function assembleContextBlock(
     lines.push("PROFECCIÓN ACTIVA");
     lines.push(`Año ${activeProf.year_of_life} · ${activeProf.date_start} → ${activeProf.date_end}`);
     lines.push(
-      `Casa ${activeProf.house} (${activeProf.sign}) · Señor del año: ${activeProf.lord} · Dignidad: ${_cap(activeProf.lord_dignity)}`
+      `Casa ${activeProf.house} (${activeProf.sign}) · Señor del año: ${localizePlanet(activeProf.lord, lang)} · Dignidad: ${_cap(activeProf.lord_dignity)}`
     );
 
     const activeIdx = timeline.profections.findIndex(p => p.is_active);
@@ -582,7 +654,7 @@ export function assembleContextBlock(
     if (nextProf) {
       lines.push("");
       lines.push("PROFECCIÓN SIGUIENTE");
-      lines.push(`Casa ${nextProf.house} (${nextProf.sign}) · Señor: ${nextProf.lord} · desde ${nextProf.date_start}`);
+      lines.push(`Casa ${nextProf.house} (${nextProf.sign}) · Señor: ${localizePlanet(nextProf.lord, lang)} · desde ${nextProf.date_start}`);
     }
     lines.push("");
   }
@@ -596,15 +668,15 @@ export function assembleContextBlock(
       ?? activeFird.date_start;
 
     lines.push("FIRDARIA");
-    lines.push(`Mayor: ${activeFird.major_planet} · activa desde ${majorStart}`);
+    lines.push(`Mayor: ${localizePlanet(activeFird.major_planet, lang)} · activa desde ${majorStart}`);
     lines.push(
-      `Menor activa: ${activeFird.minor_planet} · ${activeFird.date_start} → ${activeFird.date_end}`
+      `Menor activa: ${localizePlanet(activeFird.minor_planet, lang)} · ${activeFird.date_start} → ${activeFird.date_end}`
     );
 
     const activeIdx = timeline.firdaria.findIndex(f => f.is_active);
     const nextFird  = timeline.firdaria[activeIdx + 1];
     if (nextFird) {
-      lines.push(`Siguiente menor: ${nextFird.minor_planet} · desde ${nextFird.date_start}`);
+      lines.push(`Siguiente menor: ${localizePlanet(nextFird.minor_planet, lang)} · desde ${nextFird.date_start}`);
     }
     lines.push("");
   }
@@ -645,19 +717,19 @@ export function assembleContextBlock(
       if (g.passes.length === 1) {
         const p = g.passes[0];
         lines.push(
-          `- ${g.transit_planet} ${g.aspect} ${g.natal_planet} natal · exacto: ${p.exact_date}${p.is_active ? " [activo]" : ""}${daysUntil(p.exact_date)}`
+          `- ${localizePlanet(g.transit_planet, lang)} ${g.aspect} ${localizePlanet(g.natal_planet, lang)} natal${p.is_active ? " [activo]" : ""}${transitTemporal(p.ingress_date, p.egress_date, p.exact_date)}`
         );
       } else {
         // Tránsito multi-paso — muestra ventana completa + cada paso
         const first = g.passes[0].ingress_date || g.passes[0].exact_date;
         const last  = g.passes[g.passes.length - 1].egress_date || g.passes[g.passes.length - 1].exact_date;
         lines.push(
-          `- ${g.transit_planet} ${g.aspect} ${g.natal_planet} natal · ${g.passes.length} pasos · ventana: ${first} → ${last}${activeTag}`
+          `- ${localizePlanet(g.transit_planet, lang)} ${g.aspect} ${localizePlanet(g.natal_planet, lang)} natal · ${g.passes.length} pasos · ventana: ${first} → ${last}${activeTag}`
         );
         for (let i = 0; i < g.passes.length; i++) {
           const p = g.passes[i];
           lines.push(
-            `  Paso ${i + 1}: ${p.exact_date}${p.is_active ? " [activo]" : ""}${daysUntil(p.exact_date)}`
+            `  Paso ${i + 1}: ${p.exact_date}${p.is_active ? " [activo]" : ""}${transitTemporal(p.ingress_date, p.egress_date, p.exact_date)}`
           );
         }
       }
@@ -666,7 +738,7 @@ export function assembleContextBlock(
   }
 
   // Ventana de convergencia (si aplica)
-  const convergence = _detectConvergence(timeline);
+  const convergence = _detectConvergence(timeline, lang);
   if (convergence) {
     lines.push(convergence);
     lines.push("");
