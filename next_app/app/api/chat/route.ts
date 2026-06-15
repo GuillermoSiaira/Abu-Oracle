@@ -137,10 +137,9 @@ export async function POST(req: Request) {
 
     if (ctx.provider === 'gemini') {
       model = GEMINI_FLASH_MODEL;
-      // For chat, the systemBlocks are already constructed; pass the last user message as block
-      // toGeminiMessages handles the full messages array
+      const system = systemBlocks.map(b => b.text).join('\n\n');
       result = await completeLillyGemini(
-        LILLY_SYSTEM_PROMPT,
+        system,
         toGeminiMessages(messages, ''),
         MAX_TOKENS,
       );

@@ -133,9 +133,10 @@ export async function POST(req: Request) {
 
     if (ctx.provider === 'gemini') {
       model = GEMINI_FLASH_MODEL;
+      const system = `${LILLY_SYSTEM_PROMPT}\n\n${block}`;
       result = await completeLillyGemini(
-        LILLY_SYSTEM_PROMPT,
-        toGeminiMessages(messages ?? [], block),
+        system,
+        toGeminiMessages(messages ?? [], ''),
         2048,
       );
     } else {
