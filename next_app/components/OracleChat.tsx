@@ -32,6 +32,7 @@ import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAppStore } from "@/lib/store";
+import { useAuth } from '@/lib/auth-context';
 import { Send, Terminal } from "lucide-react";
 import { UI } from '@/lib/i18n';
 import { getAbuAuthHeaders } from '@/lib/abu-auth';
@@ -129,6 +130,26 @@ export default function OracleChat() {
   // true until getRecentHistory confirms exchanges > 0 or summary exists
   const [isNewUser, setIsNewUser] = useState<boolean>(true);
   const [showUpgrade, setShowUpgrade] = useState(false);
+
+  const { user } = useAuth();
+  const isOperator = user?.uid === process.env.NEXT_PUBLIC_OPERATOR_UID;
+  type Provider = 'gemini' | 'anthropic';
+  const [operatorProvider, setOperatorProvider] = useState<Provider>('gemini');
+
+  useEffect(() => {
+    if (isOperator) {
+      const storedProvider = localStorage.getItem('operatorProvider');
+      if (storedProvider === 'gemini' || storedProvider === 'anthropic') {
+        setOperatorProvider(storedProvider as Provider);
+      }
+    }
+  }, [isOperator]);
+
+  useEffect(() => {
+    if (isOperator) {
+      localStorage.setItem('operatorProvider', operatorProvider);
+    }
+  }, [operatorProvider, isOperator]);
 
   // Evita doble inicialización en React.StrictMode
   const initialized = useRef(false);
@@ -295,6 +316,7 @@ export default function OracleChat() {
           timeline:   timeline  ?? undefined,
           lunarData:  lunarData ?? undefined,
           messages,
+          providerChoice: operatorProvider,
         }),
       });
       if (!res.ok) {
@@ -386,6 +408,7 @@ export default function OracleChat() {
         birthData: birthData ?? undefined,
         timeline:  timeline ?? undefined,
         messages,
+        providerChoice: operatorProvider,
       }),
     })
       .then((res) => {
@@ -468,6 +491,7 @@ export default function OracleChat() {
           timeline:   timeline   ?? undefined,
           lunarData:  lunarData  ?? undefined,
           lang,
+          providerChoice: operatorProvider,
         })
       });
 
@@ -516,7 +540,32 @@ export default function OracleChat() {
           <Terminal className="w-3 h-3" />
           Oracle Interface
         </h2>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
+          {isOperator && (
+            <div className="flex items-center text-xs font-mono gap-2">
+              <span className="text-slate-500">Modelo:</span>
+              <button
+                onClick={() => setOperatorProvider('gemini')}
+                className={`px-2 py-0.5 rounded-sm transition-colors ${
+                  operatorProvider === 'gemini'
+                    ? 'bg-amber-500/15 text-amber-400'
+                    : 'text-slate-400 hover:bg-slate-800'
+                }`}
+              >
+                Gemini
+              </button>
+              <button
+                onClick={() => setOperatorProvider('anthropic')}
+                className={`px-2 py-0.5 rounded-sm transition-colors ${
+                  operatorProvider === 'anthropic'
+                    ? 'bg-amber-500/15 text-amber-400'
+                    : 'text-slate-400 hover:bg-slate-800'
+                }`}
+              >
+                Claude
+              </button>
+            </div>
+          )}
           <div className="flex items-center gap-1 bg-green-900/20 px-1.5 py-0.5 rounded border border-green-900/30">
             <div className="w-1 h-1 rounded-full bg-green-500 animate-pulse"></div>
             <span className="text-[9px] text-green-400 font-mono">ONLINE</span>
