@@ -25,7 +25,7 @@
  */
 
 import { getAdminDb } from "@/lib/firebase-admin";
-import { getAnthropicClient } from "@/lib/anthropic-client";
+import { completeLillyGemini, toGeminiMessages } from "@/lib/gemini-client";
 
 // ── Config ────────────────────────────────────────────────────────────────────
 
@@ -151,20 +151,15 @@ export async function summarizeIfNeeded(userId: string): Promise<void> {
       .join("\n\n---\n\n");
 
     // Generate summary
-    const client = getAnthropicClient();
-    const result = await client.messages.create({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 512,
-      system:
-        "Eres un archivista astrológico. Resume el historial de conversación entre el usuario y Lilly " +
+    const systemInstruction = "Eres un archivista astrológico. Resume el historial de conversación entre el usuario y Lilly " +
         "(su intérprete astrológica) en 3-6 frases densas. Preserva: temas consultados, insights clave, " +
         "preguntas del usuario, preferencias expresadas, eventos biográficos mencionados. " +
-        "Escribe en español, primera persona plural ('conversamos sobre...'). Sin saludos ni conclusiones.",
-      messages: [{ role: "user", content: exchangeLines }],
-    });
+        "Escribe en español, primera persona plural ('conversamos sobre...'). Sin saludos ni conclusiones.";
+    
+    const geminiMsgs = toGeminiMessages([{ role: "user", content: exchangeLines }], "");
+    const result = await completeLillyGemini(systemInstruction, geminiMsgs, 512);
 
-    const summaryText =
-      result.content[0]?.type === "text" ? result.content[0].text : "";
+    const summaryText = result.text ?? "";
     if (!summaryText) return;
 
     // Fetch existing summary to prepend
