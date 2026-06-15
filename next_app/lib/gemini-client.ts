@@ -36,7 +36,21 @@ export function toGeminiMessages(
       content: typeof m.content === 'string' ? m.content : JSON.stringify(m.content),
     }));
 
-  converted.push({ role: 'user', content: finalUserMessage });
+  // Solo agregar el mensaje final si tiene contenido (evita input vacío).
+  if (finalUserMessage && finalUserMessage.trim()) {
+    converted.push({ role: 'user', content: finalUserMessage });
+  }
+
+  // Gemini rechaza input vacío ("Model input cannot be empty"). En eventos
+  // reactivos sin mensajes previos, garantizar un turno de usuario mínimo;
+  // el contexto real (carta + memoria) ya va en el system prompt.
+  if (converted.length === 0) {
+    converted.push({
+      role: 'user',
+      content: 'Interpretá el contexto astrológico provisto con precisión doctrinal.',
+    });
+  }
+
   return converted;
 }
 
