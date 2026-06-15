@@ -41,18 +41,23 @@ export function toGeminiMessages(
     converted.push({ role: 'user', content: finalUserMessage });
   }
 
-  // Gemini rechaza input vacío ("Model input cannot be empty"). En eventos
-  // reactivos sin mensajes previos, garantizar un turno de usuario mínimo;
-  // el contexto real (carta + memoria) ya va en el system prompt.
-  if (converted.length === 0) {
+  // Gemini necesita que `contents` TERMINE en un turno 'user' (si no, devuelve
+  // vacío: no sabe a qué responder). En eventos reactivos tras una conversación,
+  // messages termina en un turno 'model' (la última respuesta de Lilly) y el
+  // mensaje final va vacío → habría que cerrar con un turno 'user'. También cubre
+  // el caso sin mensajes. El contexto real (carta + selección) ya va en el system.
+  const last = converted[converted.length - 1];
+  if (!last || last.role !== 'user') {
     converted.push({
       role: 'user',
-      content: 'Interpretá el contexto astrológico provisto con precisión doctrinal.',
+      content: 'Interpretá la selección actual del nativo descrita en el CONTEXTO ACTIVO, con precisión doctrinal.',
     });
   }
 
   return converted;
 }
+
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export async function completeLillyGemini(
   system: string,
@@ -61,32 +66,86 @@ export async function completeLillyGemini(
 ): Promise<LillyResult> {
   const client = getGeminiClient();
 
-  const response = await client.models.generateContent({
-    model: GEMINI_FLASH_MODEL,
-    config: {
-      systemInstruction: system,
-      maxOutputTokens: maxTokens,
-      temperature: 0.7,
-      // Gemini 2.5 usa "thinking" tokens que consumen el presupuesto de salida,
-      // dejando la respuesta truncada (se corta a media frase) o vacía (rutas con
-      // maxTokens chico → error "Los astros tardan"). Desactivado: todo el budget
-      // va a la respuesta visible.
-      thinkingConfig: { thinkingBudget: 0 },
-    },
-    contents: messages.map((m) => ({
-      role: m.role,
-      parts: [{ text: m.content }],
-    })),
-  });
+  let accumulatedText = '';
+  let inputTokens = 0;
+  let outputTokens = 0;
+  let continuations = 0;
+  const MAX_CONTINUATIONS = 3;
+  let retryEmptyDone = false;
 
-  const usage = response.usageMetadata ?? {};
+  const currentContents = messages.map((m) => ({
+    role: m.role,
+    parts: [{ text: m.content }],
+  }));
+
+  async function attemptCall(): Promise<any> {
+    const backoff = [1000, 2000, 4000];
+    for (let attempt = 0; attempt <= backoff.length; attempt++) {
+      try {
+        return await client.models.generateContent({
+          model: GEMINI_FLASH_MODEL,
+          config: {
+            systemInstruction: system,
+            maxOutputTokens: maxTokens,
+            temperature: 0.7,
+            thinkingConfig: { thinkingBudget: 0 },
+          },
+          contents: currentContents,
+        });
+      } catch (err: any) {
+        if (attempt < backoff.length && (err?.status === 429 || err?.status === 503)) {
+          await delay(backoff[attempt]);
+          continue;
+        }
+        throw err;
+      }
+    }
+  }
+
+  while (continuations <= MAX_CONTINUATIONS) {
+    const response = await attemptCall();
+    
+    const usage = response.usageMetadata ?? {};
+    if (continuations === 0) {
+      inputTokens = usage.promptTokenCount ?? 0;
+    }
+    outputTokens += usage.candidatesTokenCount ?? 0;
+
+    const text = response.text ?? '';
+    if (text) accumulatedText += text;
+
+    const candidate = response.candidates?.[0];
+    const finishReason = candidate?.finishReason;
+
+    if (!accumulatedText) {
+      if (finishReason === 'SAFETY' || finishReason === 'RECITATION') {
+        accumulatedText = 'No puedo desarrollar esa lectura en este momento.';
+        break;
+      }
+      if (!retryEmptyDone) {
+        retryEmptyDone = true;
+        continue;
+      } else {
+        accumulatedText = 'No puedo desarrollar esa lectura en este momento.';
+        break;
+      }
+    }
+
+    if (finishReason === 'MAX_TOKENS' && continuations < MAX_CONTINUATIONS && text) {
+      currentContents.push({ role: 'model', parts: [{ text }] });
+      currentContents.push({ role: 'user', parts: [{ text: 'Continúa.' }] });
+      continuations++;
+    } else {
+      break;
+    }
+  }
 
   return {
-    text: response.text ?? '',
+    text: accumulatedText || 'No puedo desarrollar esa lectura en este momento.',
     usage: {
-      input_tokens: usage.promptTokenCount ?? 0,
-      output_tokens: usage.candidatesTokenCount ?? 0,
-      continuations: 0,
+      input_tokens: inputTokens,
+      output_tokens: outputTokens,
+      continuations: continuations,
     },
   };
 }
