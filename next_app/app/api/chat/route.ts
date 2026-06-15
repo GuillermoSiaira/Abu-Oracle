@@ -38,7 +38,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     eventType = body.eventType ?? eventType;
-    const { messages, context, session_id, timeline, lunarData: clientLunarData, lang: bodyLang } = body;
+    const { messages, context, session_id, timeline, lunarData: clientLunarData, lang: bodyLang, isDemo } = body;
 
     if (!messages?.length) {
       return NextResponse.json({ error: "No messages provided" }, { status: 400 });
@@ -49,7 +49,7 @@ export async function POST(req: Request) {
     if (!ctx.allowed) return rateLimitResponse(ctx);
     userId = ctx.userId ?? null;
     console.log("[chat-memory] userId:", userId);
-    const memoryCtx = userId ? await getRecentHistory(userId) : null;
+    const memoryCtx = (userId && !isDemo) ? await getRecentHistory(userId) : null;
     const memoryBlock = memoryCtx ? formatMemoryForPrompt(memoryCtx) : '';
 
     // Extract abuData and birthData from the existing context shape

@@ -93,11 +93,12 @@ export async function POST(req: Request) {
       timeline,
       lunarData: clientLunarData,
       messages,
+      isDemo,
     } = body;
 
     // ── Memoria biográfica + detección de usuario nuevo ──────────────────────
     userId = await getUserIdFromRequest(req);
-    const memoryCtx = userId ? await getRecentHistory(userId) : null;
+    const memoryCtx = (userId && !isDemo) ? await getRecentHistory(userId) : null;
     const memoryBlock = memoryCtx ? formatMemoryForPrompt(memoryCtx) : '';
 
     // ── Welcome message for first-time users — no LLM call, no rate limit ────
@@ -209,6 +210,13 @@ export async function POST(req: Request) {
       } catch {
         // If JSON is malformed, suggestions stay empty — not fatal
       }
+    }
+
+    if (!text) {
+      text = rawText.trim();
+    }
+    if (!text) {
+      text = "Bienvenido a la exploración de tu carta astral. ¿Qué área de tu vida te gustaría investigar hoy?";
     }
 
     logLillyUsage('screen-open', model, usage, ctx.userId);

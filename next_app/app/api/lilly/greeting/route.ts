@@ -21,6 +21,14 @@ const FALLBACK = { isNewUser: true, lastTopic: null };
 
 export async function GET(req: Request): Promise<NextResponse> {
   try {
+    const { searchParams } = new URL(req.url);
+    const isDemo = searchParams.get('isDemo') === 'true';
+
+    // If it's a demo chart, do not load the logged-in user's memory
+    if (isDemo) {
+      return NextResponse.json(FALLBACK);
+    }
+
     const userId = await getUserIdFromRequest(req);
 
     // Unauthenticated — treat as new user (dev local / public access)

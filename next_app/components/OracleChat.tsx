@@ -127,9 +127,9 @@ export default function OracleChat() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [activeEntry, setActiveEntry] = useState<EntryKey | null>(null);
-  // true until getRecentHistory confirms exchanges > 0 or summary exists
   const [isNewUser, setIsNewUser] = useState<boolean>(true);
   const [showUpgrade, setShowUpgrade] = useState(false);
+  const [upgradeTitle, setUpgradeTitle] = useState<string>("");
 
   const { user } = useAuth();
   const isOperator = user?.uid === process.env.NEXT_PUBLIC_OPERATOR_UID;
@@ -162,7 +162,7 @@ export default function OracleChat() {
 
   // Store global (NO asumir tipos internos)
   // @ts-ignore
-  const { abuData, birthData, lang, pendingLillyEvent, setPendingLillyEvent, setLastLillyEvent, setLillySuggestions, setTimeline, timeline, lunarData, setLunarData } = useAppStore();
+  const { abuData, birthData, lang, isDemo, pendingLillyEvent, setPendingLillyEvent, setLastLillyEvent, setLillySuggestions, setTimeline, timeline, lunarData, setLunarData } = useAppStore();
   const t = UI[lang as keyof typeof UI] ?? UI.es;
   const pathname = usePathname();
   const isChartPage = pathname === '/chart';
@@ -247,7 +247,7 @@ export default function OracleChat() {
 
       // --- Greeting: determinar Estado A (usuario nuevo) o B (usuario que regresa) ---
       getAbuAuthHeaders()
-        .then(headers => fetch('/api/lilly/greeting', { headers }))
+        .then(headers => fetch(`/api/lilly/greeting?isDemo=${Boolean(isDemo)}`, { headers }))
         .then(res => res.ok ? res.json() : Promise.resolve({ isNewUser: true, lastTopic: null }))
         .then(data => setIsNewUser(data.isNewUser ?? true))
         .catch(() => setIsNewUser(true));
@@ -316,11 +316,16 @@ export default function OracleChat() {
           timeline:   timeline  ?? undefined,
           lunarData:  lunarData ?? undefined,
           messages,
+          isDemo,
           providerChoice: operatorProvider,
         }),
       });
       if (!res.ok) {
-        if (res.status === 429) { setShowUpgrade(true); return; }
+        if (res.status === 429) { 
+          try { const errData = await res.json(); setUpgradeTitle(errData.error || "Límite alcanzado"); } catch {}
+          setShowUpgrade(true); 
+          return; 
+        }
       }
       const data = await res.json();
       const text: string = data.response || '> ✦ *Los astros tardan un momento en alinearse. Intentá de nuevo en unos segundos.*';
@@ -408,12 +413,17 @@ export default function OracleChat() {
         birthData: birthData ?? undefined,
         timeline:  timeline ?? undefined,
         messages,
+        isDemo,
         providerChoice: operatorProvider,
       }),
     })
-      .then((res) => {
+      .then(async (res) => {
         if (!res.ok) {
-          if (res.status === 429) { setShowUpgrade(true); return null; }
+          if (res.status === 429) { 
+            try { const errData = await res.json(); setUpgradeTitle(errData.error || "Límite alcanzado"); } catch {}
+            setShowUpgrade(true); 
+            return null; 
+          }
         }
         return res.json();
       })
@@ -491,12 +501,17 @@ export default function OracleChat() {
           timeline:   timeline   ?? undefined,
           lunarData:  lunarData  ?? undefined,
           lang,
+          isDemo,
           providerChoice: operatorProvider,
         })
       });
 
       if (!res.ok) {
-        if (res.status === 429) { setShowUpgrade(true); return; }
+        if (res.status === 429) { 
+          try { const errData = await res.json(); setUpgradeTitle(errData.error || "Límite alcanzado"); } catch {}
+          setShowUpgrade(true); 
+          return; 
+        }
         throw new Error("Connection error");
       }
 
@@ -669,7 +684,7 @@ export default function OracleChat() {
         </button>
       </form>
 
-      <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} />
+      <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} title={upgradeTitle || undefined} />
 
     </div>
   );
