@@ -7,9 +7,10 @@ interface UpgradeModalProps {
   onClose: () => void;
   title?: string;
   subtitle?: string;
+  message?: string;
 }
 
-export function UpgradeModal({ open, onClose, title, subtitle }: UpgradeModalProps) {
+export function UpgradeModal({ open, onClose, title, subtitle, message }: UpgradeModalProps) {
   if (!open) return null;
 
   return (
@@ -30,7 +31,7 @@ export function UpgradeModal({ open, onClose, title, subtitle }: UpgradeModalPro
             {title || "Consultas gratuitas agotadas"}
           </h2>
           <p className="mt-1 text-sm text-slate-400">
-            {subtitle || "Elegí un plan para continuar con Lilly"}
+            {message || subtitle || "Elegí un plan para continuar con Lilly"}
           </p>
         </div>
 
